@@ -181,6 +181,13 @@ paths:
         Send `tools` so a redacted turn can still act: the gateway relays a tool call back with
         real arguments and redacts the result. `X-ChatPanel-Redaction: off` is honoured only from
         a token-bearing caller (0.6.69+) and is recorded in the trace.
+
+        **Two lanes.** An API destination (a cloud or local model endpoint) is a proxy hop and is
+        open to any local caller. An AGENT destination (`codex`, `claude`, `opencode`, … —
+        `provider_type: agent` in `GET /v1/models`) spawns a process on this machine, so the
+        caller must hold the gateway token (0.9.0+): without it the gateway answers **401**
+        `{ type: 'auth', code: 'agent_lane_token_required' }`. The SDKs surface that as
+        `ForbiddenError` with `status` 401.
       operationId: chat.completions
       parameters:
       - $ref: "#/components/parameters/RedactionHeader"
@@ -204,6 +211,13 @@ paths:
               x-chatpanel-frame:
                 $ref: "#/components/schemas/ChatCompletionChunk"
           description: "The completion, or a stream of chunks."
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An agent destination was asked for by a caller without the
+            gateway token.
         "4XX":
           $ref: "#/components/responses/Error"
         "5XX":
@@ -3539,7 +3553,11 @@ components:
           type: string
         type:
           description: "A stable machine word — `not_found`, `invalid_request`, `unavailable`,\
-            \ …"
+            \ `auth`, `policy`, …"
+          type: string
+        code:
+          description: "A finer word when there is one — `agent_lane_token_required`,\
+            \ `org_policy`."
           type: string
       required:
       - message

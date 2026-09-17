@@ -15,7 +15,8 @@ part 'error_response_error.g.dart';
 ///
 /// Properties:
 /// * [message] 
-/// * [type] - A stable machine word — `not_found`, `invalid_request`, `unavailable`, …
+/// * [type] - A stable machine word — `not_found`, `invalid_request`, `unavailable`, `auth`, `policy`, …
+/// * [code] - A finer word when there is one — `agent_lane_token_required`, `org_policy`.
 @BuiltValue()
 abstract class ErrorResponseError implements Built<ErrorResponseError, ErrorResponseErrorBuilder> {
   /// One Of [ErrorResponseErrorOneOf], [String]

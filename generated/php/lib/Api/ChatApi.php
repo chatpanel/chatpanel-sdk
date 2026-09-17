@@ -137,7 +137,7 @@ class ChatApi
      *
      * @throws \ChatPanelSdk\ApiException on non-2xx response or if the response body is not in the expected format
      * @throws \InvalidArgumentException
-     * @return \ChatPanelSdk\Model\ChatCompletion|\ChatPanelSdk\Model\ErrorResponse|\ChatPanelSdk\Model\ErrorResponse
+     * @return \ChatPanelSdk\Model\ChatCompletion|\ChatPanelSdk\Model\ErrorResponse|\ChatPanelSdk\Model\ErrorResponse|\ChatPanelSdk\Model\ErrorResponse
      */
     public function chatCompletions($chat_completion_request, $x_chat_panel_redaction = null, $x_chat_panel_run = null, string $contentType = self::contentTypes['chatCompletions'][0])
     {
@@ -157,7 +157,7 @@ class ChatApi
      *
      * @throws \ChatPanelSdk\ApiException on non-2xx response or if the response body is not in the expected format
      * @throws \InvalidArgumentException
-     * @return array of \ChatPanelSdk\Model\ChatCompletion|\ChatPanelSdk\Model\ErrorResponse|\ChatPanelSdk\Model\ErrorResponse, HTTP status code, HTTP response headers (array of strings)
+     * @return array of \ChatPanelSdk\Model\ChatCompletion|\ChatPanelSdk\Model\ErrorResponse|\ChatPanelSdk\Model\ErrorResponse|\ChatPanelSdk\Model\ErrorResponse, HTTP status code, HTTP response headers (array of strings)
      */
     public function chatCompletionsWithHttpInfo($chat_completion_request, $x_chat_panel_redaction = null, $x_chat_panel_run = null, string $contentType = self::contentTypes['chatCompletions'][0])
     {
@@ -190,6 +190,12 @@ class ChatApi
                 case 200:
                     return $this->handleResponseWithDataType(
                         '\ChatPanelSdk\Model\ChatCompletion',
+                        $request,
+                        $response,
+                    );
+                case 401:
+                    return $this->handleResponseWithDataType(
+                        '\ChatPanelSdk\Model\ErrorResponse',
                         $request,
                         $response,
                     );
@@ -235,6 +241,14 @@ class ChatApi
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
                         '\ChatPanelSdk\Model\ChatCompletion',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 401:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\ChatPanelSdk\Model\ErrorResponse',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);

@@ -12,15 +12,20 @@ part 'error_response_error_one_of.g.dart';
 ///
 /// Properties:
 /// * [message] 
-/// * [type] - A stable machine word — `not_found`, `invalid_request`, `unavailable`, …
+/// * [type] - A stable machine word — `not_found`, `invalid_request`, `unavailable`, `auth`, `policy`, …
+/// * [code] - A finer word when there is one — `agent_lane_token_required`, `org_policy`.
 @BuiltValue()
 abstract class ErrorResponseErrorOneOf implements Built<ErrorResponseErrorOneOf, ErrorResponseErrorOneOfBuilder> {
   @BuiltValueField(wireName: r'message')
   String get message;
 
-  /// A stable machine word — `not_found`, `invalid_request`, `unavailable`, …
+  /// A stable machine word — `not_found`, `invalid_request`, `unavailable`, `auth`, `policy`, …
   @BuiltValueField(wireName: r'type')
   String? get type;
+
+  /// A finer word when there is one — `agent_lane_token_required`, `org_policy`.
+  @BuiltValueField(wireName: r'code')
+  String? get code;
 
   ErrorResponseErrorOneOf._();
 
@@ -54,6 +59,13 @@ class _$ErrorResponseErrorOneOfSerializer implements PrimitiveSerializer<ErrorRe
       yield r'type';
       yield serializers.serialize(
         object.type,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.code != null) {
+      yield r'code';
+      yield serializers.serialize(
+        object.code,
         specifiedType: const FullType(String),
       );
     }
@@ -94,6 +106,14 @@ class _$ErrorResponseErrorOneOfSerializer implements PrimitiveSerializer<ErrorRe
           ) as String?;
           if (valueDes == null) continue;
           result.type = valueDes;
+          break;
+        case r'code':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.code = valueDes;
           break;
         default:
           unhandled.add(key);

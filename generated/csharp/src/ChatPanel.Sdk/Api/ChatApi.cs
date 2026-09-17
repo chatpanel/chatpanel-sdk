@@ -42,7 +42,7 @@ namespace ChatPanel.Sdk.Api
         /// One chat turn through the gateway (OpenAI-compatible).
         /// </summary>
         /// <remarks>
-        /// Redacted on the way out, restored on the way back, routed by &#x60;model&#x60;. With &#x60;stream: true&#x60; the response is &#x60;text/event-stream&#x60; of OpenAI chunk objects ending in &#x60;data: [DONE]&#x60;. Send &#x60;tools&#x60; so a redacted turn can still act: the gateway relays a tool call back with real arguments and redacts the result. &#x60;X-ChatPanel-Redaction: off&#x60; is honoured only from a token-bearing caller (0.6.69+) and is recorded in the trace. 
+        /// Redacted on the way out, restored on the way back, routed by &#x60;model&#x60;. With &#x60;stream: true&#x60; the response is &#x60;text/event-stream&#x60; of OpenAI chunk objects ending in &#x60;data: [DONE]&#x60;. Send &#x60;tools&#x60; so a redacted turn can still act: the gateway relays a tool call back with real arguments and redacts the result. &#x60;X-ChatPanel-Redaction: off&#x60; is honoured only from a token-bearing caller (0.6.69+) and is recorded in the trace.  **Two lanes.** An API destination (a cloud or local model endpoint) is a proxy hop and is open to any local caller. An AGENT destination (&#x60;codex&#x60;, &#x60;claude&#x60;, &#x60;opencode&#x60;, … — &#x60;provider_type: agent&#x60; in &#x60;GET /v1/models&#x60;) spawns a process on this machine, so the caller must hold the gateway token (0.9.0+): without it the gateway answers **401** &#x60;{ type: &#39;auth&#39;, code: &#39;agent_lane_token_required&#39; }&#x60;. The SDKs surface that as &#x60;ForbiddenError&#x60; with &#x60;status&#x60; 401. 
         /// </remarks>
         /// <exception cref="ApiException">Thrown when fails to make API call</exception>
         /// <param name="chatCompletionRequest"></param>
@@ -56,7 +56,7 @@ namespace ChatPanel.Sdk.Api
         /// One chat turn through the gateway (OpenAI-compatible).
         /// </summary>
         /// <remarks>
-        /// Redacted on the way out, restored on the way back, routed by &#x60;model&#x60;. With &#x60;stream: true&#x60; the response is &#x60;text/event-stream&#x60; of OpenAI chunk objects ending in &#x60;data: [DONE]&#x60;. Send &#x60;tools&#x60; so a redacted turn can still act: the gateway relays a tool call back with real arguments and redacts the result. &#x60;X-ChatPanel-Redaction: off&#x60; is honoured only from a token-bearing caller (0.6.69+) and is recorded in the trace. 
+        /// Redacted on the way out, restored on the way back, routed by &#x60;model&#x60;. With &#x60;stream: true&#x60; the response is &#x60;text/event-stream&#x60; of OpenAI chunk objects ending in &#x60;data: [DONE]&#x60;. Send &#x60;tools&#x60; so a redacted turn can still act: the gateway relays a tool call back with real arguments and redacts the result. &#x60;X-ChatPanel-Redaction: off&#x60; is honoured only from a token-bearing caller (0.6.69+) and is recorded in the trace.  **Two lanes.** An API destination (a cloud or local model endpoint) is a proxy hop and is open to any local caller. An AGENT destination (&#x60;codex&#x60;, &#x60;claude&#x60;, &#x60;opencode&#x60;, … — &#x60;provider_type: agent&#x60; in &#x60;GET /v1/models&#x60;) spawns a process on this machine, so the caller must hold the gateway token (0.9.0+): without it the gateway answers **401** &#x60;{ type: &#39;auth&#39;, code: &#39;agent_lane_token_required&#39; }&#x60;. The SDKs surface that as &#x60;ForbiddenError&#x60; with &#x60;status&#x60; 401. 
         /// </remarks>
         /// <param name="chatCompletionRequest"></param>
         /// <param name="xChatPanelRedaction">Turn redaction off for this turn — honoured only from a token-bearing caller (0.6.69+), recorded in the trace. (optional)</param>
@@ -69,13 +69,19 @@ namespace ChatPanel.Sdk.Api
     /// <summary>
     /// The <see cref="IChatCompletionsApiResponse"/>
     /// </summary>
-    public interface IChatCompletionsApiResponse : ChatPanel.Sdk.Client.IApiResponse, IOk<ChatPanel.Sdk.Model.ChatCompletion?>, IHttpStatusCode4XX<ChatPanel.Sdk.Model.ErrorResponse?>, IHttpStatusCode5XX<ChatPanel.Sdk.Model.ErrorResponse?>
+    public interface IChatCompletionsApiResponse : ChatPanel.Sdk.Client.IApiResponse, IOk<ChatPanel.Sdk.Model.ChatCompletion?>, IUnauthorized<ChatPanel.Sdk.Model.ErrorResponse?>, IHttpStatusCode4XX<ChatPanel.Sdk.Model.ErrorResponse?>, IHttpStatusCode5XX<ChatPanel.Sdk.Model.ErrorResponse?>
     {
         /// <summary>
         /// Returns true if the response is 200 Ok
         /// </summary>
         /// <returns></returns>
         bool IsOk { get; }
+
+        /// <summary>
+        /// Returns true if the response is 401 Unauthorized
+        /// </summary>
+        /// <returns></returns>
+        bool IsUnauthorized { get; }
 
         /// <summary>
         /// Returns true if the response is 4XX HttpStatusCode4XX
@@ -240,7 +246,7 @@ namespace ChatPanel.Sdk.Api
         partial void OnErrorChatCompletions(ref bool suppressDefaultLogLocalVar, Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, ChatCompletionRequest chatCompletionRequest, Option<string> xChatPanelRedaction, Option<string> xChatPanelRun);
 
         /// <summary>
-        /// One chat turn through the gateway (OpenAI-compatible). Redacted on the way out, restored on the way back, routed by &#x60;model&#x60;. With &#x60;stream: true&#x60; the response is &#x60;text/event-stream&#x60; of OpenAI chunk objects ending in &#x60;data: [DONE]&#x60;. Send &#x60;tools&#x60; so a redacted turn can still act: the gateway relays a tool call back with real arguments and redacts the result. &#x60;X-ChatPanel-Redaction: off&#x60; is honoured only from a token-bearing caller (0.6.69+) and is recorded in the trace. 
+        /// One chat turn through the gateway (OpenAI-compatible). Redacted on the way out, restored on the way back, routed by &#x60;model&#x60;. With &#x60;stream: true&#x60; the response is &#x60;text/event-stream&#x60; of OpenAI chunk objects ending in &#x60;data: [DONE]&#x60;. Send &#x60;tools&#x60; so a redacted turn can still act: the gateway relays a tool call back with real arguments and redacts the result. &#x60;X-ChatPanel-Redaction: off&#x60; is honoured only from a token-bearing caller (0.6.69+) and is recorded in the trace.  **Two lanes.** An API destination (a cloud or local model endpoint) is a proxy hop and is open to any local caller. An AGENT destination (&#x60;codex&#x60;, &#x60;claude&#x60;, &#x60;opencode&#x60;, … — &#x60;provider_type: agent&#x60; in &#x60;GET /v1/models&#x60;) spawns a process on this machine, so the caller must hold the gateway token (0.9.0+): without it the gateway answers **401** &#x60;{ type: &#39;auth&#39;, code: &#39;agent_lane_token_required&#39; }&#x60;. The SDKs surface that as &#x60;ForbiddenError&#x60; with &#x60;status&#x60; 401. 
         /// </summary>
         /// <param name="chatCompletionRequest"></param>
         /// <param name="xChatPanelRedaction">Turn redaction off for this turn — honoured only from a token-bearing caller (0.6.69+), recorded in the trace. (optional)</param>
@@ -260,7 +266,7 @@ namespace ChatPanel.Sdk.Api
         }
 
         /// <summary>
-        /// One chat turn through the gateway (OpenAI-compatible). Redacted on the way out, restored on the way back, routed by &#x60;model&#x60;. With &#x60;stream: true&#x60; the response is &#x60;text/event-stream&#x60; of OpenAI chunk objects ending in &#x60;data: [DONE]&#x60;. Send &#x60;tools&#x60; so a redacted turn can still act: the gateway relays a tool call back with real arguments and redacts the result. &#x60;X-ChatPanel-Redaction: off&#x60; is honoured only from a token-bearing caller (0.6.69+) and is recorded in the trace. 
+        /// One chat turn through the gateway (OpenAI-compatible). Redacted on the way out, restored on the way back, routed by &#x60;model&#x60;. With &#x60;stream: true&#x60; the response is &#x60;text/event-stream&#x60; of OpenAI chunk objects ending in &#x60;data: [DONE]&#x60;. Send &#x60;tools&#x60; so a redacted turn can still act: the gateway relays a tool call back with real arguments and redacts the result. &#x60;X-ChatPanel-Redaction: off&#x60; is honoured only from a token-bearing caller (0.6.69+) and is recorded in the trace.  **Two lanes.** An API destination (a cloud or local model endpoint) is a proxy hop and is open to any local caller. An AGENT destination (&#x60;codex&#x60;, &#x60;claude&#x60;, &#x60;opencode&#x60;, … — &#x60;provider_type: agent&#x60; in &#x60;GET /v1/models&#x60;) spawns a process on this machine, so the caller must hold the gateway token (0.9.0+): without it the gateway answers **401** &#x60;{ type: &#39;auth&#39;, code: &#39;agent_lane_token_required&#39; }&#x60;. The SDKs surface that as &#x60;ForbiddenError&#x60; with &#x60;status&#x60; 401. 
         /// </summary>
         /// <exception cref="ApiException">Thrown when fails to make API call</exception>
         /// <param name="chatCompletionRequest"></param>
@@ -471,6 +477,56 @@ namespace ChatPanel.Sdk.Api
                 } catch (Exception e)
                 {
                     OnDeserializationErrorDefaultImplementation(e, (HttpStatusCode)200);
+                }
+
+                return result != null;
+            }
+
+            /// <summary>
+            /// Returns true if the response is 401 Unauthorized
+            /// </summary>
+            /// <returns></returns>
+            public bool IsUnauthorized => 401 == (int)StatusCode;
+
+            /// <summary>
+            /// Deserializes the response if the response is 401 Unauthorized
+            /// </summary>
+            /// <returns></returns>
+            public ChatPanel.Sdk.Model.ErrorResponse? Unauthorized()
+            {
+                bool suppressDefault = false;
+                ChatPanel.Sdk.Model.ErrorResponse? result = null;
+                OnUnauthorized(ref suppressDefault, ref result);
+                if (!suppressDefault)
+                    result = DefaultUnauthorized();
+                return result;
+            }
+
+            private ChatPanel.Sdk.Model.ErrorResponse? DefaultUnauthorized()
+            {
+                // NOTICE: Consider this AsModel template deprecated. Implement the appropriate partial method instead
+                return IsUnauthorized
+                    ? System.Text.Json.JsonSerializer.Deserialize<ChatPanel.Sdk.Model.ErrorResponse>(RawContent, _jsonSerializerOptions)
+                    : null;
+            }
+
+            partial void OnUnauthorized(ref bool suppressDefault, ref ChatPanel.Sdk.Model.ErrorResponse? result);
+
+            /// <summary>
+            /// Returns true if the response is 401 Unauthorized and the deserialized response is not null
+            /// </summary>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public bool TryUnauthorized([NotNullWhen(true)]out ChatPanel.Sdk.Model.ErrorResponse? result)
+            {
+                result = null;
+
+                try
+                {
+                    result = Unauthorized();
+                } catch (Exception e)
+                {
+                    OnDeserializationErrorDefaultImplementation(e, (HttpStatusCode)401);
                 }
 
                 return result != null;

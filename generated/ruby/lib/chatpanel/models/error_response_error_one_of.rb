@@ -17,14 +17,18 @@ module ChatPanel
   class ErrorResponseErrorOneOf < ApiModelBase
     attr_accessor :message
 
-    # A stable machine word — `not_found`, `invalid_request`, `unavailable`, …
+    # A stable machine word — `not_found`, `invalid_request`, `unavailable`, `auth`, `policy`, …
     attr_accessor :type
+
+    # A finer word when there is one — `agent_lane_token_required`, `org_policy`.
+    attr_accessor :code
 
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
         :'message' => :'message',
-        :'type' => :'type'
+        :'type' => :'type',
+        :'code' => :'code'
       }
     end
 
@@ -42,7 +46,8 @@ module ChatPanel
     def self.openapi_types
       {
         :'message' => :'String',
-        :'type' => :'String'
+        :'type' => :'String',
+        :'code' => :'String'
       }
     end
 
@@ -76,6 +81,10 @@ module ChatPanel
 
       if attributes.key?(:'type')
         self.type = attributes[:'type']
+      end
+
+      if attributes.key?(:'code')
+        self.code = attributes[:'code']
       end
     end
 
@@ -115,7 +124,8 @@ module ChatPanel
       return true if self.equal?(o)
       self.class == o.class &&
           message == o.message &&
-          type == o.type
+          type == o.type &&
+          code == o.code
     end
 
     # @see the `==` method
@@ -127,7 +137,7 @@ module ChatPanel
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [message, type].hash
+      [message, type, code].hash
     end
 
     # Builds the object from hash

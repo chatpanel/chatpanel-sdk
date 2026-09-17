@@ -34,7 +34,8 @@ import net.chatpanel.sdk.ApiClient;
  */
 @JsonPropertyOrder({
   ErrorResponseErrorOneOf.JSON_PROPERTY_MESSAGE,
-  ErrorResponseErrorOneOf.JSON_PROPERTY_TYPE
+  ErrorResponseErrorOneOf.JSON_PROPERTY_TYPE,
+  ErrorResponseErrorOneOf.JSON_PROPERTY_CODE
 })
 @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.25.0")
 public class ErrorResponseErrorOneOf {
@@ -45,6 +46,10 @@ public class ErrorResponseErrorOneOf {
   public static final String JSON_PROPERTY_TYPE = "type";
   @jakarta.annotation.Nullable
   private String type;
+
+  public static final String JSON_PROPERTY_CODE = "code";
+  @jakarta.annotation.Nullable
+  private String code;
 
   public ErrorResponseErrorOneOf() { 
   }
@@ -79,7 +84,7 @@ public class ErrorResponseErrorOneOf {
   }
 
   /**
-   * A stable machine word — &#x60;not_found&#x60;, &#x60;invalid_request&#x60;, &#x60;unavailable&#x60;, …
+   * A stable machine word — &#x60;not_found&#x60;, &#x60;invalid_request&#x60;, &#x60;unavailable&#x60;, &#x60;auth&#x60;, &#x60;policy&#x60;, …
    * @return type
    */
   @jakarta.annotation.Nullable
@@ -97,6 +102,30 @@ public class ErrorResponseErrorOneOf {
   }
 
 
+  public ErrorResponseErrorOneOf code(@jakarta.annotation.Nullable String code) {
+    this.code = code;
+    return this;
+  }
+
+  /**
+   * A finer word when there is one — &#x60;agent_lane_token_required&#x60;, &#x60;org_policy&#x60;.
+   * @return code
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_CODE, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public String getCode() {
+    return code;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_CODE, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setCode(@jakarta.annotation.Nullable String code) {
+    this.code = code;
+  }
+
+
   /**
    * Return true if this ErrorResponse_error_oneOf object is equal to o.
    */
@@ -110,12 +139,13 @@ public class ErrorResponseErrorOneOf {
     }
     ErrorResponseErrorOneOf errorResponseErrorOneOf = (ErrorResponseErrorOneOf) o;
     return Objects.equals(this.message, errorResponseErrorOneOf.message) &&
-        Objects.equals(this.type, errorResponseErrorOneOf.type);
+        Objects.equals(this.type, errorResponseErrorOneOf.type) &&
+        Objects.equals(this.code, errorResponseErrorOneOf.code);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(message, type);
+    return Objects.hash(message, type, code);
   }
 
   @Override
@@ -124,6 +154,7 @@ public class ErrorResponseErrorOneOf {
     sb.append("class ErrorResponseErrorOneOf {\n");
     sb.append("    message: ").append(toIndentedString(message)).append("\n");
     sb.append("    type: ").append(toIndentedString(type)).append("\n");
+    sb.append("    code: ").append(toIndentedString(code)).append("\n");
     sb.append("}");
     return sb.toString();
   }
@@ -176,6 +207,11 @@ public class ErrorResponseErrorOneOf {
     // add `type` to the URL query string
     if (getType() != null) {
       joiner.add(String.format(java.util.Locale.ROOT, "%stype%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getType()))));
+    }
+
+    // add `code` to the URL query string
+    if (getCode() != null) {
+      joiner.add(String.format(java.util.Locale.ROOT, "%scode%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getCode()))));
     }
 
     return joiner.toString();

@@ -32,7 +32,8 @@ import com.squareup.moshi.JsonClass
  * 
  *
  * @param message 
- * @param type A stable machine word — `not_found`, `invalid_request`, `unavailable`, …
+ * @param type A stable machine word — `not_found`, `invalid_request`, `unavailable`, `auth`, `policy`, …
+ * @param code A finer word when there is one — `agent_lane_token_required`, `org_policy`.
  */
 
 
@@ -41,9 +42,13 @@ data class ErrorResponseError (
     @Json(name = "message")
     val message: kotlin.String,
 
-    /* A stable machine word — `not_found`, `invalid_request`, `unavailable`, … */
+    /* A stable machine word — `not_found`, `invalid_request`, `unavailable`, `auth`, `policy`, … */
     @Json(name = "type")
-    val type: kotlin.String? = null
+    val type: kotlin.String? = null,
+
+    /* A finer word when there is one — `agent_lane_token_required`, `org_policy`. */
+    @Json(name = "code")
+    val code: kotlin.String? = null
 
 ) {
 

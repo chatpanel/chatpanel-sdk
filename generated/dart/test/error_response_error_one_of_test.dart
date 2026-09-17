@@ -12,9 +12,15 @@ void main() {
       // TODO
     });
 
-    // A stable machine word — `not_found`, `invalid_request`, `unavailable`, …
+    // A stable machine word — `not_found`, `invalid_request`, `unavailable`, `auth`, `policy`, …
     // String type
     test('to test the property `type`', () async {
+      // TODO
+    });
+
+    // A finer word when there is one — `agent_lane_token_required`, `org_policy`.
+    // String code
+    test('to test the property `code`', () async {
       // TODO
     });
 

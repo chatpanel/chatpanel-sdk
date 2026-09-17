@@ -21,8 +21,10 @@ var _ MappedNullable = &ErrorResponseErrorOneOf{}
 // ErrorResponseErrorOneOf struct for ErrorResponseErrorOneOf
 type ErrorResponseErrorOneOf struct {
 	Message string `json:"message"`
-	// A stable machine word — `not_found`, `invalid_request`, `unavailable`, …
+	// A stable machine word — `not_found`, `invalid_request`, `unavailable`, `auth`, `policy`, …
 	Type *string `json:"type,omitempty"`
+	// A finer word when there is one — `agent_lane_token_required`, `org_policy`.
+	Code *string `json:"code,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -102,6 +104,38 @@ func (o *ErrorResponseErrorOneOf) SetType(v string) {
 	o.Type = &v
 }
 
+// GetCode returns the Code field value if set, zero value otherwise.
+func (o *ErrorResponseErrorOneOf) GetCode() string {
+	if o == nil || IsNil(o.Code) {
+		var ret string
+		return ret
+	}
+	return *o.Code
+}
+
+// GetCodeOk returns a tuple with the Code field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ErrorResponseErrorOneOf) GetCodeOk() (*string, bool) {
+	if o == nil || IsNil(o.Code) {
+		return nil, false
+	}
+	return o.Code, true
+}
+
+// HasCode returns a boolean if a field has been set.
+func (o *ErrorResponseErrorOneOf) HasCode() bool {
+	if o != nil && !IsNil(o.Code) {
+		return true
+	}
+
+	return false
+}
+
+// SetCode gets a reference to the given string and assigns it to the Code field.
+func (o *ErrorResponseErrorOneOf) SetCode(v string) {
+	o.Code = &v
+}
+
 func (o ErrorResponseErrorOneOf) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -115,6 +149,9 @@ func (o ErrorResponseErrorOneOf) ToMap() (map[string]interface{}, error) {
 	toSerialize["message"] = o.Message
 	if !IsNil(o.Type) {
 		toSerialize["type"] = o.Type
+	}
+	if !IsNil(o.Code) {
+		toSerialize["code"] = o.Code
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -161,6 +198,7 @@ func (o *ErrorResponseErrorOneOf) UnmarshalJSON(data []byte) (err error) {
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
 		delete(additionalProperties, "message")
 		delete(additionalProperties, "type")
+		delete(additionalProperties, "code")
 		o.AdditionalProperties = additionalProperties
 	}
 

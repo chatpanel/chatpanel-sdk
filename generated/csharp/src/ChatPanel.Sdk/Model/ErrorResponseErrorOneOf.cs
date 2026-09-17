@@ -34,12 +34,14 @@ namespace ChatPanel.Sdk.Model
         /// Initializes a new instance of the <see cref="ErrorResponseErrorOneOf" /> class.
         /// </summary>
         /// <param name="message">message</param>
-        /// <param name="type">A stable machine word — &#x60;not_found&#x60;, &#x60;invalid_request&#x60;, &#x60;unavailable&#x60;, …</param>
+        /// <param name="type">A stable machine word — &#x60;not_found&#x60;, &#x60;invalid_request&#x60;, &#x60;unavailable&#x60;, &#x60;auth&#x60;, &#x60;policy&#x60;, …</param>
+        /// <param name="code">A finer word when there is one — &#x60;agent_lane_token_required&#x60;, &#x60;org_policy&#x60;.</param>
         [JsonConstructor]
-        public ErrorResponseErrorOneOf(string message, Option<string?> type = default)
+        public ErrorResponseErrorOneOf(string message, Option<string?> type = default, Option<string?> code = default)
         {
             Message = message;
             TypeOption = type;
+            CodeOption = code;
             OnCreated();
         }
 
@@ -59,11 +61,25 @@ namespace ChatPanel.Sdk.Model
         public Option<string?> TypeOption { get; private set; }
 
         /// <summary>
-        /// A stable machine word — &#x60;not_found&#x60;, &#x60;invalid_request&#x60;, &#x60;unavailable&#x60;, …
+        /// A stable machine word — &#x60;not_found&#x60;, &#x60;invalid_request&#x60;, &#x60;unavailable&#x60;, &#x60;auth&#x60;, &#x60;policy&#x60;, …
         /// </summary>
-        /// <value>A stable machine word — &#x60;not_found&#x60;, &#x60;invalid_request&#x60;, &#x60;unavailable&#x60;, …</value>
+        /// <value>A stable machine word — &#x60;not_found&#x60;, &#x60;invalid_request&#x60;, &#x60;unavailable&#x60;, &#x60;auth&#x60;, &#x60;policy&#x60;, …</value>
         [JsonPropertyName("type")]
         public string? Type { get { return this.TypeOption.Value; } set { this.TypeOption = new(value); } }
+
+        /// <summary>
+        /// Used to track the state of Code
+        /// </summary>
+        [JsonIgnore]
+        [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
+        public Option<string?> CodeOption { get; private set; }
+
+        /// <summary>
+        /// A finer word when there is one — &#x60;agent_lane_token_required&#x60;, &#x60;org_policy&#x60;.
+        /// </summary>
+        /// <value>A finer word when there is one — &#x60;agent_lane_token_required&#x60;, &#x60;org_policy&#x60;.</value>
+        [JsonPropertyName("code")]
+        public string? Code { get { return this.CodeOption.Value; } set { this.CodeOption = new(value); } }
 
         /// <summary>
         /// Returns the string presentation of the object
@@ -75,6 +91,7 @@ namespace ChatPanel.Sdk.Model
             sb.Append("class ErrorResponseErrorOneOf {\n");
             sb.Append("  Message: ").Append(Message).Append("\n");
             sb.Append("  Type: ").Append(Type).Append("\n");
+            sb.Append("  Code: ").Append(Code).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }
@@ -124,6 +141,7 @@ namespace ChatPanel.Sdk.Model
 
             Option<string?> message = default;
             Option<string?> type = default;
+            Option<string?> code = default;
 
             while (utf8JsonReader.Read())
             {
@@ -146,6 +164,9 @@ namespace ChatPanel.Sdk.Model
                         case "type":
                             type = new Option<string?>(utf8JsonReader.GetString()!);
                             break;
+                        case "code":
+                            code = new Option<string?>(utf8JsonReader.GetString()!);
+                            break;
                         default:
                             break;
                     }
@@ -161,7 +182,10 @@ namespace ChatPanel.Sdk.Model
             if (type.IsSet && type.Value == null)
                 throw new ArgumentNullException(nameof(type), "Property is not nullable for class ErrorResponseErrorOneOf.");
 
-            return new ErrorResponseErrorOneOf(message.Value!, type);
+            if (code.IsSet && code.Value == null)
+                throw new ArgumentNullException(nameof(code), "Property is not nullable for class ErrorResponseErrorOneOf.");
+
+            return new ErrorResponseErrorOneOf(message.Value!, type, code);
         }
 
         /// <summary>
@@ -194,10 +218,16 @@ namespace ChatPanel.Sdk.Model
             if (errorResponseErrorOneOf.TypeOption.IsSet && errorResponseErrorOneOf.Type == null)
                 throw new ArgumentNullException(nameof(errorResponseErrorOneOf.Type), "Property is required for class ErrorResponseErrorOneOf.");
 
+            if (errorResponseErrorOneOf.CodeOption.IsSet && errorResponseErrorOneOf.Code == null)
+                throw new ArgumentNullException(nameof(errorResponseErrorOneOf.Code), "Property is required for class ErrorResponseErrorOneOf.");
+
             writer.WriteString("message", errorResponseErrorOneOf.Message);
 
             if (errorResponseErrorOneOf.TypeOption.IsSet)
                 writer.WriteString("type", errorResponseErrorOneOf.Type);
+
+            if (errorResponseErrorOneOf.CodeOption.IsSet)
+                writer.WriteString("code", errorResponseErrorOneOf.Code);
         }
     }
 }

@@ -40,10 +40,16 @@ class ErrorResponseErrorTest : ShouldSpec() {
             //modelInstance.message shouldBe ("TODO")
         }
 
-        // to test the property `type` - A stable machine word — `not_found`, `invalid_request`, `unavailable`, …
+        // to test the property `type` - A stable machine word — `not_found`, `invalid_request`, `unavailable`, `auth`, `policy`, …
         should("test type") {
             // uncomment below to test the property
             //modelInstance.type shouldBe ("TODO")
+        }
+
+        // to test the property `code` - A finer word when there is one — `agent_lane_token_required`, `org_policy`.
+        should("test code") {
+            // uncomment below to test the property
+            //modelInstance.code shouldBe ("TODO")
         }
 
     }

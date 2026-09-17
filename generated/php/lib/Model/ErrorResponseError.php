@@ -58,7 +58,8 @@ class ErrorResponseError implements ModelInterface, ArrayAccess, \JsonSerializab
      */
     protected static $openAPITypes = [
         'message' => 'string',
-        'type' => 'string'
+        'type' => 'string',
+        'code' => 'string'
     ];
 
     /**
@@ -70,7 +71,8 @@ class ErrorResponseError implements ModelInterface, ArrayAccess, \JsonSerializab
      */
     protected static $openAPIFormats = [
         'message' => null,
-        'type' => null
+        'type' => null,
+        'code' => null
     ];
 
     /**
@@ -80,7 +82,8 @@ class ErrorResponseError implements ModelInterface, ArrayAccess, \JsonSerializab
      */
     protected static array $openAPINullables = [
         'message' => false,
-        'type' => false
+        'type' => false,
+        'code' => false
     ];
 
     /**
@@ -170,7 +173,8 @@ class ErrorResponseError implements ModelInterface, ArrayAccess, \JsonSerializab
      */
     protected static $attributeMap = [
         'message' => 'message',
-        'type' => 'type'
+        'type' => 'type',
+        'code' => 'code'
     ];
 
     /**
@@ -180,7 +184,8 @@ class ErrorResponseError implements ModelInterface, ArrayAccess, \JsonSerializab
      */
     protected static $setters = [
         'message' => 'setMessage',
-        'type' => 'setType'
+        'type' => 'setType',
+        'code' => 'setCode'
     ];
 
     /**
@@ -190,7 +195,8 @@ class ErrorResponseError implements ModelInterface, ArrayAccess, \JsonSerializab
      */
     protected static $getters = [
         'message' => 'getMessage',
-        'type' => 'getType'
+        'type' => 'getType',
+        'code' => 'getCode'
     ];
 
     /**
@@ -252,6 +258,7 @@ class ErrorResponseError implements ModelInterface, ArrayAccess, \JsonSerializab
     {
         $this->setIfExists('message', $data ?? [], null);
         $this->setIfExists('type', $data ?? [], null);
+        $this->setIfExists('code', $data ?? [], null);
     }
 
     /**
@@ -339,7 +346,7 @@ class ErrorResponseError implements ModelInterface, ArrayAccess, \JsonSerializab
     /**
      * Sets type
      *
-     * @param string|null $type A stable machine word — `not_found`, `invalid_request`, `unavailable`, …
+     * @param string|null $type A stable machine word — `not_found`, `invalid_request`, `unavailable`, `auth`, `policy`, …
      *
      * @return self
      */
@@ -349,6 +356,33 @@ class ErrorResponseError implements ModelInterface, ArrayAccess, \JsonSerializab
             throw new \InvalidArgumentException('non-nullable type cannot be null');
         }
         $this->container['type'] = $type;
+
+        return $this;
+    }
+
+    /**
+     * Gets code
+     *
+     * @return string|null
+     */
+    public function getCode()
+    {
+        return $this->container['code'];
+    }
+
+    /**
+     * Sets code
+     *
+     * @param string|null $code A finer word when there is one — `agent_lane_token_required`, `org_policy`.
+     *
+     * @return self
+     */
+    public function setCode($code)
+    {
+        if (is_null($code)) {
+            throw new \InvalidArgumentException('non-nullable code cannot be null');
+        }
+        $this->container['code'] = $code;
 
         return $this;
     }

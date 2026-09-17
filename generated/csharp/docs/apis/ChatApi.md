@@ -12,7 +12,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 One chat turn through the gateway (OpenAI-compatible).
 
-Redacted on the way out, restored on the way back, routed by `model`. With `stream: true` the response is `text/event-stream` of OpenAI chunk objects ending in `data: [DONE]`. Send `tools` so a redacted turn can still act: the gateway relays a tool call back with real arguments and redacts the result. `X-ChatPanel-Redaction: off` is honoured only from a token-bearing caller (0.6.69+) and is recorded in the trace. 
+Redacted on the way out, restored on the way back, routed by `model`. With `stream: true` the response is `text/event-stream` of OpenAI chunk objects ending in `data: [DONE]`. Send `tools` so a redacted turn can still act: the gateway relays a tool call back with real arguments and redacts the result. `X-ChatPanel-Redaction: off` is honoured only from a token-bearing caller (0.6.69+) and is recorded in the trace.  **Two lanes.** An API destination (a cloud or local model endpoint) is a proxy hop and is open to any local caller. An AGENT destination (`codex`, `claude`, `opencode`, … — `provider_type: agent` in `GET /v1/models`) spawns a process on this machine, so the caller must hold the gateway token (0.9.0+): without it the gateway answers **401** `{ type: 'auth', code: 'agent_lane_token_required' }`. The SDKs surface that as `ForbiddenError` with `status` 401. 
 
 
 ### Parameters
@@ -41,6 +41,7 @@ Redacted on the way out, restored on the way back, routed by `model`. With `stre
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | The completion, or a stream of chunks. |  -  |
+| **401** | An agent destination was asked for by a caller without the gateway token. |  -  |
 | **4XX** | An error, in the gateway&#39;s words. |  -  |
 | **5XX** | An error, in the gateway&#39;s words. |  -  |
 

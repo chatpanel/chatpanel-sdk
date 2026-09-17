@@ -1,6 +1,7 @@
 name: publish-npm
 # Version-guarded, like every ChatPanel package: the same version publishes nothing.
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths: ['sdk/typescript/**', 'openapi/**']

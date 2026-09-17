@@ -30,6 +30,13 @@ Send `tools` so a redacted turn can still act: the gateway relays a tool call ba
 real arguments and redacts the result. `X-ChatPanel-Redaction: off` is honoured only from
 a token-bearing caller (0.6.69+) and is recorded in the trace.
 
+**Two lanes.** An API destination (a cloud or local model endpoint) is a proxy hop and is
+open to any local caller. An AGENT destination (`codex`, `claude`, `opencode`, … —
+`provider_type: agent` in `GET /v1/models`) spawns a process on this machine, so the
+caller must hold the gateway token (0.9.0+): without it the gateway answers **401**
+`{ type: 'auth', code: 'agent_lane_token_required' }`. The SDKs surface that as
+`ForbiddenError` with `status` 401.
+
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@return ApiChatCompletionsRequest
@@ -81,6 +88,13 @@ the response is `text/event-stream` of OpenAI chunk objects ending in `data: [DO
 Send `tools` so a redacted turn can still act: the gateway relays a tool call back with
 real arguments and redacts the result. `X-ChatPanel-Redaction: off` is honoured only from
 a token-bearing caller (0.6.69+) and is recorded in the trace.
+
+**Two lanes.** An API destination (a cloud or local model endpoint) is a proxy hop and is
+open to any local caller. An AGENT destination (`codex`, `claude`, `opencode`, … —
+`provider_type: agent` in `GET /v1/models`) spawns a process on this machine, so the
+caller must hold the gateway token (0.9.0+): without it the gateway answers **401**
+`{ type: 'auth', code: 'agent_lane_token_required' }`. The SDKs surface that as
+`ForbiddenError` with `status` 401.
 
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -163,6 +177,17 @@ func (a *ChatAPIService) ChatCompletionsExecute(r ApiChatCompletionsRequest) (*C
 		newErr := &GenericOpenAPIError{
 			body:  localVarBody,
 			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode >= 400 && localVarHTTPResponse.StatusCode < 500 {
 			var v ErrorResponse

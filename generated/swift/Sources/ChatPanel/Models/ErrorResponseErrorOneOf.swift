@@ -10,17 +10,21 @@ import Foundation
 public struct ErrorResponseErrorOneOf: Sendable, Codable, Hashable {
 
     public var message: String
-    /** A stable machine word — `not_found`, `invalid_request`, `unavailable`, … */
+    /** A stable machine word — `not_found`, `invalid_request`, `unavailable`, `auth`, `policy`, … */
     public var type: String?
+    /** A finer word when there is one — `agent_lane_token_required`, `org_policy`. */
+    public var code: String?
 
-    public init(message: String, type: String? = nil) {
+    public init(message: String, type: String? = nil, code: String? = nil) {
         self.message = message
         self.type = type
+        self.code = code
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case message
         case type
+        case code
     }
 
     // Encodable protocol methods
@@ -29,6 +33,7 @@ public struct ErrorResponseErrorOneOf: Sendable, Codable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(message, forKey: .message)
         try container.encodeIfPresent(type, forKey: .type)
+        try container.encodeIfPresent(code, forKey: .code)
     }
 }
 
