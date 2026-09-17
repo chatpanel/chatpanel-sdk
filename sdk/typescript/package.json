@@ -1,0 +1,26 @@
+{
+  "name": "@chatpanel/sdk",
+  "version": "0.1.0",
+  "description": "Typed client for the local ChatPanel gateway — chat through the privacy proxy, search the user's history, read and write memory, follow team runs. Zero dependencies.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "sideEffects": false,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "prepack": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  },
+  "keywords": ["chatpanel", "sdk", "client", "gateway", "privacy", "llm", "agents"],
+  "license": "Apache-2.0",
+  "repository": { "type": "git", "url": "git+https://github.com/chatpanel/chatpanel-sdk.git", "directory": "sdk/typescript" },
+  "homepage": "https://chatpanel.net"
+}

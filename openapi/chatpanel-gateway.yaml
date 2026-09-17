@@ -1,0 +1,1831 @@
+openapi: 3.1.0
+# ---------------------------------------------------------------------------------------
+# ChatPanel Gateway — the client contract.
+#
+# THIS FILE IS THE SOURCE OF TRUTH FOR EVERY SDK IN THIS REPO. The TypeScript and Python
+# surfaces are generated from it (tools/gen-core.mjs); the long-tail languages are generated
+# from it with openapi-generator (tools/generate.mjs). A route that is not here is not in any
+# SDK, and a route added here reaches every language on the next `npm run generate`.
+#
+# Rules (the hub's "Tesla rule"): the gateway evolves continuously, clients update slowly, so
+# every change to this contract is ADDITIVE — a new operation, a new optional field, a new
+# optional parameter. Never rename, never remove, never make an optional field required.
+#
+# Per-operation extensions the generators read:
+#   x-chatpanel-auth    open  — any loopback caller may call it (the product's data plane)
+#                       token — the gateway token (~/.chatpanel/gateway-token, or a paired
+#                               client's copy) is required; the gateway answers 403 otherwise
+#   x-chatpanel-since   the gateway version that introduced the route, when its source says
+#                       so. An SDK checks GET /health once and refuses the call on an older
+#                       gateway with "your gateway is X; this needs Y" instead of letting it
+#                       fall through to the model proxy as "upstream fetch failed".
+#   x-chatpanel-stream  sse — text/event-stream; the SDK exposes it as an event iterator.
+#   x-chatpanel-scope   a human label for what the operation reaches (docs + audit).
+# ---------------------------------------------------------------------------------------
+info:
+  title: ChatPanel Gateway API
+  version: 0.11.0
+  summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
+  description: |
+    The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
+    redacts personal data before a model sees it, routes model traffic, and holds the user's
+    searchable history, durable memory, shared preferences and the team/project run boards.
+
+    **It only answers on loopback.** A client on another host cannot reach it; an SDK refuses a
+    non-loopback base URL unless the integrator opts in and uses TLS.
+
+    **Two trust levels.** The `/v1` data plane is open to any local process — that is the
+    product. Writes that change what every client sees (remember, forget, ingest) and anything
+    admin-shaped require the per-install token the gateway writes to
+    `~/.chatpanel/gateway-token` (mode 0600), or a copy obtained by pairing (`POST /pair` with
+    a one-time code from `chatpanel-gateway pair`). `POST /whoami` says which trust you have.
+
+    **Errors** are `{ error: { message, type } }` (or `{ error: "text" }` on the oldest routes)
+    with the HTTP status. `type` is a stable machine word: `not_found`, `invalid_request`,
+    `unknown_endpoint`, `unavailable`, `bridge_unreachable`, `no_bridge`, `redact_error`,
+    `search_error`, `memory_error`, `team_error`, `ingest_error`, `prefs_error`.
+  license:
+    name: Apache-2.0
+    identifier: Apache-2.0
+  contact:
+    name: ChatPanel
+    url: https://chatpanel.net
+
+servers:
+  - url: http://127.0.0.1:4320
+    description: The local gateway. Loopback only.
+
+security:
+  - {}
+  - gatewayToken: []
+
+tags:
+  - name: gateway
+    description: Liveness, identity and pairing.
+  - name: models
+    description: What the gateway can route to.
+  - name: chat
+    description: The OpenAI-compatible chat endpoint, redacted and routed by the gateway.
+  - name: redaction
+    description: Preview what the model would receive.
+  - name: history
+    description: The user's searchable history — chats, notes, meetings, briefs.
+  - name: memory
+    description: Durable facts about the user, carried into every turn on every client.
+  - name: prefs
+    description: The settings every client shares.
+  - name: teams
+    description: Team runs — the board every client can read.
+  - name: projects
+    description: The project record — the page a goal starts on and everything done for it.
+  - name: agents
+    description: Attested per-agent scorecards.
+  - name: engines
+    description: The model ledger — every engine's card.
+  - name: skills
+    description: The skills on this machine (served through the bridge).
+
+paths:
+  # ------------------------------------------------------------------ gateway
+  /health:
+    get:
+      operationId: gateway.health
+      tags: [gateway]
+      summary: Liveness, version and capabilities.
+      description: Additive fields only. `version` is what every version gate reads.
+      x-chatpanel-auth: open
+      responses:
+        '200':
+          description: The gateway is up.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Health' }
+  /whoami:
+    post:
+      operationId: gateway.whoami
+      tags: [gateway]
+      summary: What the gateway makes of this caller.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.9.0'
+      responses:
+        '200':
+          description: The caller's trust class.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WhoAmI' }
+  /pair/code:
+    post:
+      operationId: gateway.pairCode
+      tags: [gateway]
+      summary: Mint a one-time pairing code (5 minutes, one use, 5 attempts).
+      description: Only a caller that already holds the token may mint one — pairing widens nothing.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.9.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      responses:
+        '200':
+          description: The code to carry into the client.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PairingCode' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /pair:
+    post:
+      operationId: gateway.pair
+      tags: [gateway]
+      summary: Exchange a pairing code for the gateway token.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.9.0'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { type: string, description: "The 6-digit code from `chatpanel-gateway pair`." }
+      responses:
+        '200':
+          description: Paired. Store the token where only this user can read it.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Paired' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /audit:
+    get:
+      operationId: gateway.audit
+      tags: [gateway]
+      summary: The egress audit — which hosts this gateway has contacted and which its config allows.
+      description: The checkable claim behind "nothing leaves the machine". Admin-gated because it names the user's model endpoints.
+      x-chatpanel-auth: token
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      responses:
+        '200':
+          description: The audit.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Audit' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  # ------------------------------------------------------------------ models / chat
+  /v1/models:
+    get:
+      operationId: models.list
+      tags: [models]
+      summary: Every model the gateway can route to.
+      description: |
+        Describes the routing table, not the disk: a bridge agent is listed whether or not the
+        CLI is installed. From 0.6.64 each agent carries `available`; from 0.6.66 a cloud model
+        carries `configured: false` when a turn is known to fail for something the user can fix.
+      x-chatpanel-auth: open
+      responses:
+        '200':
+          description: The list.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ModelList' }
+  /v1/chat/completions:
+    post:
+      operationId: chat.completions
+      tags: [chat]
+      summary: One chat turn through the gateway (OpenAI-compatible).
+      description: |
+        Redacted on the way out, restored on the way back, routed by `model`. With `stream: true`
+        the response is `text/event-stream` of OpenAI chunk objects ending in `data: [DONE]`.
+        Send `tools` so a redacted turn can still act: the gateway relays a tool call back with
+        real arguments and redacts the result. `X-ChatPanel-Redaction: off` is honoured only from
+        a token-bearing caller (0.6.69+) and is recorded in the trace.
+      x-chatpanel-auth: open
+      x-chatpanel-stream: sse-when-stream
+      parameters:
+        - $ref: '#/components/parameters/RedactionHeader'
+        - $ref: '#/components/parameters/RunHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChatCompletionRequest' }
+      responses:
+        '200':
+          description: The completion, or a stream of chunks.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ChatCompletion' }
+            text/event-stream:
+              schema: { type: string, description: '`data: {chunk}` frames; `data: [DONE]` ends it.' }
+              x-chatpanel-frame: { $ref: '#/components/schemas/ChatCompletionChunk' }
+        '4XX': { $ref: '#/components/responses/Error' }
+        '5XX': { $ref: '#/components/responses/Error' }
+
+  # ------------------------------------------------------------------ redaction
+  /redact:
+    post:
+      operationId: redaction.preview
+      tags: [redaction]
+      summary: What the model would receive if this text were sent now.
+      description: Runs the same redaction path as a real turn. The reply carries placeholder types, never the real values.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.62'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: { type: string }
+      responses:
+        '200':
+          description: The redacted text and what was replaced.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RedactionPreview' }
+        '500': { $ref: '#/components/responses/Error' }
+
+  # ------------------------------------------------------------------ history
+  /v1/history/search:
+    post:
+      operationId: history.search
+      tags: [history]
+      summary: One keyword query over the warm index.
+      x-chatpanel-auth: open
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SearchRequest' }
+      responses:
+        '200':
+          description: Ranked snippets.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SearchResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+  /v1/history/smart-search:
+    post:
+      operationId: history.smartSearch
+      tags: [history]
+      summary: Several phrasings at once, rank-fused; briefs lead.
+      x-chatpanel-auth: open
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SmartSearchRequest' }
+      responses:
+        '200':
+          description: Fused results and the queries that were run.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SmartSearchResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+  /v1/history/related:
+    get:
+      operationId: history.related
+      tags: [history]
+      summary: The records most connected to one record.
+      x-chatpanel-auth: open
+      parameters:
+        - { name: id, in: query, required: true, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 30, default: 5 } }
+      responses:
+        '200':
+          description: Neighbours.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, results]
+                properties:
+                  ok: { type: boolean }
+                  results: { type: array, items: { $ref: '#/components/schemas/SearchHit' } }
+  /v1/history/status:
+    get:
+      operationId: history.status
+      tags: [history]
+      summary: Size and freshness of the warm index (and the lossless tier from 0.10.0).
+      x-chatpanel-auth: open
+      responses:
+        '200':
+          description: Status.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HistoryStatus' }
+  /v1/history/list:
+    get:
+      operationId: history.list
+      tags: [history]
+      summary: A page of the warm index — metadata only, no bodies.
+      x-chatpanel-auth: open
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 500, default: 50 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: type, in: query, schema: { $ref: '#/components/schemas/RecordType' } }
+      responses:
+        '200':
+          description: The page.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HistoryPage' }
+  /v1/history/get:
+    get:
+      operationId: history.get
+      tags: [history]
+      summary: One full warm record, optionally paged by characters.
+      x-chatpanel-auth: open
+      parameters:
+        - { name: id, in: query, required: true, schema: { type: string } }
+        - { name: maxChars, in: query, schema: { type: integer, minimum: 1 }, description: "Page a long transcript instead of pulling it all." }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+      responses:
+        '200':
+          description: The record.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, record]
+                properties:
+                  ok: { type: boolean }
+                  record: { $ref: '#/components/schemas/HistoryRecord' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/history/records:
+    get:
+      operationId: history.records
+      tags: [history]
+      summary: WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
+      description: The lossless tier. A gateway without the SQLite store answers 501.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.10.0'
+      parameters:
+        - { name: since, in: query, schema: { type: integer, format: int64, minimum: 0, default: 0 }, description: "A stamp (ms since epoch) from a previous page's `newest`." }
+        - { name: cursor, in: query, schema: { type: string }, description: "Opaque; from the previous page." }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, default: 200 } }
+        - { name: kind, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: A page of whole records.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecordsPage' }
+        '501': { $ref: '#/components/responses/Error' }
+    put:
+      operationId: history.putRecords
+      tags: [history]
+      summary: Push whole records; the gateway derives the searchable text itself.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.10.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PutRecordsRequest' }
+      responses:
+        '200':
+          description: What was written.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PutRecordsResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '501': { $ref: '#/components/responses/Error' }
+  /v1/history/stream:
+    get:
+      operationId: history.stream
+      tags: [history]
+      summary: Live record changes — `hello` once, then a `records` event per change.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.11.0'
+      x-chatpanel-stream: sse
+      responses:
+        '200':
+          description: '`event: hello` `{ newest, size, version }`, then `event: records` `{ newest, size, ids, at }`; a comment ping every 25 s.'
+          content:
+            text/event-stream:
+              schema: { type: string }
+              x-chatpanel-frame: { $ref: '#/components/schemas/HistoryStreamEvent' }
+        '501': { $ref: '#/components/responses/Error' }
+  /v1/history/ingest:
+    post:
+      operationId: history.ingest
+      tags: [history]
+      summary: Push flattened (lossy) records into the warm index.
+      x-chatpanel-auth: token
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IngestRequest' }
+      responses:
+        '200':
+          description: The index size after the write.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, size]
+                properties:
+                  ok: { type: boolean }
+                  size: { type: integer }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  # ------------------------------------------------------------------ memory
+  /v1/memory/list:
+    get:
+      operationId: memory.list
+      tags: [memory]
+      summary: Every memory.
+      x-chatpanel-auth: open
+      responses:
+        '200':
+          description: The list.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MemoryList' }
+  /v1/memory/recall:
+    post:
+      operationId: memory.recall
+      tags: [memory]
+      summary: The memories relevant to a text, and a prompt block that carries them.
+      x-chatpanel-auth: open
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RecallRequest' }
+      responses:
+        '200':
+          description: Relevant memories.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecallResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+  /v1/memory/remember:
+    post:
+      operationId: memory.remember
+      tags: [memory]
+      summary: Save a durable fact. Never anonymous — `source` is recorded.
+      x-chatpanel-auth: token
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RememberRequest' }
+      responses:
+        '200':
+          description: What happened — added, updated, or replaced an older memory.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RememberResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /v1/memory/forget:
+    post:
+      operationId: memory.forget
+      tags: [memory]
+      summary: Forget memories matching an id or words.
+      x-chatpanel-auth: token
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query: { type: string }
+      responses:
+        '200':
+          description: How many were removed.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, removed, size]
+                properties:
+                  ok: { type: boolean }
+                  removed: { type: integer }
+                  size: { type: integer }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /v1/memory/sync:
+    post:
+      operationId: memory.sync
+      tags: [memory]
+      summary: Two-way merge in one round trip — push what you have, receive the full set.
+      x-chatpanel-auth: token
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                upserts: { type: array, items: { $ref: '#/components/schemas/Memory' } }
+                removes: { type: array, items: { type: string } }
+      responses:
+        '200':
+          description: The merged set.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MemorySyncResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  # ------------------------------------------------------------------ prefs
+  /v1/prefs:
+    get:
+      operationId: prefs.get
+      tags: [prefs]
+      summary: The shared sections, or only their stamps.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.77'
+      parameters:
+        - { name: section, in: query, schema: { type: string } }
+        - { name: stamps, in: query, schema: { type: boolean }, description: "Only `{ revision, stamps }`." }
+      responses:
+        '200':
+          description: The sections.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Prefs' }
+    post:
+      operationId: prefs.put
+      tags: [prefs]
+      summary: Write sections; per-section last-writer-wins by stamp.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.77'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PrefsWrite' }
+      responses:
+        '200':
+          description: Which sections were applied and which were kept (newer on the gateway).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PrefsWriteResult' }
+        '400': { $ref: '#/components/responses/Error' }
+    delete:
+      operationId: prefs.delete
+      tags: [prefs]
+      summary: Remove one section.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.77'
+      parameters:
+        - { name: section, in: query, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Whether it existed.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, removed]
+                properties:
+                  ok: { type: boolean }
+                  removed: { type: boolean }
+  /v1/prefs/events:
+    get:
+      operationId: prefs.events
+      tags: [prefs]
+      summary: Live — which sections another client wrote.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.77'
+      x-chatpanel-stream: sse
+      responses:
+        '200':
+          description: '`{ type: hello, revision, stamps }` first, then `{ type: changed, ... }`.'
+          content:
+            text/event-stream:
+              schema: { type: string }
+              x-chatpanel-frame: { $ref: '#/components/schemas/PrefsEvent' }
+
+  # ------------------------------------------------------------------ teams
+  /v1/teams/runs:
+    get:
+      operationId: teams.listRuns
+      tags: [teams]
+      summary: The board — recent runs, newest first.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.78'
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, default: 50 } }
+        - { name: team, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: Runs.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, runs]
+                properties:
+                  ok: { type: boolean }
+                  runs: { type: array, items: { $ref: '#/components/schemas/TeamRun' } }
+    post:
+      operationId: teams.createRun
+      tags: [teams]
+      summary: Open a run record.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.78'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TeamRunCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/TeamRunResult' }
+        '400': { $ref: '#/components/responses/Error' }
+  /v1/teams/runs/{runId}:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+    get:
+      operationId: teams.getRun
+      tags: [teams]
+      summary: One run, optionally with its events.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.78'
+      parameters:
+        - { name: events, in: query, schema: { type: boolean } }
+      responses:
+        '200': { $ref: '#/components/responses/TeamRunResult' }
+        '404': { $ref: '#/components/responses/Error' }
+    delete:
+      operationId: teams.deleteRun
+      tags: [teams]
+      summary: Remove a run; a live one is stopped first.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.110'
+      responses:
+        '200': { $ref: '#/components/responses/Removed' }
+  /v1/teams/runs/{runId}/events:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+    get:
+      operationId: teams.runEvents
+      tags: [teams]
+      summary: Tail a run — the record first, replay from `after`, then live.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.78'
+      x-chatpanel-stream: sse
+      parameters:
+        - { name: after, in: query, schema: { type: integer }, description: "Replay events with seq greater than this; absent means from the start." }
+      responses:
+        '200':
+          description: '`{ seq, type, at, payload }` frames; the first is `hello` with the run.'
+          content:
+            text/event-stream:
+              schema: { type: string }
+              x-chatpanel-frame: { $ref: '#/components/schemas/RunEvent' }
+        '404': { $ref: '#/components/responses/Error' }
+    post:
+      operationId: teams.appendRunEvents
+      tags: [teams]
+      summary: The running client appends events.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.78'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [events]
+              properties:
+                events: { type: array, items: { $ref: '#/components/schemas/RunEvent' } }
+      responses:
+        '200': { $ref: '#/components/responses/TeamRunResult' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/teams/runs/{runId}/stop:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+    post:
+      operationId: teams.stopRun
+      tags: [teams]
+      summary: Ask the running client to stop.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.78'
+      responses:
+        '200': { $ref: '#/components/responses/TeamRunResult' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/teams/runs/{runId}/answer:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+    post:
+      operationId: teams.answer
+      tags: [teams]
+      summary: A person answers an ask on the board.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.81'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [threadId, text]
+              properties:
+                threadId: { type: string }
+                text: { type: string }
+                by: { type: string, maxLength: 40, default: person }
+      responses:
+        '200': { $ref: '#/components/responses/TeamRunResult' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/teams/runs/{runId}/decide:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+    post:
+      operationId: teams.decide
+      tags: [teams]
+      summary: Approve or reject a post.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.81'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [postId, status]
+              properties:
+                postId: { type: string }
+                status: { type: string, enum: [approved, rejected] }
+                by: { type: string, maxLength: 40, default: person }
+      responses:
+        '200': { $ref: '#/components/responses/TeamRunResult' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/teams/runs/{runId}/post:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+    post:
+      operationId: teams.post
+      tags: [teams]
+      summary: Post a note to a thread.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.81'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [threadId, text]
+              properties:
+                threadId: { type: string }
+                text: { type: string }
+                kind: { type: string }
+                replyTo: { type: string }
+                by: { type: string, maxLength: 40, default: person }
+      responses:
+        '200': { $ref: '#/components/responses/TeamRunResult' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/teams/runs/{runId}/threads/{threadId}:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+      - { name: threadId, in: path, required: true, schema: { type: string, pattern: '^[a-zA-Z0-9_:-]{1,80}$' } }
+    delete:
+      operationId: teams.removeThread
+      tags: [teams]
+      summary: A person removes a thread from the board.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.106'
+      responses:
+        '200': { $ref: '#/components/responses/TeamRunResult' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/teams/runs/{runId}/handoff:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+    post:
+      operationId: teams.handoff
+      tags: [teams]
+      summary: Continue a task on another model.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.85'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [taskId, model]
+              properties:
+                taskId: { type: string }
+                model: { type: string }
+                by: { type: string }
+                reason: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/TeamRunResult' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/teams/runs/{runId}/checkpoint:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+    get:
+      operationId: teams.checkpoint
+      tags: [teams]
+      summary: What a client needs to resume a run whose client went away.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.85'
+      responses:
+        '200':
+          description: The checkpoint.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, checkpoint]
+                properties:
+                  ok: { type: boolean }
+                  checkpoint: { $ref: '#/components/schemas/AnyObject' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/teams/runs/{runId}/claim:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+    post:
+      operationId: teams.claim
+      tags: [teams]
+      summary: A client takes a stopped or stale run over.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.85'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client]
+              properties:
+                client: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/TeamRunResult' }
+        '404': { $ref: '#/components/responses/Error' }
+
+  # ------------------------------------------------------------------ projects
+  /v1/projects:
+    get:
+      operationId: projects.list
+      tags: [projects]
+      summary: Projects, newest activity first, jobs counted.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.90'
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, default: 50 } }
+        - { name: status, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: Projects.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, projects]
+                properties:
+                  ok: { type: boolean }
+                  projects: { type: array, items: { $ref: '#/components/schemas/Project' } }
+    post:
+      operationId: projects.create
+      tags: [projects]
+      summary: Open a record (idempotent) or update the page.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.90'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id: { type: string }
+                project: { $ref: '#/components/schemas/AnyObject' }
+                by: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/ProjectResult' }
+        '400': { $ref: '#/components/responses/Error' }
+  /v1/projects/jobs:
+    get:
+      operationId: projects.jobBoard
+      tags: [projects]
+      summary: Every open posting across projects.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.90'
+      responses:
+        '200':
+          description: The board.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, jobs]
+                properties:
+                  ok: { type: boolean }
+                  jobs: { type: array, items: { $ref: '#/components/schemas/AnyObject' } }
+  /v1/projects/{projectId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      operationId: projects.get
+      tags: [projects]
+      summary: The record — jobs, runs, spend, decisions, report.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.90'
+      parameters:
+        - { name: events, in: query, schema: { type: boolean } }
+      responses:
+        '200': { $ref: '#/components/responses/ProjectResult' }
+        '404': { $ref: '#/components/responses/Error' }
+    delete:
+      operationId: projects.delete
+      tags: [projects]
+      summary: Remove a project record.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.90'
+      responses:
+        '200': { $ref: '#/components/responses/Removed' }
+  /v1/projects/{projectId}/events:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      operationId: projects.events
+      tags: [projects]
+      summary: Tail a project — hello, replay, then live.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.90'
+      x-chatpanel-stream: sse
+      parameters:
+        - { name: after, in: query, schema: { type: integer } }
+      responses:
+        '200':
+          description: Event frames.
+          content:
+            text/event-stream:
+              schema: { type: string }
+              x-chatpanel-frame: { $ref: '#/components/schemas/RunEvent' }
+        '404': { $ref: '#/components/responses/Error' }
+    post:
+      operationId: projects.appendEvents
+      tags: [projects]
+      summary: The executive loop appends (status, run.linked, run.spent, decision, report).
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.90'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [events]
+              properties:
+                events: { type: array, items: { $ref: '#/components/schemas/RunEvent' } }
+      responses:
+        '200': { $ref: '#/components/responses/ProjectResult' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/projects/{projectId}/jobs:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    post:
+      operationId: projects.postJob
+      tags: [projects]
+      summary: Post a job.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.90'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [job]
+              properties:
+                job: { $ref: '#/components/schemas/AnyObject' }
+                by: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/ProjectResult' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/projects/{projectId}/jobs/{jobId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/JobId'
+    post:
+      operationId: projects.patchJob
+      tags: [projects]
+      summary: Move a job along its state machine.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.90'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [patch]
+              properties:
+                patch: { $ref: '#/components/schemas/AnyObject' }
+                by: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/ProjectResult' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/projects/{projectId}/jobs/{jobId}/applications:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/JobId'
+    get:
+      operationId: projects.applications
+      tags: [projects]
+      summary: The pool applies at once; `prompt` is the evaluator's, for a structured call.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.90'
+      parameters:
+        - { name: reach, in: query, schema: { type: string, default: any } }
+        - { name: chatModel, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: Applications.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnyObject' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/projects/{projectId}/jobs/{jobId}/recruit:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/JobId'
+    post:
+      operationId: projects.recruit
+      tags: [projects]
+      summary: One pass — fit recomputed, the evaluation read through the schema, the pick landed as events.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.90'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                by: { type: string }
+                reach: { type: string }
+                chatModel: { type: string }
+                evaluation: { $ref: '#/components/schemas/AnyObject' }
+                text: { type: string }
+      responses:
+        '200':
+          description: The decision.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnyObject' }
+        '404': { $ref: '#/components/responses/Error' }
+
+  # ------------------------------------------------------------------ agents / engines
+  /v1/agents/scorecards:
+    get:
+      operationId: agents.scorecards
+      tags: [agents]
+      summary: Every agent's scorecard.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.87'
+      responses:
+        '200':
+          description: Scorecards.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, agents]
+                properties:
+                  ok: { type: boolean }
+                  agents: { type: array, items: { $ref: '#/components/schemas/AnyObject' } }
+  /v1/agents/{agentId}/scorecard:
+    parameters:
+      - { name: agentId, in: path, required: true, schema: { type: string, maxLength: 120 } }
+    get:
+      operationId: agents.scorecard
+      tags: [agents]
+      summary: One agent's attested scorecard.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.87'
+      responses:
+        '200':
+          description: The card.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnyObject' }
+    post:
+      operationId: agents.rate
+      tags: [agents]
+      summary: A person rates the agent's work on a run, task or job.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.87'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [score]
+              properties:
+                score: { type: number }
+                note: { type: string }
+                about: { type: string }
+                by: { type: string, maxLength: 40 }
+                runId: { type: string }
+                taskId: { type: string }
+                jobId: { type: string }
+                refs: { $ref: '#/components/schemas/AnyObject' }
+      responses:
+        '200':
+          description: The entry.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnyObject' }
+        '400': { $ref: '#/components/responses/Error' }
+  /v1/engines:
+    get:
+      operationId: engines.list
+      tags: [engines]
+      summary: Every engine's card.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.89'
+      parameters:
+        - { name: minCalls, in: query, schema: { type: integer } }
+      responses:
+        '200':
+          description: Engines.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, engines]
+                properties:
+                  ok: { type: boolean }
+                  engines: { type: array, items: { $ref: '#/components/schemas/AnyObject' } }
+  /v1/engines/{engineKey}/card:
+    parameters:
+      - { name: engineKey, in: path, required: true, schema: { type: string, maxLength: 300 } }
+    get:
+      operationId: engines.card
+      tags: [engines]
+      summary: One engine's card, optionally with entries.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.89'
+      parameters:
+        - { name: entries, in: query, schema: { type: boolean } }
+        - { name: minCalls, in: query, schema: { type: integer } }
+      responses:
+        '200':
+          description: The card.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnyObject' }
+  /v1/engines/{engineKey}/entries:
+    parameters:
+      - { name: engineKey, in: path, required: true, schema: { type: string, maxLength: 300 } }
+    post:
+      operationId: engines.appendEntry
+      tags: [engines]
+      summary: Append a ledger entry for an engine.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.89'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AnyObject' }
+      responses:
+        '200':
+          description: The entry.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnyObject' }
+        '400': { $ref: '#/components/responses/Error' }
+
+  # ------------------------------------------------------------------ skills
+  /skills:
+    get:
+      operationId: skills.list
+      tags: [skills]
+      summary: The skills on this machine — with a prompt character count, not the prompt.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.64'
+      parameters:
+        - { name: workdir, in: query, schema: { type: string }, description: "Include the project-local skill roots of this directory (0.9.4+)." }
+      responses:
+        '200':
+          description: Skills.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [skills]
+                properties:
+                  skills: { type: array, items: { $ref: '#/components/schemas/Skill' } }
+        '502': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /skills/{skillId}:
+    parameters:
+      - { name: skillId, in: path, required: true, schema: { type: string, maxLength: 200, pattern: '^[^/\\]+$' }, description: "One path segment; slashes and `..` are refused." }
+    get:
+      operationId: skills.get
+      tags: [skills]
+      summary: One skill, with its prompt.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.6.67'
+      parameters:
+        - { name: workdir, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: The skill.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [skill]
+                properties:
+                  skill:
+                    oneOf:
+                      - $ref: '#/components/schemas/Skill'
+                      - type: 'null'
+        '400': { $ref: '#/components/responses/Error' }
+        '502': { $ref: '#/components/responses/Error' }
+
+components:
+  securitySchemes:
+    gatewayToken:
+      type: http
+      scheme: bearer
+      description: The per-install token at `~/.chatpanel/gateway-token` (0600), or the copy a paired client received.
+    tokenHeader:
+      type: apiKey
+      in: header
+      name: X-ChatPanel-Token
+      description: The same token, for a client that cannot set Authorization.
+
+  parameters:
+    RunId:
+      name: runId
+      in: path
+      required: true
+      schema: { type: string, pattern: '^[a-zA-Z0-9_-]{4,64}$' }
+    ProjectId:
+      name: projectId
+      in: path
+      required: true
+      schema: { type: string, pattern: '^[a-zA-Z0-9_-]{1,64}$' }
+    JobId:
+      name: jobId
+      in: path
+      required: true
+      schema: { type: string, pattern: '^[a-zA-Z0-9_-]{1,64}$' }
+    RedactionHeader:
+      name: X-ChatPanel-Redaction
+      in: header
+      required: false
+      schema: { type: string, enum: [off] }
+      description: Turn redaction off for this turn — honoured only from a token-bearing caller (0.6.69+), recorded in the trace.
+    RunHeader:
+      name: X-ChatPanel-Run
+      in: header
+      required: false
+      schema: { type: string }
+      description: A team role's run context (URL-encoded JSON) for the bridge (0.6.89+). Never a token.
+
+  responses:
+    Error:
+      description: An error, in the gateway's words.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Forbidden:
+      description: The caller lacks the token this route needs.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Removed:
+      description: Whether the record existed.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [ok, removed]
+            properties:
+              ok: { type: boolean }
+              removed: { type: boolean }
+    TeamRunResult:
+      description: The run as it now stands.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [ok, run]
+            properties:
+              ok: { type: boolean }
+              run: { $ref: '#/components/schemas/TeamRun' }
+    ProjectResult:
+      description: The project as it now stands.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [ok, project]
+            properties:
+              ok: { type: boolean }
+              project: { $ref: '#/components/schemas/Project' }
+
+  schemas:
+    AnyObject:
+      type: object
+      additionalProperties: true
+      description: A domain object whose shape is owned by `@chatpanel/events`; the SDK carries it as-is.
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          oneOf:
+            - type: string
+            - type: object
+              required: [message]
+              properties:
+                message: { type: string }
+                type: { type: string, description: "A stable machine word — `not_found`, `invalid_request`, `unavailable`, …" }
+
+    Health:
+      type: object
+      required: [ok, version]
+      additionalProperties: true
+      properties:
+        ok: { type: boolean }
+        version: { type: string, description: "The gateway's semver; every version gate reads this." }
+        backend: { type: string }
+        tier: { type: string, enum: [basic, full], description: "Redaction tier." }
+        pairing: { type: boolean, description: "Present from 0.9.0 — this gateway can pair a client." }
+        managed: { $ref: '#/components/schemas/AnyObject' }
+        managedBy: { type: string }
+        bridge: { $ref: '#/components/schemas/AnyObject' }
+        stt: { $ref: '#/components/schemas/AnyObject' }
+        tts: { $ref: '#/components/schemas/AnyObject' }
+
+    WhoAmI:
+      type: object
+      required: [ok, trust, paired, version]
+      properties:
+        ok: { type: boolean }
+        trust: { type: string, enum: [token, pinned, unpaired, local, web] }
+        paired: { type: boolean, description: "True when this caller may reach token-gated routes." }
+        version: { type: string }
+
+    PairingCode:
+      type: object
+      required: [ok, code, expiresAt]
+      properties:
+        ok: { type: boolean }
+        code: { type: string }
+        display: { type: string }
+        expiresAt: { type: integer, format: int64, description: "ms since epoch" }
+
+    Paired:
+      type: object
+      required: [ok, token]
+      properties:
+        ok: { type: boolean }
+        token: { type: string, description: "The gateway token. A secret — store it 0600 or in the platform keychain; never log it." }
+        bridgeToken: { type: string, description: "The bridge's token when this machine has one." }
+
+    Audit:
+      type: object
+      additionalProperties: true
+      properties:
+        version: { type: string }
+        startedAt: { type: integer, format: int64 }
+
+    Model:
+      type: object
+      required: [id, object]
+      additionalProperties: true
+      properties:
+        id: { type: string }
+        object: { type: string, enum: [model] }
+        owned_by: { type: string }
+        provider: { type: string }
+        provider_type: { type: string, enum: [agent, openai, anthropic], description: "0.6.64+" }
+        api: { type: string }
+        endpoints: { type: array, items: { type: string } }
+        available: { type: boolean, description: "0.6.64+ for bridge agents — whether the CLI is installed." }
+        configured: { type: boolean, description: "0.6.66+ — false when a turn is known to fail for something the user can fix." }
+        reason: { type: string }
+        tools: { type: boolean, description: "False when the agent cannot take per-turn tools." }
+    ModelList:
+      type: object
+      required: [object, data]
+      properties:
+        object: { type: string, enum: [list] }
+        data: { type: array, items: { $ref: '#/components/schemas/Model' } }
+
+    ChatMessage:
+      type: object
+      required: [role]
+      additionalProperties: true
+      properties:
+        role: { type: string, enum: [system, user, assistant, tool] }
+        content:
+          oneOf:
+            - type: string
+            - type: array
+              items: { $ref: '#/components/schemas/ChatContentPart' }
+            - type: 'null'
+        name: { type: string }
+        tool_calls: { type: array, items: { $ref: '#/components/schemas/AnyObject' } }
+        tool_call_id: { type: string }
+    ChatContentPart:
+      type: object
+      required: [type]
+      additionalProperties: true
+      description: One part of a multi-part message — `text`, `image_url`, … in the OpenAI shape.
+      properties:
+        type: { type: string }
+        text: { type: string }
+        image_url: { $ref: '#/components/schemas/AnyObject' }
+    ChatCompletionRequest:
+      type: object
+      required: [model, messages]
+      additionalProperties: true
+      properties:
+        model: { type: string, description: 'A model id from `GET /v1/models`; `claude/opus` names an agent and its model.' }
+        messages: { type: array, items: { $ref: '#/components/schemas/ChatMessage' } }
+        stream: { type: boolean }
+        stream_options: { $ref: '#/components/schemas/AnyObject' }
+        tools: { type: array, items: { $ref: '#/components/schemas/AnyObject' } }
+        tool_choice: {}
+        temperature: { type: number }
+        max_tokens: { type: integer }
+    ChatCompletion:
+      type: object
+      required: [id, object, choices]
+      additionalProperties: true
+      properties:
+        id: { type: string }
+        object: { type: string }
+        created: { type: integer }
+        model: { type: string }
+        choices:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              index: { type: integer }
+              message: { $ref: '#/components/schemas/ChatMessage' }
+              finish_reason: { type: [string, 'null'] }
+        usage: { $ref: '#/components/schemas/AnyObject' }
+    ChatCompletionChunk:
+      type: object
+      required: [id, object, choices]
+      additionalProperties: true
+      description: One `data:` frame of a streamed completion.
+      properties:
+        id: { type: string }
+        object: { type: string }
+        model: { type: string }
+        choices:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              index: { type: integer }
+              delta: { $ref: '#/components/schemas/AnyObject' }
+              finish_reason: { type: [string, 'null'] }
+        usage: { $ref: '#/components/schemas/AnyObject' }
+
+    RedactionPreview:
+      type: object
+      required: [text, count]
+      properties:
+        text: { type: string, description: "What the model would receive." }
+        count: { type: integer }
+        sanitized: { type: integer }
+        tier: { type: string, enum: [basic, full] }
+        entities: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "Placeholder tokens and their types — never the real values." }
+        detector: { $ref: '#/components/schemas/AnyObject' }
+
+    RecordType:
+      type: string
+      enum: [chat, note, meeting, brief]
+    SearchFilters:
+      type: object
+      properties:
+        type: { $ref: '#/components/schemas/RecordType' }
+        since: { type: integer, format: int64, description: "ms since epoch" }
+        before: { type: integer, format: int64, description: "ms since epoch" }
+        limit: { type: integer, minimum: 1, maximum: 50, default: 10 }
+    SearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchFilters'
+        - type: object
+          required: [query]
+          properties:
+            query: { type: string }
+            offset: { type: integer, minimum: 0, default: 0 }
+    SmartSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchFilters'
+        - type: object
+          required: [question]
+          properties:
+            question: { type: string, description: "The natural-language question." }
+            queries: { type: array, items: { type: string }, description: "2–4 keyword phrasings of your own; they lead." }
+            maxQueries: { type: integer, minimum: 1, maximum: 6, default: 4 }
+    SearchHit:
+      type: object
+      required: [id]
+      additionalProperties: true
+      properties:
+        id: { type: string }
+        score: { type: number }
+        title: { type: string }
+        type: { $ref: '#/components/schemas/RecordType' }
+        date: { type: integer, format: int64 }
+        snippet: { type: string }
+    SearchResponse:
+      type: object
+      required: [ok, results]
+      properties:
+        ok: { type: boolean }
+        size: { type: integer }
+        newest: { type: integer, format: int64 }
+        results: { type: array, items: { $ref: '#/components/schemas/SearchHit' } }
+    SmartSearchResponse:
+      allOf:
+        - $ref: '#/components/schemas/SearchResponse'
+        - type: object
+          properties:
+            queries: { type: array, items: { type: string } }
+    HistoryStatus:
+      type: object
+      required: [ok, size]
+      properties:
+        ok: { type: boolean }
+        size: { type: integer }
+        newest: { type: integer, format: int64 }
+        bytes: { type: integer, format: int64 }
+        lossless:
+          oneOf:
+            - type: object
+              properties:
+                records: { type: integer }
+                newest: { type: integer, format: int64 }
+            - type: 'null'
+    HistoryItem:
+      type: object
+      required: [id]
+      additionalProperties: true
+      properties:
+        id: { type: string }
+        title: { type: string }
+        type: { $ref: '#/components/schemas/RecordType' }
+        date: { type: integer, format: int64 }
+        chars: { type: integer }
+    HistoryPage:
+      type: object
+      required: [ok, total, items]
+      properties:
+        ok: { type: boolean }
+        total: { type: integer }
+        items: { type: array, items: { $ref: '#/components/schemas/HistoryItem' } }
+    HistoryRecord:
+      type: object
+      required: [id, text]
+      additionalProperties: true
+      properties:
+        id: { type: string }
+        title: { type: string }
+        type: { $ref: '#/components/schemas/RecordType' }
+        date: { type: integer, format: int64 }
+        text: { type: string }
+    RecordsPage:
+      type: object
+      required: [ok, records]
+      additionalProperties: true
+      properties:
+        ok: { type: boolean }
+        records: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "Whole records; a tombstone carries `deletedAt`." }
+        next: { type: string, description: "The cursor for the next page — pass it as `cursor`; absent on the last page." }
+        size: { type: integer }
+        newest: { type: integer, format: int64 }
+    PutRecordsRequest:
+      type: object
+      properties:
+        host: { type: string, maxLength: 80, description: "Who is pushing — recorded on every record." }
+        at: { type: integer, format: int64 }
+        records: { type: array, items: { $ref: '#/components/schemas/AnyObject' } }
+        entries: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "Sealed backup entries, opened with the stored passphrase." }
+    PutRecordsResponse:
+      type: object
+      required: [ok, written]
+      properties:
+        ok: { type: boolean }
+        written: { type: integer }
+        ids: { type: array, items: { type: string } }
+        sealed: { type: integer }
+        size: { type: integer }
+    IngestRequest:
+      type: object
+      properties:
+        upserts:
+          type: array
+          items:
+            type: object
+            required: [id, text]
+            additionalProperties: true
+            properties:
+              id: { type: string }
+              title: { type: string }
+              type: { $ref: '#/components/schemas/RecordType' }
+              date: { type: integer, format: int64 }
+              text: { type: string }
+        removes: { type: array, items: { type: string } }
+
+    Memory:
+      type: object
+      required: [id, text]
+      additionalProperties: true
+      properties:
+        id: { type: string }
+        text: { type: string }
+        kind: { type: string }
+        scope: { type: string }
+        tags: { type: array, items: { type: string } }
+        createdAt: { type: integer, format: int64 }
+        updatedAt: { type: integer, format: int64 }
+        source: { $ref: '#/components/schemas/MemorySource' }
+    MemorySource:
+      type: object
+      description: Who proposed the memory. There is no confirm dialog on a CLI, so attribution is the accountability.
+      properties:
+        via: { type: string, description: "The client — e.g. `sdk`, `cli`, `mcp`." }
+        surface: { type: string }
+        agent: { type: string }
+        ref: { type: string }
+    MemoryList:
+      type: object
+      required: [ok, memories]
+      properties:
+        ok: { type: boolean }
+        size: { type: integer }
+        memories: { type: array, items: { $ref: '#/components/schemas/Memory' } }
+    RecallRequest:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string }
+        scopes: { type: array, items: { type: string }, default: [global] }
+        limit: { type: integer }
+        maxChars: { type: integer }
+    RecallResponse:
+      type: object
+      required: [ok, memories]
+      additionalProperties: true
+      properties:
+        ok: { type: boolean }
+        size: { type: integer }
+        memories: { type: array, items: { $ref: '#/components/schemas/Memory' } }
+        block: { type: string, description: "A prompt block carrying the recalled memories." }
+    RememberRequest:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string, description: "One short sentence." }
+        kind: { type: string, default: fact }
+        scope: { type: string, default: global }
+        tags: { type: array, items: { type: string } }
+        source: { $ref: '#/components/schemas/MemorySource' }
+    RememberResponse:
+      type: object
+      required: [ok, action, record]
+      properties:
+        ok: { type: boolean }
+        action: { type: string }
+        record: { $ref: '#/components/schemas/Memory' }
+        replaced:
+          oneOf:
+            - $ref: '#/components/schemas/Memory'
+            - type: 'null'
+        size: { type: integer }
+    MemorySyncResponse:
+      type: object
+      required: [ok, memories]
+      additionalProperties: true
+      properties:
+        ok: { type: boolean }
+        size: { type: integer }
+        memories: { type: array, items: { $ref: '#/components/schemas/Memory' } }
+
+    HistoryStreamEvent:
+      type: object
+      required: [event]
+      properties:
+        event: { type: string, enum: [hello, records], description: The SSE event name. }
+        newest: { type: integer, format: int64 }
+        size: { type: integer }
+        version: { type: string }
+        ids: { type: array, items: { type: string } }
+        at: { type: integer, format: int64 }
+    PrefsEvent:
+      type: object
+      required: [type]
+      additionalProperties: true
+      properties:
+        type: { type: string, enum: [hello, changed] }
+        revision: { type: integer }
+        stamps: { type: object, additionalProperties: { type: integer, format: int64 } }
+        applied: { type: array, items: { type: string }, description: "The sections the other client wrote." }
+        by: { type: string }
+    PrefSection:
+      type: object
+      required: [value]
+      properties:
+        value: {}
+        updatedAt: { type: integer, format: int64 }
+        by: { type: string }
+    Prefs:
+      type: object
+      required: [ok, revision]
+      properties:
+        ok: { type: boolean }
+        revision: { type: integer }
+        sections:
+          type: object
+          additionalProperties: { $ref: '#/components/schemas/PrefSection' }
+        stamps:
+          type: object
+          additionalProperties: { type: integer, format: int64 }
+    PrefsWrite:
+      type: object
+      required: [sections]
+      properties:
+        sections:
+          type: object
+          additionalProperties: { $ref: '#/components/schemas/PrefSection' }
+        by: { type: string, description: "Which client is writing." }
+    PrefsWriteResult:
+      type: object
+      required: [ok, revision]
+      additionalProperties: true
+      properties:
+        ok: { type: boolean }
+        revision: { type: integer }
+        applied: { type: array, items: { type: string } }
+        kept: { type: array, items: { type: string } }
+
+    RunEvent:
+      type: object
+      required: [type]
+      additionalProperties: true
+      properties:
+        seq: { type: integer }
+        type: { type: string }
+        at: { type: integer, format: int64 }
+        payload: { $ref: '#/components/schemas/AnyObject' }
+    TeamRun:
+      type: object
+      required: [id]
+      additionalProperties: true
+      properties:
+        id: { type: string }
+        client: { type: string }
+        team: { $ref: '#/components/schemas/AnyObject' }
+        status: { type: string }
+        events: { type: array, items: { $ref: '#/components/schemas/RunEvent' } }
+    TeamRunCreate:
+      type: object
+      properties:
+        id: { type: string }
+        client: { type: string, description: "Which client is running it." }
+        team: { $ref: '#/components/schemas/AnyObject' }
+        request: { $ref: '#/components/schemas/AnyObject' }
+
+    Project:
+      type: object
+      required: [id]
+      additionalProperties: true
+      properties:
+        id: { type: string }
+        status: { type: string }
+        jobs: { type: array, items: { $ref: '#/components/schemas/AnyObject' } }
+
+    Skill:
+      type: object
+      required: [id]
+      additionalProperties: true
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        promptChars: { type: integer }
+        prompt: { type: string, description: "Only on `GET /skills/{skillId}`." }

@@ -1,0 +1,23 @@
+name: publish-npm
+# Version-guarded, like every ChatPanel package: the same version publishes nothing.
+on:
+  push:
+    branches: [main]
+    paths: ['sdk/typescript/**', 'openapi/**']
+permissions: { id-token: write, contents: read }
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, registry-url: https://registry.npmjs.org }
+      - run: npm ci && npm --prefix sdk/typescript ci
+      - run: npm test
+      - id: v
+        run: |
+          local=$(node -p "require('./sdk/typescript/package.json').version")
+          remote=$(npm view @chatpanel/sdk version 2>/dev/null || echo none)
+          echo "local=$local remote=$remote"; echo "publish=$([ "$local" != "$remote" ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+      - if: steps.v.outputs.publish == 'yes'
+        run: cd sdk/typescript && npm publish --provenance --access public

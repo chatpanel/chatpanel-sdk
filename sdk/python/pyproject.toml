@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chatpanel"
+version = "0.1.0"
+description = "Typed client for the local ChatPanel gateway — chat through the privacy proxy, search the user's history, read and write memory, follow team runs. Zero dependencies."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+keywords = ["chatpanel", "sdk", "client", "gateway", "privacy", "llm", "agents"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Typing :: Typed",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://chatpanel.net"
+Repository = "https://github.com/chatpanel/chatpanel-sdk"
+
+[tool.setuptools.packages.find]
+include = ["chatpanel*"]
+
+[tool.setuptools.package-data]
+chatpanel = ["py.typed"]

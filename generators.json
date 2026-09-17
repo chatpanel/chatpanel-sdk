@@ -1,0 +1,15 @@
+{
+  "$comment": "The long-tail language matrix. Each entry is one openapi-generator run: `generator` is its name (`openapi-generator-cli list`), `output` the directory under generated/, `properties` its additionalProperties. Every output is a complete typed client of the contract; the runtime rules the first-class packages add by hand (loopback guard, token discovery, version gate) are documented for these in generated/README.md.",
+  "generatorVersion": "7.25.0",
+  "languages": {
+    "go":     { "generator": "go",       "properties": { "packageName": "chatpanel", "withGoMod": true, "generateInterfaces": true, "disallowAdditionalPropertiesIfNotPresent": false } },
+    "java":   { "generator": "java",     "properties": { "groupId": "net.chatpanel", "artifactId": "chatpanel-sdk", "apiPackage": "net.chatpanel.sdk.api", "modelPackage": "net.chatpanel.sdk.model", "invokerPackage": "net.chatpanel.sdk", "library": "native", "useJakartaEe": true, "hideGenerationTimestamp": true } },
+    "csharp": { "generator": "csharp",   "properties": { "packageName": "ChatPanel.Sdk", "targetFramework": "net8.0", "nullableReferenceTypes": true } },
+    "ruby":   { "generator": "ruby",     "properties": { "gemName": "chatpanel", "moduleName": "ChatPanel", "gemVersion": "0.1.0" } },
+    "php":    { "generator": "php",      "properties": { "invokerPackage": "ChatPanel\\Sdk", "packageName": "chatpanel-sdk" } },
+    "rust":   { "generator": "rust",     "properties": { "packageName": "chatpanel", "library": "reqwest", "supportAsync": true } },
+    "swift":  { "generator": "swift6",   "properties": { "projectName": "ChatPanel", "responseAs": "AsyncAwait" } },
+    "kotlin": { "generator": "kotlin",   "properties": { "packageName": "net.chatpanel.sdk", "library": "jvm-okhttp4" } },
+    "dart":   { "generator": "dart-dio", "properties": { "pubName": "chatpanel" } }
+  }
+}

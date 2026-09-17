@@ -1,0 +1,22 @@
+name: publish-pypi
+on:
+  push:
+    branches: [main]
+    paths: ['sdk/python/**', 'openapi/**']
+permissions: { id-token: write, contents: read }
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: python -m pip install build && cd sdk/python && python -m unittest discover -s tests -t . && python -m build
+      - id: v
+        run: |
+          local=$(python -c "import tomllib;print(tomllib.load(open('sdk/python/pyproject.toml','rb'))['project']['version'])")
+          remote=$(python -c "import json,urllib.request;print(json.load(urllib.request.urlopen('https://pypi.org/pypi/chatpanel/json'))['info']['version'])" 2>/dev/null || echo none)
+          echo "local=$local remote=$remote"; echo "publish=$([ "$local" != "$remote" ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+      - if: steps.v.outputs.publish == 'yes'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with: { packages-dir: sdk/python/dist }

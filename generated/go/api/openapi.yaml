@@ -1,0 +1,3681 @@
+openapi: 3.1.0
+info:
+  contact:
+    name: ChatPanel
+    url: https://chatpanel.net
+  description: |
+    The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
+    redacts personal data before a model sees it, routes model traffic, and holds the user's
+    searchable history, durable memory, shared preferences and the team/project run boards.
+
+    **It only answers on loopback.** A client on another host cannot reach it; an SDK refuses a
+    non-loopback base URL unless the integrator opts in and uses TLS.
+
+    **Two trust levels.** The `/v1` data plane is open to any local process — that is the
+    product. Writes that change what every client sees (remember, forget, ingest) and anything
+    admin-shaped require the per-install token the gateway writes to
+    `~/.chatpanel/gateway-token` (mode 0600), or a copy obtained by pairing (`POST /pair` with
+    a one-time code from `chatpanel-gateway pair`). `POST /whoami` says which trust you have.
+
+    **Errors** are `{ error: { message, type } }` (or `{ error: "text" }` on the oldest routes)
+    with the HTTP status. `type` is a stable machine word: `not_found`, `invalid_request`,
+    `unknown_endpoint`, `unavailable`, `bridge_unreachable`, `no_bridge`, `redact_error`,
+    `search_error`, `memory_error`, `team_error`, `ingest_error`, `prefs_error`.
+  license:
+    name: Apache-2.0
+  title: ChatPanel Gateway API
+  version: 0.11.0
+servers:
+- description: The local gateway. Loopback only.
+  url: http://127.0.0.1:4320
+security:
+- {}
+- gatewayToken: []
+tags:
+- description: "Liveness, identity and pairing."
+  name: gateway
+- description: What the gateway can route to.
+  name: models
+- description: "The OpenAI-compatible chat endpoint, redacted and routed by the gateway."
+  name: chat
+- description: Preview what the model would receive.
+  name: redaction
+- description: "The user's searchable history — chats, notes, meetings, briefs."
+  name: history
+- description: "Durable facts about the user, carried into every turn on every client."
+  name: memory
+- description: The settings every client shares.
+  name: prefs
+- description: Team runs — the board every client can read.
+  name: teams
+- description: The project record — the page a goal starts on and everything done
+    for it.
+  name: projects
+- description: Attested per-agent scorecards.
+  name: agents
+- description: The model ledger — every engine's card.
+  name: engines
+- description: The skills on this machine (served through the bridge).
+  name: skills
+paths:
+  /health:
+    get:
+      description: Additive fields only. `version` is what every version gate reads.
+      operationId: gateway.health
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+          description: The gateway is up.
+      summary: "Liveness, version and capabilities."
+      tags:
+      - gateway
+      x-chatpanel-auth: open
+  /whoami:
+    post:
+      operationId: gateway.whoami
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WhoAmI"
+          description: The caller's trust class.
+      summary: What the gateway makes of this caller.
+      tags:
+      - gateway
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.9.0
+  /pair/code:
+    post:
+      description: Only a caller that already holds the token may mint one — pairing
+        widens nothing.
+      operationId: gateway.pairCode
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PairingCode"
+          description: The code to carry into the client.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "Mint a one-time pairing code (5 minutes, one use, 5 attempts)."
+      tags:
+      - gateway
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.9.0
+  /pair:
+    post:
+      operationId: gateway.pair
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/gateway_pair_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Paired"
+          description: Paired. Store the token where only this user can read it.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      summary: Exchange a pairing code for the gateway token.
+      tags:
+      - gateway
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.9.0
+  /audit:
+    get:
+      description: The checkable claim behind "nothing leaves the machine". Admin-gated
+        because it names the user's model endpoints.
+      operationId: gateway.audit
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Audit"
+          description: The audit.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: The egress audit — which hosts this gateway has contacted and which
+        its config allows.
+      tags:
+      - gateway
+      x-chatpanel-auth: token
+  /v1/models:
+    get:
+      description: |
+        Describes the routing table, not the disk: a bridge agent is listed whether or not the
+        CLI is installed. From 0.6.64 each agent carries `available`; from 0.6.66 a cloud model
+        carries `configured: false` when a turn is known to fail for something the user can fix.
+      operationId: models.list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelList"
+          description: The list.
+      summary: Every model the gateway can route to.
+      tags:
+      - models
+      x-chatpanel-auth: open
+  /v1/chat/completions:
+    post:
+      description: |
+        Redacted on the way out, restored on the way back, routed by `model`. With `stream: true`
+        the response is `text/event-stream` of OpenAI chunk objects ending in `data: [DONE]`.
+        Send `tools` so a redacted turn can still act: the gateway relays a tool call back with
+        real arguments and redacts the result. `X-ChatPanel-Redaction: off` is honoured only from
+        a token-bearing caller (0.6.69+) and is recorded in the trace.
+      operationId: chat.completions
+      parameters:
+      - $ref: "#/components/parameters/RedactionHeader"
+      - $ref: "#/components/parameters/RunHeader"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatCompletionRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatCompletion"
+            text/event-stream:
+              schema:
+                description: "`data: {chunk}` frames; `data: [DONE]` ends it."
+                type: string
+              x-chatpanel-frame:
+                $ref: "#/components/schemas/ChatCompletionChunk"
+          description: "The completion, or a stream of chunks."
+        "4XX":
+          $ref: "#/components/responses/Error"
+        "5XX":
+          $ref: "#/components/responses/Error"
+      summary: One chat turn through the gateway (OpenAI-compatible).
+      tags:
+      - chat
+      x-chatpanel-auth: open
+      x-chatpanel-stream: sse-when-stream
+  /redact:
+    post:
+      description: "Runs the same redaction path as a real turn. The reply carries\
+        \ placeholder types, never the real values."
+      operationId: redaction.preview
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/redaction_preview_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RedactionPreview"
+          description: The redacted text and what was replaced.
+        "500":
+          $ref: "#/components/responses/Error"
+      summary: What the model would receive if this text were sent now.
+      tags:
+      - redaction
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.62
+  /v1/history/search:
+    post:
+      operationId: history.search
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+          description: Ranked snippets.
+        "400":
+          $ref: "#/components/responses/Error"
+      summary: One keyword query over the warm index.
+      tags:
+      - history
+      x-chatpanel-auth: open
+  /v1/history/smart-search:
+    post:
+      operationId: history.smartSearch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SmartSearchRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SmartSearchResponse"
+          description: Fused results and the queries that were run.
+        "400":
+          $ref: "#/components/responses/Error"
+      summary: "Several phrasings at once, rank-fused; briefs lead."
+      tags:
+      - history
+      x-chatpanel-auth: open
+  /v1/history/related:
+    get:
+      operationId: history.related
+      parameters:
+      - explode: true
+        in: query
+        name: id
+        required: true
+        schema:
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 5
+          maximum: 30
+          minimum: 1
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/history_related_200_response"
+          description: Neighbours.
+      summary: The records most connected to one record.
+      tags:
+      - history
+      x-chatpanel-auth: open
+  /v1/history/status:
+    get:
+      operationId: history.status
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryStatus"
+          description: Status.
+      summary: Size and freshness of the warm index (and the lossless tier from 0.10.0).
+      tags:
+      - history
+      x-chatpanel-auth: open
+  /v1/history/list:
+    get:
+      operationId: history.list
+      parameters:
+      - explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 50
+          maximum: 500
+          minimum: 1
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: offset
+        required: false
+        schema:
+          default: 0
+          minimum: 0
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: type
+        required: false
+        schema:
+          $ref: "#/components/schemas/RecordType"
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryPage"
+          description: The page.
+      summary: "A page of the warm index — metadata only, no bodies."
+      tags:
+      - history
+      x-chatpanel-auth: open
+  /v1/history/get:
+    get:
+      operationId: history.get
+      parameters:
+      - explode: true
+        in: query
+        name: id
+        required: true
+        schema:
+          type: string
+        style: form
+      - description: Page a long transcript instead of pulling it all.
+        explode: true
+        in: query
+        name: maxChars
+        required: false
+        schema:
+          minimum: 1
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: offset
+        required: false
+        schema:
+          default: 0
+          minimum: 0
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/history_get_200_response"
+          description: The record.
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "One full warm record, optionally paged by characters."
+      tags:
+      - history
+      x-chatpanel-auth: open
+  /v1/history/records:
+    get:
+      description: The lossless tier. A gateway without the SQLite store answers 501.
+      operationId: history.records
+      parameters:
+      - description: A stamp (ms since epoch) from a previous page's `newest`.
+        explode: true
+        in: query
+        name: since
+        required: false
+        schema:
+          default: 0
+          format: int64
+          minimum: 0
+          type: integer
+        style: form
+      - description: Opaque; from the previous page.
+        explode: true
+        in: query
+        name: cursor
+        required: false
+        schema:
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 200
+          minimum: 1
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: kind
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordsPage"
+          description: A page of whole records.
+        "501":
+          $ref: "#/components/responses/Error"
+      summary: "WHOLE records changed after a stamp, oldest first, paged by cursor,\
+        \ tombstones included."
+      tags:
+      - history
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.10.0
+    put:
+      operationId: history.putRecords
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PutRecordsRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PutRecordsResponse"
+          description: What was written.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: Push whole records; the gateway derives the searchable text itself.
+      tags:
+      - history
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.10.0
+  /v1/history/stream:
+    get:
+      operationId: history.stream
+      responses:
+        "200":
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              x-chatpanel-frame:
+                $ref: "#/components/schemas/HistoryStreamEvent"
+          description: "`event: hello` `{ newest, size, version }`, then `event: records`\
+            \ `{ newest, size, ids, at }`; a comment ping every 25 s."
+        "501":
+          $ref: "#/components/responses/Error"
+      summary: "Live record changes — `hello` once, then a `records` event per change."
+      tags:
+      - history
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.11.0
+      x-chatpanel-stream: sse
+  /v1/history/ingest:
+    post:
+      operationId: history.ingest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IngestRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/history_ingest_200_response"
+          description: The index size after the write.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: Push flattened (lossy) records into the warm index.
+      tags:
+      - history
+      x-chatpanel-auth: token
+  /v1/memory/list:
+    get:
+      operationId: memory.list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemoryList"
+          description: The list.
+      summary: Every memory.
+      tags:
+      - memory
+      x-chatpanel-auth: open
+  /v1/memory/recall:
+    post:
+      operationId: memory.recall
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecallRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecallResponse"
+          description: Relevant memories.
+        "400":
+          $ref: "#/components/responses/Error"
+      summary: "The memories relevant to a text, and a prompt block that carries them."
+      tags:
+      - memory
+      x-chatpanel-auth: open
+  /v1/memory/remember:
+    post:
+      operationId: memory.remember
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RememberRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RememberResponse"
+          description: "What happened — added, updated, or replaced an older memory."
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: Save a durable fact. Never anonymous — `source` is recorded.
+      tags:
+      - memory
+      x-chatpanel-auth: token
+  /v1/memory/forget:
+    post:
+      operationId: memory.forget
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/memory_forget_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/memory_forget_200_response"
+          description: How many were removed.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: Forget memories matching an id or words.
+      tags:
+      - memory
+      x-chatpanel-auth: token
+  /v1/memory/sync:
+    post:
+      operationId: memory.sync
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/memory_sync_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemorySyncResponse"
+          description: The merged set.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "Two-way merge in one round trip — push what you have, receive the\
+        \ full set."
+      tags:
+      - memory
+      x-chatpanel-auth: token
+  /v1/prefs:
+    delete:
+      operationId: prefs.delete
+      parameters:
+      - explode: true
+        in: query
+        name: section
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/prefs_delete_200_response"
+          description: Whether it existed.
+      summary: Remove one section.
+      tags:
+      - prefs
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.77
+    get:
+      operationId: prefs.get
+      parameters:
+      - explode: true
+        in: query
+        name: section
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: "Only `{ revision, stamps }`."
+        explode: true
+        in: query
+        name: stamps
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prefs"
+          description: The sections.
+      summary: "The shared sections, or only their stamps."
+      tags:
+      - prefs
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.77
+    post:
+      operationId: prefs.put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrefsWrite"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrefsWriteResult"
+          description: Which sections were applied and which were kept (newer on the
+            gateway).
+        "400":
+          $ref: "#/components/responses/Error"
+      summary: Write sections; per-section last-writer-wins by stamp.
+      tags:
+      - prefs
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.77
+  /v1/prefs/events:
+    get:
+      operationId: prefs.events
+      responses:
+        "200":
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              x-chatpanel-frame:
+                $ref: "#/components/schemas/PrefsEvent"
+          description: "`{ type: hello, revision, stamps }` first, then `{ type: changed,\
+            \ ... }`."
+      summary: Live — which sections another client wrote.
+      tags:
+      - prefs
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.77
+      x-chatpanel-stream: sse
+  /v1/teams/runs:
+    get:
+      operationId: teams.listRuns
+      parameters:
+      - explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 50
+          minimum: 1
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: team
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/teams_listRuns_200_response"
+          description: Runs.
+      summary: "The board — recent runs, newest first."
+      tags:
+      - teams
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.78
+    post:
+      operationId: teams.createRun
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamRunCreate"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/TeamRunResult"
+        "400":
+          $ref: "#/components/responses/Error"
+      summary: Open a run record.
+      tags:
+      - teams
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.78
+  /v1/teams/runs/{runId}:
+    delete:
+      operationId: teams.deleteRun
+      parameters:
+      - $ref: "#/components/parameters/RunId"
+      responses:
+        "200":
+          $ref: "#/components/responses/Removed"
+      summary: Remove a run; a live one is stopped first.
+      tags:
+      - teams
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.110
+    get:
+      operationId: teams.getRun
+      parameters:
+      - explode: true
+        in: query
+        name: events
+        required: false
+        schema:
+          type: boolean
+        style: form
+      - $ref: "#/components/parameters/RunId"
+      responses:
+        "200":
+          $ref: "#/components/responses/TeamRunResult"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "One run, optionally with its events."
+      tags:
+      - teams
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.78
+    parameters:
+    - $ref: "#/components/parameters/RunId"
+  /v1/teams/runs/{runId}/events:
+    get:
+      operationId: teams.runEvents
+      parameters:
+      - description: Replay events with seq greater than this; absent means from the
+          start.
+        explode: true
+        in: query
+        name: after
+        required: false
+        schema:
+          type: integer
+        style: form
+      - $ref: "#/components/parameters/RunId"
+      responses:
+        "200":
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              x-chatpanel-frame:
+                $ref: "#/components/schemas/RunEvent"
+          description: "`{ seq, type, at, payload }` frames; the first is `hello`\
+            \ with the run."
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "Tail a run — the record first, replay from `after`, then live."
+      tags:
+      - teams
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.78
+      x-chatpanel-stream: sse
+    parameters:
+    - $ref: "#/components/parameters/RunId"
+    post:
+      operationId: teams.appendRunEvents
+      parameters:
+      - $ref: "#/components/parameters/RunId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/teams_appendRunEvents_request"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/TeamRunResult"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: The running client appends events.
+      tags:
+      - teams
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.78
+  /v1/teams/runs/{runId}/stop:
+    parameters:
+    - $ref: "#/components/parameters/RunId"
+    post:
+      operationId: teams.stopRun
+      parameters:
+      - $ref: "#/components/parameters/RunId"
+      responses:
+        "200":
+          $ref: "#/components/responses/TeamRunResult"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: Ask the running client to stop.
+      tags:
+      - teams
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.78
+  /v1/teams/runs/{runId}/answer:
+    parameters:
+    - $ref: "#/components/parameters/RunId"
+    post:
+      operationId: teams.answer
+      parameters:
+      - $ref: "#/components/parameters/RunId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/teams_answer_request"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/TeamRunResult"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: A person answers an ask on the board.
+      tags:
+      - teams
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.81
+  /v1/teams/runs/{runId}/decide:
+    parameters:
+    - $ref: "#/components/parameters/RunId"
+    post:
+      operationId: teams.decide
+      parameters:
+      - $ref: "#/components/parameters/RunId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/teams_decide_request"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/TeamRunResult"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: Approve or reject a post.
+      tags:
+      - teams
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.81
+  /v1/teams/runs/{runId}/post:
+    parameters:
+    - $ref: "#/components/parameters/RunId"
+    post:
+      operationId: teams.post
+      parameters:
+      - $ref: "#/components/parameters/RunId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/teams_post_request"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/TeamRunResult"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: Post a note to a thread.
+      tags:
+      - teams
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.81
+  /v1/teams/runs/{runId}/threads/{threadId}:
+    delete:
+      operationId: teams.removeThread
+      parameters:
+      - $ref: "#/components/parameters/RunId"
+      - explode: false
+        in: path
+        name: threadId
+        required: true
+        schema:
+          pattern: "^[a-zA-Z0-9_:-]{1,80}$"
+          type: string
+        style: simple
+      responses:
+        "200":
+          $ref: "#/components/responses/TeamRunResult"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: A person removes a thread from the board.
+      tags:
+      - teams
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.106
+    parameters:
+    - $ref: "#/components/parameters/RunId"
+    - explode: false
+      in: path
+      name: threadId
+      required: true
+      schema:
+        pattern: "^[a-zA-Z0-9_:-]{1,80}$"
+        type: string
+      style: simple
+  /v1/teams/runs/{runId}/handoff:
+    parameters:
+    - $ref: "#/components/parameters/RunId"
+    post:
+      operationId: teams.handoff
+      parameters:
+      - $ref: "#/components/parameters/RunId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/teams_handoff_request"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/TeamRunResult"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: Continue a task on another model.
+      tags:
+      - teams
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.85
+  /v1/teams/runs/{runId}/checkpoint:
+    get:
+      operationId: teams.checkpoint
+      parameters:
+      - $ref: "#/components/parameters/RunId"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/teams_checkpoint_200_response"
+          description: The checkpoint.
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: What a client needs to resume a run whose client went away.
+      tags:
+      - teams
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.85
+    parameters:
+    - $ref: "#/components/parameters/RunId"
+  /v1/teams/runs/{runId}/claim:
+    parameters:
+    - $ref: "#/components/parameters/RunId"
+    post:
+      operationId: teams.claim
+      parameters:
+      - $ref: "#/components/parameters/RunId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/teams_claim_request"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/TeamRunResult"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: A client takes a stopped or stale run over.
+      tags:
+      - teams
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.85
+  /v1/projects:
+    get:
+      operationId: projects.list
+      parameters:
+      - explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 50
+          minimum: 1
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: status
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/projects_list_200_response"
+          description: Projects.
+      summary: "Projects, newest activity first, jobs counted."
+      tags:
+      - projects
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.90
+    post:
+      operationId: projects.create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/projects_create_request"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/ProjectResult"
+        "400":
+          $ref: "#/components/responses/Error"
+      summary: Open a record (idempotent) or update the page.
+      tags:
+      - projects
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.90
+  /v1/projects/jobs:
+    get:
+      operationId: projects.jobBoard
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/projects_jobBoard_200_response"
+          description: The board.
+      summary: Every open posting across projects.
+      tags:
+      - projects
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.90
+  /v1/projects/{projectId}:
+    delete:
+      operationId: projects.delete
+      parameters:
+      - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          $ref: "#/components/responses/Removed"
+      summary: Remove a project record.
+      tags:
+      - projects
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.90
+    get:
+      operationId: projects.get
+      parameters:
+      - explode: true
+        in: query
+        name: events
+        required: false
+        schema:
+          type: boolean
+        style: form
+      - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          $ref: "#/components/responses/ProjectResult"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "The record — jobs, runs, spend, decisions, report."
+      tags:
+      - projects
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.90
+    parameters:
+    - $ref: "#/components/parameters/ProjectId"
+  /v1/projects/{projectId}/events:
+    get:
+      operationId: projects.events
+      parameters:
+      - explode: true
+        in: query
+        name: after
+        required: false
+        schema:
+          type: integer
+        style: form
+      - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              x-chatpanel-frame:
+                $ref: "#/components/schemas/RunEvent"
+          description: Event frames.
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "Tail a project — hello, replay, then live."
+      tags:
+      - projects
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.90
+      x-chatpanel-stream: sse
+    parameters:
+    - $ref: "#/components/parameters/ProjectId"
+    post:
+      operationId: projects.appendEvents
+      parameters:
+      - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/teams_appendRunEvents_request"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/ProjectResult"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "The executive loop appends (status, run.linked, run.spent, decision,\
+        \ report)."
+      tags:
+      - projects
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.90
+  /v1/projects/{projectId}/jobs:
+    parameters:
+    - $ref: "#/components/parameters/ProjectId"
+    post:
+      operationId: projects.postJob
+      parameters:
+      - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/projects_postJob_request"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/ProjectResult"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: Post a job.
+      tags:
+      - projects
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.90
+  /v1/projects/{projectId}/jobs/{jobId}:
+    parameters:
+    - $ref: "#/components/parameters/ProjectId"
+    - $ref: "#/components/parameters/JobId"
+    post:
+      operationId: projects.patchJob
+      parameters:
+      - $ref: "#/components/parameters/ProjectId"
+      - $ref: "#/components/parameters/JobId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/projects_patchJob_request"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/ProjectResult"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: Move a job along its state machine.
+      tags:
+      - projects
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.90
+  /v1/projects/{projectId}/jobs/{jobId}/applications:
+    get:
+      operationId: projects.applications
+      parameters:
+      - explode: true
+        in: query
+        name: reach
+        required: false
+        schema:
+          default: any
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: chatModel
+        required: false
+        schema:
+          type: string
+        style: form
+      - $ref: "#/components/parameters/ProjectId"
+      - $ref: "#/components/parameters/JobId"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnyObject"
+          description: Applications.
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "The pool applies at once; `prompt` is the evaluator's, for a structured\
+        \ call."
+      tags:
+      - projects
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.90
+    parameters:
+    - $ref: "#/components/parameters/ProjectId"
+    - $ref: "#/components/parameters/JobId"
+  /v1/projects/{projectId}/jobs/{jobId}/recruit:
+    parameters:
+    - $ref: "#/components/parameters/ProjectId"
+    - $ref: "#/components/parameters/JobId"
+    post:
+      operationId: projects.recruit
+      parameters:
+      - $ref: "#/components/parameters/ProjectId"
+      - $ref: "#/components/parameters/JobId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/projects_recruit_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnyObject"
+          description: The decision.
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "One pass — fit recomputed, the evaluation read through the schema,\
+        \ the pick landed as events."
+      tags:
+      - projects
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.90
+  /v1/agents/scorecards:
+    get:
+      operationId: agents.scorecards
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/agents_scorecards_200_response"
+          description: Scorecards.
+      summary: Every agent's scorecard.
+      tags:
+      - agents
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.87
+  /v1/agents/{agentId}/scorecard:
+    get:
+      operationId: agents.scorecard
+      parameters:
+      - explode: false
+        in: path
+        name: agentId
+        required: true
+        schema:
+          maxLength: 120
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnyObject"
+          description: The card.
+      summary: One agent's attested scorecard.
+      tags:
+      - agents
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.87
+    parameters:
+    - explode: false
+      in: path
+      name: agentId
+      required: true
+      schema:
+        maxLength: 120
+        type: string
+      style: simple
+    post:
+      operationId: agents.rate
+      parameters:
+      - explode: false
+        in: path
+        name: agentId
+        required: true
+        schema:
+          maxLength: 120
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/agents_rate_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnyObject"
+          description: The entry.
+        "400":
+          $ref: "#/components/responses/Error"
+      summary: "A person rates the agent's work on a run, task or job."
+      tags:
+      - agents
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.87
+  /v1/engines:
+    get:
+      operationId: engines.list
+      parameters:
+      - explode: true
+        in: query
+        name: minCalls
+        required: false
+        schema:
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/engines_list_200_response"
+          description: Engines.
+      summary: Every engine's card.
+      tags:
+      - engines
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.89
+  /v1/engines/{engineKey}/card:
+    get:
+      operationId: engines.card
+      parameters:
+      - explode: true
+        in: query
+        name: entries
+        required: false
+        schema:
+          type: boolean
+        style: form
+      - explode: true
+        in: query
+        name: minCalls
+        required: false
+        schema:
+          type: integer
+        style: form
+      - explode: false
+        in: path
+        name: engineKey
+        required: true
+        schema:
+          maxLength: 300
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnyObject"
+          description: The card.
+      summary: "One engine's card, optionally with entries."
+      tags:
+      - engines
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.89
+    parameters:
+    - explode: false
+      in: path
+      name: engineKey
+      required: true
+      schema:
+        maxLength: 300
+        type: string
+      style: simple
+  /v1/engines/{engineKey}/entries:
+    parameters:
+    - explode: false
+      in: path
+      name: engineKey
+      required: true
+      schema:
+        maxLength: 300
+        type: string
+      style: simple
+    post:
+      operationId: engines.appendEntry
+      parameters:
+      - explode: false
+        in: path
+        name: engineKey
+        required: true
+        schema:
+          maxLength: 300
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnyObject"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnyObject"
+          description: The entry.
+        "400":
+          $ref: "#/components/responses/Error"
+      summary: Append a ledger entry for an engine.
+      tags:
+      - engines
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.89
+  /skills:
+    get:
+      operationId: skills.list
+      parameters:
+      - description: Include the project-local skill roots of this directory (0.9.4+).
+        explode: true
+        in: query
+        name: workdir
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/skills_list_200_response"
+          description: Skills.
+        "502":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      summary: "The skills on this machine — with a prompt character count, not the\
+        \ prompt."
+      tags:
+      - skills
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.64
+  /skills/{skillId}:
+    get:
+      operationId: skills.get
+      parameters:
+      - explode: true
+        in: query
+        name: workdir
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: One path segment; slashes and `..` are refused.
+        explode: false
+        in: path
+        name: skillId
+        required: true
+        schema:
+          maxLength: 200
+          pattern: "^[^/\\\\]+$"
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/skills_get_200_response"
+          description: The skill.
+        "400":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+      summary: "One skill, with its prompt."
+      tags:
+      - skills
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.6.67
+    parameters:
+    - description: One path segment; slashes and `..` are refused.
+      explode: false
+      in: path
+      name: skillId
+      required: true
+      schema:
+        maxLength: 200
+        pattern: "^[^/\\\\]+$"
+        type: string
+      style: simple
+components:
+  parameters:
+    RunId:
+      explode: false
+      in: path
+      name: runId
+      required: true
+      schema:
+        pattern: "^[a-zA-Z0-9_-]{4,64}$"
+        type: string
+      style: simple
+    ProjectId:
+      explode: false
+      in: path
+      name: projectId
+      required: true
+      schema:
+        pattern: "^[a-zA-Z0-9_-]{1,64}$"
+        type: string
+      style: simple
+    JobId:
+      explode: false
+      in: path
+      name: jobId
+      required: true
+      schema:
+        pattern: "^[a-zA-Z0-9_-]{1,64}$"
+        type: string
+      style: simple
+    RedactionHeader:
+      description: "Turn redaction off for this turn — honoured only from a token-bearing\
+        \ caller (0.6.69+), recorded in the trace."
+      explode: false
+      in: header
+      name: X-ChatPanel-Redaction
+      required: false
+      schema:
+        enum:
+        - false
+        type: string
+      style: simple
+    RunHeader:
+      description: A team role's run context (URL-encoded JSON) for the bridge (0.6.89+).
+        Never a token.
+      explode: false
+      in: header
+      name: X-ChatPanel-Run
+      required: false
+      schema:
+        type: string
+      style: simple
+  responses:
+    Error:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+      description: "An error, in the gateway's words."
+    Forbidden:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+      description: The caller lacks the token this route needs.
+    Removed:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/prefs_delete_200_response"
+      description: Whether the record existed.
+    TeamRunResult:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/inline_object"
+      description: The run as it now stands.
+    ProjectResult:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/inline_object_1"
+      description: The project as it now stands.
+  schemas:
+    AnyObject:
+      additionalProperties: true
+      description: A domain object whose shape is owned by `@chatpanel/events`; the
+        SDK carries it as-is.
+      type: object
+    ErrorResponse:
+      example:
+        error: ErrorResponse_error
+      properties:
+        error:
+          $ref: "#/components/schemas/ErrorResponse_error"
+      required:
+      - error
+    Health:
+      additionalProperties: true
+      example:
+        ok: true
+        version: version
+        backend: backend
+        tier: basic
+        pairing: true
+        managed:
+          key: ""
+        managedBy: managedBy
+        bridge:
+          key: ""
+        stt:
+          key: ""
+        tts:
+          key: ""
+      properties:
+        ok:
+          type: boolean
+        version:
+          description: The gateway's semver; every version gate reads this.
+          type: string
+        backend:
+          type: string
+        tier:
+          description: Redaction tier.
+          enum:
+          - basic
+          - full
+          type: string
+        pairing:
+          description: Present from 0.9.0 — this gateway can pair a client.
+          type: boolean
+        managed:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+        managedBy:
+          type: string
+        bridge:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+        stt:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+        tts:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+      required:
+      - ok
+      - version
+    WhoAmI:
+      example:
+        ok: true
+        trust: token
+        paired: true
+        version: version
+      properties:
+        ok:
+          type: boolean
+        trust:
+          enum:
+          - token
+          - pinned
+          - unpaired
+          - local
+          - web
+          type: string
+        paired:
+          description: True when this caller may reach token-gated routes.
+          type: boolean
+        version:
+          type: string
+      required:
+      - ok
+      - paired
+      - trust
+      - version
+    PairingCode:
+      example:
+        ok: true
+        code: code
+        display: display
+        expiresAt: 0
+      properties:
+        ok:
+          type: boolean
+        code:
+          type: string
+        display:
+          type: string
+        expiresAt:
+          description: ms since epoch
+          format: int64
+          type: integer
+      required:
+      - code
+      - expiresAt
+      - ok
+    Paired:
+      example:
+        ok: true
+        token: token
+        bridgeToken: bridgeToken
+      properties:
+        ok:
+          type: boolean
+        token:
+          description: The gateway token. A secret — store it 0600 or in the platform
+            keychain; never log it.
+          type: string
+        bridgeToken:
+          description: The bridge's token when this machine has one.
+          type: string
+      required:
+      - ok
+      - token
+    Audit:
+      additionalProperties: true
+      example:
+        version: version
+        startedAt: 0
+      properties:
+        version:
+          type: string
+        startedAt:
+          format: int64
+          type: integer
+    Model:
+      additionalProperties: true
+      example:
+        id: id
+        object: model
+        owned_by: owned_by
+        provider: provider
+        provider_type: agent
+        api: api
+        endpoints:
+        - endpoints
+        - endpoints
+        available: true
+        configured: true
+        reason: reason
+        tools: true
+      properties:
+        id:
+          type: string
+        object:
+          enum:
+          - model
+          type: string
+        owned_by:
+          type: string
+        provider:
+          type: string
+        provider_type:
+          description: 0.6.64+
+          enum:
+          - agent
+          - openai
+          - anthropic
+          type: string
+        api:
+          type: string
+        endpoints:
+          items:
+            type: string
+          type: array
+          default: null
+        available:
+          description: 0.6.64+ for bridge agents — whether the CLI is installed.
+          type: boolean
+        configured:
+          description: 0.6.66+ — false when a turn is known to fail for something
+            the user can fix.
+          type: boolean
+        reason:
+          type: string
+        tools:
+          description: False when the agent cannot take per-turn tools.
+          type: boolean
+      required:
+      - id
+      - object
+    ModelList:
+      example:
+        object: list
+        data:
+        - id: id
+          object: model
+          owned_by: owned_by
+          provider: provider
+          provider_type: agent
+          api: api
+          endpoints:
+          - endpoints
+          - endpoints
+          available: true
+          configured: true
+          reason: reason
+          tools: true
+        - id: id
+          object: model
+          owned_by: owned_by
+          provider: provider
+          provider_type: agent
+          api: api
+          endpoints:
+          - endpoints
+          - endpoints
+          available: true
+          configured: true
+          reason: reason
+          tools: true
+      properties:
+        object:
+          enum:
+          - list
+          type: string
+        data:
+          items:
+            $ref: "#/components/schemas/Model"
+          type: array
+          default: null
+      required:
+      - data
+      - object
+    ChatMessage:
+      additionalProperties: true
+      example:
+        role: system
+        content: ChatMessage_content
+        name: name
+        tool_calls:
+        - null
+        - null
+        tool_call_id: tool_call_id
+      properties:
+        role:
+          enum:
+          - system
+          - user
+          - assistant
+          - tool
+          type: string
+        content:
+          $ref: "#/components/schemas/ChatMessage_content"
+        name:
+          type: string
+        tool_calls:
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+        tool_call_id:
+          type: string
+      required:
+      - role
+    ChatContentPart:
+      additionalProperties: true
+      description: "One part of a multi-part message — `text`, `image_url`, … in the\
+        \ OpenAI shape."
+      properties:
+        type:
+          type: string
+        text:
+          type: string
+        image_url:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+      required:
+      - type
+    ChatCompletionRequest:
+      additionalProperties: true
+      example:
+        model: model
+        messages:
+        - role: system
+          content: ChatMessage_content
+          name: name
+          tool_calls:
+          - null
+          - null
+          tool_call_id: tool_call_id
+        - role: system
+          content: ChatMessage_content
+          name: name
+          tool_calls:
+          - null
+          - null
+          tool_call_id: tool_call_id
+        stream: true
+        stream_options:
+          key: ""
+        tools:
+        - null
+        - null
+        tool_choice: ""
+        temperature: 0.8008281904610115
+        max_tokens: 6
+      properties:
+        model:
+          description: A model id from `GET /v1/models`; `claude/opus` names an agent
+            and its model.
+          type: string
+        messages:
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+          type: array
+          default: null
+        stream:
+          type: boolean
+        stream_options:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+        tools:
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+        tool_choice: {}
+        temperature:
+          type: number
+        max_tokens:
+          type: integer
+      required:
+      - messages
+      - model
+    ChatCompletion:
+      additionalProperties: {}
+      example:
+        id: id
+        object: object
+        created: 0
+        model: model
+        choices:
+        - index: 6
+          message:
+            role: system
+            content: ChatMessage_content
+            name: name
+            tool_calls:
+            - null
+            - null
+            tool_call_id: tool_call_id
+          finish_reason: finish_reason
+        - index: 6
+          message:
+            role: system
+            content: ChatMessage_content
+            name: name
+            tool_calls:
+            - null
+            - null
+            tool_call_id: tool_call_id
+          finish_reason: finish_reason
+        usage:
+          key: ""
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created:
+          type: integer
+        model:
+          type: string
+        choices:
+          items:
+            $ref: "#/components/schemas/ChatCompletion_choices_inner"
+          type: array
+          default: null
+        usage:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+      required:
+      - choices
+      - id
+      - object
+    ChatCompletionChunk:
+      additionalProperties: {}
+      description: One `data:` frame of a streamed completion.
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        model:
+          type: string
+        choices:
+          items:
+            $ref: "#/components/schemas/ChatCompletionChunk_choices_inner"
+          type: array
+          default: null
+        usage:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+      required:
+      - choices
+      - id
+      - object
+    RedactionPreview:
+      example:
+        text: text
+        count: 0
+        sanitized: 6
+        tier: basic
+        entities:
+        - null
+        - null
+        detector:
+          key: ""
+      properties:
+        text:
+          description: What the model would receive.
+          type: string
+        count:
+          type: integer
+        sanitized:
+          type: integer
+        tier:
+          enum:
+          - basic
+          - full
+          type: string
+        entities:
+          description: Placeholder tokens and their types — never the real values.
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+        detector:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+      required:
+      - count
+      - text
+    RecordType:
+      enum:
+      - chat
+      - note
+      - meeting
+      - brief
+      type: string
+    SearchFilters:
+      properties:
+        type:
+          $ref: "#/components/schemas/RecordType"
+        since:
+          description: ms since epoch
+          format: int64
+          type: integer
+        before:
+          description: ms since epoch
+          format: int64
+          type: integer
+        limit:
+          default: 10
+          maximum: 50
+          minimum: 1
+          type: integer
+    SearchRequest:
+      allOf:
+      - $ref: "#/components/schemas/SearchFilters"
+      - properties:
+          query:
+            type: string
+          offset:
+            default: 0
+            minimum: 0
+            type: integer
+        required:
+        - query
+      example:
+        type: chat
+        since: 0
+        before: 6
+        limit: 8
+        query: query
+        offset: 0
+    SmartSearchRequest:
+      allOf:
+      - $ref: "#/components/schemas/SearchFilters"
+      - properties:
+          question:
+            description: The natural-language question.
+            type: string
+          queries:
+            description: 2–4 keyword phrasings of your own; they lead.
+            items:
+              type: string
+            type: array
+            default: null
+          maxQueries:
+            default: 4
+            maximum: 6
+            minimum: 1
+            type: integer
+        required:
+        - question
+      example:
+        type: chat
+        since: 0
+        before: 6
+        limit: 8
+        question: question
+        queries:
+        - queries
+        - queries
+        maxQueries: 3
+    SearchHit:
+      additionalProperties: true
+      example:
+        id: id
+        score: 1.4658129805029452
+        title: title
+        type: chat
+        date: 5
+        snippet: snippet
+      properties:
+        id:
+          type: string
+        score:
+          type: number
+        title:
+          type: string
+        type:
+          $ref: "#/components/schemas/RecordType"
+        date:
+          format: int64
+          type: integer
+        snippet:
+          type: string
+      required:
+      - id
+    SearchResponse:
+      example:
+        ok: true
+        size: 0
+        newest: 6
+        results:
+        - id: id
+          score: 1.4658129805029452
+          title: title
+          type: chat
+          date: 5
+          snippet: snippet
+        - id: id
+          score: 1.4658129805029452
+          title: title
+          type: chat
+          date: 5
+          snippet: snippet
+      properties:
+        ok:
+          type: boolean
+        size:
+          type: integer
+        newest:
+          format: int64
+          type: integer
+        results:
+          items:
+            $ref: "#/components/schemas/SearchHit"
+          type: array
+          default: null
+      required:
+      - ok
+      - results
+    SmartSearchResponse:
+      allOf:
+      - $ref: "#/components/schemas/SearchResponse"
+      - properties:
+          queries:
+            items:
+              type: string
+            type: array
+            default: null
+      example:
+        ok: true
+        size: 0
+        newest: 6
+        results:
+        - id: id
+          score: 1.4658129805029452
+          title: title
+          type: chat
+          date: 5
+          snippet: snippet
+        - id: id
+          score: 1.4658129805029452
+          title: title
+          type: chat
+          date: 5
+          snippet: snippet
+        queries:
+        - queries
+        - queries
+    HistoryStatus:
+      example:
+        ok: true
+        size: 0
+        newest: 6
+        bytes: 1
+        lossless:
+          records: 5
+          newest: 5
+      properties:
+        ok:
+          type: boolean
+        size:
+          type: integer
+        newest:
+          format: int64
+          type: integer
+        bytes:
+          format: int64
+          type: integer
+        lossless:
+          $ref: "#/components/schemas/HistoryStatus_lossless"
+      required:
+      - ok
+      - size
+    HistoryItem:
+      additionalProperties: true
+      example:
+        id: id
+        title: title
+        type: chat
+        date: 6
+        chars: 1
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        type:
+          $ref: "#/components/schemas/RecordType"
+        date:
+          format: int64
+          type: integer
+        chars:
+          type: integer
+      required:
+      - id
+    HistoryPage:
+      example:
+        ok: true
+        total: 0
+        items:
+        - id: id
+          title: title
+          type: chat
+          date: 6
+          chars: 1
+        - id: id
+          title: title
+          type: chat
+          date: 6
+          chars: 1
+      properties:
+        ok:
+          type: boolean
+        total:
+          type: integer
+        items:
+          items:
+            $ref: "#/components/schemas/HistoryItem"
+          type: array
+          default: null
+      required:
+      - items
+      - ok
+      - total
+    HistoryRecord:
+      additionalProperties: true
+      example:
+        id: id
+        title: title
+        type: chat
+        date: 0
+        text: text
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        type:
+          $ref: "#/components/schemas/RecordType"
+        date:
+          format: int64
+          type: integer
+        text:
+          type: string
+      required:
+      - id
+      - text
+    RecordsPage:
+      additionalProperties: true
+      example:
+        ok: true
+        records:
+        - null
+        - null
+        next: next
+        size: 0
+        newest: 6
+      properties:
+        ok:
+          type: boolean
+        records:
+          description: Whole records; a tombstone carries `deletedAt`.
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+        next:
+          description: The cursor for the next page — pass it as `cursor`; absent
+            on the last page.
+          type: string
+        size:
+          type: integer
+        newest:
+          format: int64
+          type: integer
+      required:
+      - ok
+      - records
+    PutRecordsRequest:
+      example:
+        host: host
+        at: 0
+        records:
+        - null
+        - null
+        entries:
+        - null
+        - null
+      properties:
+        host:
+          description: Who is pushing — recorded on every record.
+          maxLength: 80
+          type: string
+        at:
+          format: int64
+          type: integer
+        records:
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+        entries:
+          description: "Sealed backup entries, opened with the stored passphrase."
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+    PutRecordsResponse:
+      example:
+        ok: true
+        written: 0
+        ids:
+        - ids
+        - ids
+        sealed: 6
+        size: 1
+      properties:
+        ok:
+          type: boolean
+        written:
+          type: integer
+        ids:
+          items:
+            type: string
+          type: array
+          default: null
+        sealed:
+          type: integer
+        size:
+          type: integer
+      required:
+      - ok
+      - written
+    IngestRequest:
+      example:
+        upserts:
+        - id: id
+          title: title
+          type: chat
+          date: 0
+          text: text
+        - id: id
+          title: title
+          type: chat
+          date: 0
+          text: text
+        removes:
+        - removes
+        - removes
+      properties:
+        upserts:
+          items:
+            $ref: "#/components/schemas/IngestRequest_upserts_inner"
+          type: array
+          default: null
+        removes:
+          items:
+            type: string
+          type: array
+          default: null
+    Memory:
+      additionalProperties: true
+      example:
+        id: id
+        text: text
+        kind: kind
+        scope: scope
+        tags:
+        - tags
+        - tags
+        createdAt: 6
+        updatedAt: 1
+        source:
+          via: via
+          surface: surface
+          agent: agent
+          ref: ref
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        kind:
+          type: string
+        scope:
+          type: string
+        tags:
+          items:
+            type: string
+          type: array
+          default: null
+        createdAt:
+          format: int64
+          type: integer
+        updatedAt:
+          format: int64
+          type: integer
+        source:
+          $ref: "#/components/schemas/MemorySource"
+      required:
+      - id
+      - text
+    MemorySource:
+      description: "Who proposed the memory. There is no confirm dialog on a CLI,\
+        \ so attribution is the accountability."
+      example:
+        via: via
+        surface: surface
+        agent: agent
+        ref: ref
+      properties:
+        via:
+          description: "The client — e.g. `sdk`, `cli`, `mcp`."
+          type: string
+        surface:
+          type: string
+        agent:
+          type: string
+        ref:
+          type: string
+    MemoryList:
+      example:
+        ok: true
+        size: 0
+        memories:
+        - id: id
+          text: text
+          kind: kind
+          scope: scope
+          tags:
+          - tags
+          - tags
+          createdAt: 6
+          updatedAt: 1
+          source:
+            via: via
+            surface: surface
+            agent: agent
+            ref: ref
+        - id: id
+          text: text
+          kind: kind
+          scope: scope
+          tags:
+          - tags
+          - tags
+          createdAt: 6
+          updatedAt: 1
+          source:
+            via: via
+            surface: surface
+            agent: agent
+            ref: ref
+      properties:
+        ok:
+          type: boolean
+        size:
+          type: integer
+        memories:
+          items:
+            $ref: "#/components/schemas/Memory"
+          type: array
+          default: null
+      required:
+      - memories
+      - ok
+    RecallRequest:
+      example:
+        text: text
+        scopes:
+        - scopes
+        - scopes
+        limit: 0
+        maxChars: 6
+      properties:
+        text:
+          type: string
+        scopes:
+          default:
+          - global
+          items:
+            type: string
+          type: array
+        limit:
+          type: integer
+        maxChars:
+          type: integer
+      required:
+      - text
+    RecallResponse:
+      additionalProperties: true
+      example:
+        ok: true
+        size: 0
+        memories:
+        - id: id
+          text: text
+          kind: kind
+          scope: scope
+          tags:
+          - tags
+          - tags
+          createdAt: 6
+          updatedAt: 1
+          source:
+            via: via
+            surface: surface
+            agent: agent
+            ref: ref
+        - id: id
+          text: text
+          kind: kind
+          scope: scope
+          tags:
+          - tags
+          - tags
+          createdAt: 6
+          updatedAt: 1
+          source:
+            via: via
+            surface: surface
+            agent: agent
+            ref: ref
+        block: block
+      properties:
+        ok:
+          type: boolean
+        size:
+          type: integer
+        memories:
+          items:
+            $ref: "#/components/schemas/Memory"
+          type: array
+          default: null
+        block:
+          description: A prompt block carrying the recalled memories.
+          type: string
+      required:
+      - memories
+      - ok
+    RememberRequest:
+      example:
+        text: text
+        kind: fact
+        scope: global
+        tags:
+        - tags
+        - tags
+        source:
+          via: via
+          surface: surface
+          agent: agent
+          ref: ref
+      properties:
+        text:
+          description: One short sentence.
+          type: string
+        kind:
+          default: fact
+          type: string
+        scope:
+          default: global
+          type: string
+        tags:
+          items:
+            type: string
+          type: array
+          default: null
+        source:
+          $ref: "#/components/schemas/MemorySource"
+      required:
+      - text
+    RememberResponse:
+      example:
+        ok: true
+        action: action
+        record:
+          id: id
+          text: text
+          kind: kind
+          scope: scope
+          tags:
+          - tags
+          - tags
+          createdAt: 6
+          updatedAt: 1
+          source:
+            via: via
+            surface: surface
+            agent: agent
+            ref: ref
+        replaced: ""
+        size: 0
+      properties:
+        ok:
+          type: boolean
+        action:
+          type: string
+        record:
+          $ref: "#/components/schemas/Memory"
+        replaced:
+          allOf:
+          - $ref: "#/components/schemas/Memory"
+          nullable: true
+        size:
+          type: integer
+      required:
+      - action
+      - ok
+      - record
+    MemorySyncResponse:
+      additionalProperties: true
+      example:
+        ok: true
+        size: 0
+        memories:
+        - id: id
+          text: text
+          kind: kind
+          scope: scope
+          tags:
+          - tags
+          - tags
+          createdAt: 6
+          updatedAt: 1
+          source:
+            via: via
+            surface: surface
+            agent: agent
+            ref: ref
+        - id: id
+          text: text
+          kind: kind
+          scope: scope
+          tags:
+          - tags
+          - tags
+          createdAt: 6
+          updatedAt: 1
+          source:
+            via: via
+            surface: surface
+            agent: agent
+            ref: ref
+      properties:
+        ok:
+          type: boolean
+        size:
+          type: integer
+        memories:
+          items:
+            $ref: "#/components/schemas/Memory"
+          type: array
+          default: null
+      required:
+      - memories
+      - ok
+    HistoryStreamEvent:
+      properties:
+        event:
+          description: The SSE event name.
+          enum:
+          - hello
+          - records
+          type: string
+        newest:
+          format: int64
+          type: integer
+        size:
+          type: integer
+        version:
+          type: string
+        ids:
+          items:
+            type: string
+          type: array
+          default: null
+        at:
+          format: int64
+          type: integer
+      required:
+      - event
+    PrefsEvent:
+      additionalProperties: {}
+      properties:
+        type:
+          enum:
+          - hello
+          - changed
+          type: string
+        revision:
+          type: integer
+        stamps:
+          additionalProperties:
+            format: int64
+            type: integer
+          type: object
+        applied:
+          description: The sections the other client wrote.
+          items:
+            type: string
+          type: array
+          default: null
+        by:
+          type: string
+      required:
+      - type
+    PrefSection:
+      example:
+        value: ""
+        updatedAt: 6
+        by: by
+      properties:
+        value: {}
+        updatedAt:
+          format: int64
+          type: integer
+        by:
+          type: string
+      required:
+      - value
+    Prefs:
+      example:
+        ok: true
+        revision: 0
+        sections:
+          key:
+            value: ""
+            updatedAt: 6
+            by: by
+        stamps:
+          key: 1
+      properties:
+        ok:
+          type: boolean
+        revision:
+          type: integer
+        sections:
+          additionalProperties:
+            $ref: "#/components/schemas/PrefSection"
+          type: object
+        stamps:
+          additionalProperties:
+            format: int64
+            type: integer
+          type: object
+      required:
+      - ok
+      - revision
+    PrefsWrite:
+      example:
+        sections:
+          key:
+            value: ""
+            updatedAt: 6
+            by: by
+        by: by
+      properties:
+        sections:
+          additionalProperties:
+            $ref: "#/components/schemas/PrefSection"
+          type: object
+        by:
+          description: Which client is writing.
+          type: string
+      required:
+      - sections
+    PrefsWriteResult:
+      additionalProperties: true
+      example:
+        ok: true
+        revision: 0
+        applied:
+        - applied
+        - applied
+        kept:
+        - kept
+        - kept
+      properties:
+        ok:
+          type: boolean
+        revision:
+          type: integer
+        applied:
+          items:
+            type: string
+          type: array
+          default: null
+        kept:
+          items:
+            type: string
+          type: array
+          default: null
+      required:
+      - ok
+      - revision
+    RunEvent:
+      additionalProperties: true
+      example:
+        seq: 0
+        type: type
+        at: 6
+        payload:
+          key: ""
+      properties:
+        seq:
+          type: integer
+        type:
+          type: string
+        at:
+          format: int64
+          type: integer
+        payload:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+      required:
+      - type
+    TeamRun:
+      additionalProperties: true
+      example:
+        id: id
+        client: client
+        team:
+          key: ""
+        status: status
+        events:
+        - seq: 0
+          type: type
+          at: 6
+          payload:
+            key: ""
+        - seq: 0
+          type: type
+          at: 6
+          payload:
+            key: ""
+      properties:
+        id:
+          type: string
+        client:
+          type: string
+        team:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+        status:
+          type: string
+        events:
+          items:
+            $ref: "#/components/schemas/RunEvent"
+          type: array
+          default: null
+      required:
+      - id
+    TeamRunCreate:
+      example:
+        id: id
+        client: client
+        team:
+          key: ""
+        request:
+          key: ""
+      properties:
+        id:
+          type: string
+        client:
+          description: Which client is running it.
+          type: string
+        team:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+        request:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+    Project:
+      additionalProperties: true
+      example:
+        id: id
+        status: status
+        jobs:
+        - null
+        - null
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        jobs:
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+      required:
+      - id
+    Skill:
+      additionalProperties: true
+      example:
+        id: id
+        name: name
+        description: description
+        promptChars: 0
+        prompt: prompt
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        promptChars:
+          type: integer
+        prompt:
+          description: "Only on `GET /skills/{skillId}`."
+          type: string
+      required:
+      - id
+    gateway_pair_request:
+      properties:
+        code:
+          description: The 6-digit code from `chatpanel-gateway pair`.
+          type: string
+      required:
+      - code
+    redaction_preview_request:
+      properties:
+        text:
+          type: string
+      required:
+      - text
+    history_related_200_response:
+      example:
+        ok: true
+        results:
+        - id: id
+          score: 1.4658129805029452
+          title: title
+          type: chat
+          date: 5
+          snippet: snippet
+        - id: id
+          score: 1.4658129805029452
+          title: title
+          type: chat
+          date: 5
+          snippet: snippet
+      properties:
+        ok:
+          type: boolean
+        results:
+          items:
+            $ref: "#/components/schemas/SearchHit"
+          type: array
+          default: null
+      required:
+      - ok
+      - results
+    history_get_200_response:
+      example:
+        ok: true
+        record:
+          id: id
+          title: title
+          type: chat
+          date: 0
+          text: text
+      properties:
+        ok:
+          type: boolean
+        record:
+          $ref: "#/components/schemas/HistoryRecord"
+      required:
+      - ok
+      - record
+    history_ingest_200_response:
+      example:
+        ok: true
+        size: 0
+      properties:
+        ok:
+          type: boolean
+        size:
+          type: integer
+      required:
+      - ok
+      - size
+    memory_forget_request:
+      properties:
+        query:
+          type: string
+      required:
+      - query
+    memory_forget_200_response:
+      example:
+        ok: true
+        removed: 0
+        size: 6
+      properties:
+        ok:
+          type: boolean
+        removed:
+          type: integer
+        size:
+          type: integer
+      required:
+      - ok
+      - removed
+      - size
+    memory_sync_request:
+      properties:
+        upserts:
+          items:
+            $ref: "#/components/schemas/Memory"
+          type: array
+          default: null
+        removes:
+          items:
+            type: string
+          type: array
+          default: null
+    prefs_delete_200_response:
+      example:
+        ok: true
+        removed: true
+      properties:
+        ok:
+          type: boolean
+        removed:
+          type: boolean
+      required:
+      - ok
+      - removed
+    teams_listRuns_200_response:
+      example:
+        ok: true
+        runs:
+        - id: id
+          client: client
+          team:
+            key: ""
+          status: status
+          events:
+          - seq: 0
+            type: type
+            at: 6
+            payload:
+              key: ""
+          - seq: 0
+            type: type
+            at: 6
+            payload:
+              key: ""
+        - id: id
+          client: client
+          team:
+            key: ""
+          status: status
+          events:
+          - seq: 0
+            type: type
+            at: 6
+            payload:
+              key: ""
+          - seq: 0
+            type: type
+            at: 6
+            payload:
+              key: ""
+      properties:
+        ok:
+          type: boolean
+        runs:
+          items:
+            $ref: "#/components/schemas/TeamRun"
+          type: array
+          default: null
+      required:
+      - ok
+      - runs
+    teams_appendRunEvents_request:
+      properties:
+        events:
+          items:
+            $ref: "#/components/schemas/RunEvent"
+          type: array
+          default: null
+      required:
+      - events
+    teams_answer_request:
+      properties:
+        threadId:
+          type: string
+        text:
+          type: string
+        by:
+          default: person
+          maxLength: 40
+          type: string
+      required:
+      - text
+      - threadId
+    teams_decide_request:
+      properties:
+        postId:
+          type: string
+        status:
+          enum:
+          - approved
+          - rejected
+          type: string
+        by:
+          default: person
+          maxLength: 40
+          type: string
+      required:
+      - postId
+      - status
+    teams_post_request:
+      properties:
+        threadId:
+          type: string
+        text:
+          type: string
+        kind:
+          type: string
+        replyTo:
+          type: string
+        by:
+          default: person
+          maxLength: 40
+          type: string
+      required:
+      - text
+      - threadId
+    teams_handoff_request:
+      properties:
+        taskId:
+          type: string
+        model:
+          type: string
+        by:
+          type: string
+        reason:
+          type: string
+      required:
+      - model
+      - taskId
+    teams_checkpoint_200_response:
+      example:
+        ok: true
+        checkpoint:
+          key: ""
+      properties:
+        ok:
+          type: boolean
+        checkpoint:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+      required:
+      - checkpoint
+      - ok
+    teams_claim_request:
+      properties:
+        client:
+          type: string
+      required:
+      - client
+    projects_list_200_response:
+      example:
+        ok: true
+        projects:
+        - id: id
+          status: status
+          jobs:
+          - null
+          - null
+        - id: id
+          status: status
+          jobs:
+          - null
+          - null
+      properties:
+        ok:
+          type: boolean
+        projects:
+          items:
+            $ref: "#/components/schemas/Project"
+          type: array
+          default: null
+      required:
+      - ok
+      - projects
+    projects_create_request:
+      properties:
+        id:
+          type: string
+        project:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+        by:
+          type: string
+    projects_jobBoard_200_response:
+      example:
+        ok: true
+        jobs:
+        - null
+        - null
+      properties:
+        ok:
+          type: boolean
+        jobs:
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+      required:
+      - jobs
+      - ok
+    projects_postJob_request:
+      properties:
+        job:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+        by:
+          type: string
+      required:
+      - job
+    projects_patchJob_request:
+      properties:
+        patch:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+        by:
+          type: string
+      required:
+      - patch
+    projects_recruit_request:
+      properties:
+        by:
+          type: string
+        reach:
+          type: string
+        chatModel:
+          type: string
+        evaluation:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+        text:
+          type: string
+    agents_scorecards_200_response:
+      example:
+        ok: true
+        agents:
+        - null
+        - null
+      properties:
+        ok:
+          type: boolean
+        agents:
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+      required:
+      - agents
+      - ok
+    agents_rate_request:
+      properties:
+        score:
+          type: number
+        note:
+          type: string
+        about:
+          type: string
+        by:
+          maxLength: 40
+          type: string
+        runId:
+          type: string
+        taskId:
+          type: string
+        jobId:
+          type: string
+        refs:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+      required:
+      - score
+    engines_list_200_response:
+      example:
+        ok: true
+        engines:
+        - null
+        - null
+      properties:
+        ok:
+          type: boolean
+        engines:
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+      required:
+      - engines
+      - ok
+    skills_list_200_response:
+      example:
+        skills:
+        - id: id
+          name: name
+          description: description
+          promptChars: 0
+          prompt: prompt
+        - id: id
+          name: name
+          description: description
+          promptChars: 0
+          prompt: prompt
+      properties:
+        skills:
+          items:
+            $ref: "#/components/schemas/Skill"
+          type: array
+          default: null
+      required:
+      - skills
+    skills_get_200_response:
+      example:
+        skill: ""
+      properties:
+        skill:
+          allOf:
+          - $ref: "#/components/schemas/Skill"
+          nullable: true
+      required:
+      - skill
+    ErrorResponse_error_oneOf:
+      properties:
+        message:
+          type: string
+        type:
+          description: "A stable machine word — `not_found`, `invalid_request`, `unavailable`,\
+            \ …"
+          type: string
+      required:
+      - message
+    ErrorResponse_error:
+      oneOf:
+      - type: string
+      - $ref: "#/components/schemas/ErrorResponse_error_oneOf"
+    ChatMessage_content:
+      nullable: true
+      oneOf:
+      - type: string
+      - items:
+          $ref: "#/components/schemas/ChatContentPart"
+        type: array
+        default: null
+    ChatCompletion_choices_inner:
+      additionalProperties: true
+      example:
+        index: 6
+        message:
+          role: system
+          content: ChatMessage_content
+          name: name
+          tool_calls:
+          - null
+          - null
+          tool_call_id: tool_call_id
+        finish_reason: finish_reason
+      properties:
+        index:
+          type: integer
+        message:
+          $ref: "#/components/schemas/ChatMessage"
+        finish_reason:
+          nullable: true
+          type: string
+    ChatCompletionChunk_choices_inner:
+      additionalProperties: {}
+      properties:
+        index:
+          type: integer
+        delta:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+        finish_reason:
+          nullable: true
+          type: string
+    HistoryStatus_lossless:
+      example:
+        records: 5
+        newest: 5
+      nullable: true
+      properties:
+        records:
+          type: integer
+        newest:
+          format: int64
+          type: integer
+    IngestRequest_upserts_inner:
+      additionalProperties: true
+      example:
+        id: id
+        title: title
+        type: chat
+        date: 0
+        text: text
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        type:
+          $ref: "#/components/schemas/RecordType"
+        date:
+          format: int64
+          type: integer
+        text:
+          type: string
+      required:
+      - id
+      - text
+    inline_object:
+      example:
+        ok: true
+        run:
+          id: id
+          client: client
+          team:
+            key: ""
+          status: status
+          events:
+          - seq: 0
+            type: type
+            at: 6
+            payload:
+              key: ""
+          - seq: 0
+            type: type
+            at: 6
+            payload:
+              key: ""
+      properties:
+        ok:
+          type: boolean
+        run:
+          $ref: "#/components/schemas/TeamRun"
+      required:
+      - ok
+      - run
+    inline_object_1:
+      example:
+        ok: true
+        project:
+          id: id
+          status: status
+          jobs:
+          - null
+          - null
+      properties:
+        ok:
+          type: boolean
+        project:
+          $ref: "#/components/schemas/Project"
+      required:
+      - ok
+      - project
+  securitySchemes:
+    gatewayToken:
+      description: "The per-install token at `~/.chatpanel/gateway-token` (0600),\
+        \ or the copy a paired client received."
+      scheme: bearer
+      type: http
+    tokenHeader:
+      description: "The same token, for a client that cannot set Authorization."
+      in: header
+      name: X-ChatPanel-Token
+      type: apiKey

@@ -1,0 +1,37 @@
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, registry-url: https://registry.npmjs.org }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - run: npm ci
+      - run: npm --prefix sdk/typescript ci
+      - run: npm test
+      # The long-tail clients must be current too: regenerate and fail on any diff.
+      - run: npm run gen:all
+      - run: git diff --exit-code --stat -- generated/ || (echo "generated/ is stale — run npm run generate and commit" && exit 1)
+      - uses: actions/setup-go@v5
+        with: { go-version: '1.23' }
+      - run: cd generated/go && go build ./...
+  contract:
+    # The drift guard against the gateway's source. The gateway repo is private; the token is
+    # read-only and scoped to it.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with: { repository: chatpanel/chatpanel-gateway, path: ../chatpanel-gateway, token: '${{ secrets.GATEWAY_READ_TOKEN }}' }
+        continue-on-error: true
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: npm ci
+      - run: npm run contract
