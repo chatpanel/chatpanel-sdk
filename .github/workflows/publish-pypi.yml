@@ -7,6 +7,9 @@ permissions: { id-token: write, contents: read }
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # PyPI's trusted publisher may pin an environment name; `pypi` is the conventional one and a
+    # publisher configured with no environment accepts it too.
+    environment: pypi
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

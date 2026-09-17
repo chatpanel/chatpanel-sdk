@@ -11,7 +11,7 @@
     "gen:all": "node tools/generate.mjs",
     "generate": "npm run lint && npm run gen:core && npm run gen:all",
     "build:ts": "npm --prefix sdk/typescript run build",
-    "test": "node tools/lint-spec.mjs && node tools/gen-core.mjs --check && node --test tests/*.test.mjs && npm --prefix sdk/typescript test && npm run test:py",
+    "test": "node tools/lint-spec.mjs && node tools/gen-core.mjs --check && npm --prefix sdk/typescript test && node --test tests/*.test.mjs && npm run test:py",
     "test:py": "python3 -m unittest discover -s sdk/python/tests -t sdk/python -v",
     "test:live": "CHATPANEL_LIVE=1 node --test tests/live.test.mjs",
     "contract": "node tools/contract.mjs"
