@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 VisualStudioVersion = 12.0.0.0
 MinimumVisualStudioVersion = 10.0.0.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatPanel.Sdk", "src\ChatPanel.Sdk\ChatPanel.Sdk.csproj", "{76E49833-9215-4982-ABC2-312AB1D2FCF1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatPanel.Sdk", "src\ChatPanel.Sdk\ChatPanel.Sdk.csproj", "{7C3A9E2B-5D41-4F8A-9B6E-2A1C4D5E6F70}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatPanel.Sdk.Test", "src\ChatPanel.Sdk.Test\ChatPanel.Sdk.Test.csproj", "{19F1DEBC-DE5E-4517-8062-F000CD499087}"
 EndProject
@@ -12,10 +12,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{76E49833-9215-4982-ABC2-312AB1D2FCF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{76E49833-9215-4982-ABC2-312AB1D2FCF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{76E49833-9215-4982-ABC2-312AB1D2FCF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{76E49833-9215-4982-ABC2-312AB1D2FCF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C3A9E2B-5D41-4F8A-9B6E-2A1C4D5E6F70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C3A9E2B-5D41-4F8A-9B6E-2A1C4D5E6F70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C3A9E2B-5D41-4F8A-9B6E-2A1C4D5E6F70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C3A9E2B-5D41-4F8A-9B6E-2A1C4D5E6F70}.Release|Any CPU.Build.0 = Release|Any CPU
 		{19F1DEBC-DE5E-4517-8062-F000CD499087}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{19F1DEBC-DE5E-4517-8062-F000CD499087}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19F1DEBC-DE5E-4517-8062-F000CD499087}.Release|Any CPU.ActiveCfg = Release|Any CPU
