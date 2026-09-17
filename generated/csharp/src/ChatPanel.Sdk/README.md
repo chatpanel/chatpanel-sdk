@@ -6,7 +6,7 @@ Create a config.yaml file similar to what is below, then run the following power
 
 ```yaml
 generatorName: csharp
-inputSpec: /Users/veeragoni/Projects/chatpanel-sdk/openapi/chatpanel-gateway.yaml
+inputSpec: openapi/chatpanel-gateway.yaml
 outputDir: out
 
 # https://openapi-generator.tech/docs/generators/csharp

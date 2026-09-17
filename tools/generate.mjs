@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { relative } from 'node:path';
 import { SPEC_PATH } from './spec.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -35,11 +36,13 @@ for (const [lang, cfg] of langs) {
   mkdirSync(out, { recursive: true });
   const r = spawnSync(process.execPath, [
     cli, 'generate',
-    '-i', SPEC_PATH, '-g', cfg.generator, '-o', out,
+    // Relative, from the repo root: some generators print the input path into their README,
+    // and an absolute path is machine-specific (and names the developer's home directory).
+    '-i', relative(ROOT, SPEC_PATH), '-g', cfg.generator, '-o', out,
     '--additional-properties', props(cfg.properties || {}),
     '--git-user-id', 'chatpanel', '--git-repo-id', 'chatpanel-sdk',
     '--skip-validate-spec',
-  ], { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, JAVA_OPTS: process.env.JAVA_OPTS || '-Dlog.level=warn' } });
+  ], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, JAVA_OPTS: process.env.JAVA_OPTS || '-Dlog.level=warn' } });
   const stderr = r.stderr.toString();
   const stdout = r.stdout.toString();
   if (r.status !== 0) {
