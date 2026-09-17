@@ -42,10 +42,10 @@ class GatewayTooOldError(ChatPanelError):
 
 
 class ForbiddenError(ChatPanelError):
-    """The route needs the gateway token and this client has none, or the wrong one."""
+    """The route (or the agent lane, for a chat turn — 401) needs the gateway token and this client has none, or the wrong one."""
 
-    def __init__(self, message: str, operation: str = "") -> None:
-        super().__init__(message, status=403, type="forbidden", operation=operation)
+    def __init__(self, message: str, operation: str = "", status: int = 403) -> None:
+        super().__init__(message, status=status, type="forbidden", operation=operation)
 
 
 class NotFoundError(ChatPanelError):
@@ -74,8 +74,8 @@ def error_from_response(status: int, body: str, operation: str) -> ChatPanelErro
             etype = str(err.get("type") or "")
     except (ValueError, AttributeError):
         pass
-    if status == 403:
-        return ForbiddenError(message, operation)
+    if status in (401, 403):
+        return ForbiddenError(message, operation, status)
     if status == 404:
         return NotFoundError(message, operation)
     return ChatPanelError(message, status=status, type=etype or f"http_{status}", operation=operation)

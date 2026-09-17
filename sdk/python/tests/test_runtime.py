@@ -94,6 +94,15 @@ class VersionGate(unittest.TestCase):
 
 
 class Errors(unittest.TestCase):
+    def test_anonymous_agent_turn_is_forbidden_401(self):
+        with ScriptedGateway({"POST /v1/chat/completions": json_reply(401, {"error": {"message": "agent destinations require the gateway token", "type": "auth", "code": "agent_lane_token_required"}})}) as gw:
+            cp = ChatPanel(gw.url)
+            with self.assertRaises(ForbiddenError) as ctx:
+                cp.chat.completions({"model": "codex", "messages": []})
+            self.assertEqual(ctx.exception.status, 401)
+            with self.assertRaises(ForbiddenError):
+                list(cp.chat.text({"model": "codex", "messages": []}))
+
     def test_gateway_words_status_and_type(self):
         with ScriptedGateway({
             "GET /v1/history/get": json_reply(404, {"error": {"message": "no such record", "type": "not_found"}}),

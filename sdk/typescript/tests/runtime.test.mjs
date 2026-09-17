@@ -198,3 +198,14 @@ test('the raw escape hatch reaches any operation in the table', async () => {
     assert.ok(Object.keys(OPERATIONS).length >= 60);
   } finally { await gw.close(); }
 });
+
+test('an anonymous chat turn to an agent destination is a ForbiddenError with status 401', async () => {
+  const gw = await scripted({ 'POST /v1/chat/completions': json(401, { error: { message: 'agent destinations require the gateway token: …', type: 'auth', code: 'agent_lane_token_required' } }) });
+  try {
+    const cp = new ChatPanel({ baseUrl: gw.url });
+    await assert.rejects(cp.chat.completions({ model: 'codex', messages: [] }), (e) => e instanceof ForbiddenError && e.status === 401 && /gateway token/.test(e.message));
+    let threw = null;
+    try { for await (const _ of cp.chat.text({ model: 'codex', messages: [] })) { /* none */ } } catch (e) { threw = e; }
+    assert.ok(threw instanceof ForbiddenError && threw.status === 401);
+  } finally { await gw.close(); }
+});

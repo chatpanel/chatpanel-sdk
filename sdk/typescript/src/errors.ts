@@ -33,9 +33,9 @@ export class GatewayTooOldError extends ChatPanelError {
   }
 }
 
-/** The route needs the gateway token and this client has none, or the wrong one. */
+/** The route (or the agent lane, for a chat turn — 401) needs the gateway token and this client has none, or the wrong one. */
 export class ForbiddenError extends ChatPanelError {
-  constructor(message: string, operation = '') { super(message, { status: 403, type: 'forbidden', operation }); }
+  constructor(message: string, operation = '', status: 401 | 403 = 403) { super(message, { status, type: 'forbidden', operation }); }
 }
 
 export class NotFoundError extends ChatPanelError {
@@ -56,7 +56,7 @@ export function errorFromResponse(status: number, body: string, operation: strin
     if (typeof j?.error === 'string') message = j.error;
     else if (j?.error && typeof j.error === 'object') { message = String(j.error.message || message); type = String(j.error.type || ''); }
   } catch { /* not JSON — keep the text */ }
-  if (status === 403) return new ForbiddenError(message, operation);
+  if (status === 403 || status === 401) return new ForbiddenError(message, operation, status);
   if (status === 404) return new NotFoundError(message, operation);
   return new ChatPanelError(message, { status, type: type || `http_${status}`, operation });
 }
