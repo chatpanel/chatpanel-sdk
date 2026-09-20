@@ -97,6 +97,8 @@ Class | Method | HTTP request | Description
 *AgentsApi* | [**agentsRate**](docs/Api/AgentsApi.md#agentsrate) | **POST** /v1/agents/{agentId}/scorecard | A person rates the agent&#39;s work on a run, task or job.
 *AgentsApi* | [**agentsScorecard**](docs/Api/AgentsApi.md#agentsscorecard) | **GET** /v1/agents/{agentId}/scorecard | One agent&#39;s attested scorecard.
 *AgentsApi* | [**agentsScorecards**](docs/Api/AgentsApi.md#agentsscorecards) | **GET** /v1/agents/scorecards | Every agent&#39;s scorecard.
+*CapabilitiesApi* | [**capabilitiesDetect**](docs/Api/CapabilitiesApi.md#capabilitiesdetect) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores.
+*CapabilitiesApi* | [**capabilitiesList**](docs/Api/CapabilitiesApi.md#capabilitieslist) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state.
 *ChatApi* | [**chatCompletions**](docs/Api/ChatApi.md#chatcompletions) | **POST** /v1/chat/completions | One chat turn through the gateway (OpenAI-compatible).
 *EnginesApi* | [**enginesAppendEntry**](docs/Api/EnginesApi.md#enginesappendentry) | **POST** /v1/engines/{engineKey}/entries | Append a ledger entry for an engine.
 *EnginesApi* | [**enginesCard**](docs/Api/EnginesApi.md#enginescard) | **GET** /v1/engines/{engineKey}/card | One engine&#39;s card, optionally with entries.
@@ -138,6 +140,11 @@ Class | Method | HTTP request | Description
 *ProjectsApi* | [**projectsPostJob**](docs/Api/ProjectsApi.md#projectspostjob) | **POST** /v1/projects/{projectId}/jobs | Post a job.
 *ProjectsApi* | [**projectsRecruit**](docs/Api/ProjectsApi.md#projectsrecruit) | **POST** /v1/projects/{projectId}/jobs/{jobId}/recruit | One pass — fit recomputed, the evaluation read through the schema, the pick landed as events.
 *RedactionApi* | [**redactionPreview**](docs/Api/RedactionApi.md#redactionpreview) | **POST** /redact | What the model would receive if this text were sent now.
+*RetrievalApi* | [**retrievalExtract**](docs/Api/RetrievalApi.md#retrievalextract) | **POST** /v1/extract | A document&#39;s pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash.
+*RetrievalApi* | [**retrievalRead**](docs/Api/RetrievalApi.md#retrievalread) | **POST** /v1/read | Read one public page as LLM-ready Markdown, cited where it landed, with its sections.
+*RetrievalApi* | [**retrievalReadAlias**](docs/Api/RetrievalApi.md#retrievalreadalias) | **GET** /v1/read/{url} | The r.jina.ai-shaped alias — &#x60;GET /v1/read/https://…&#x60; — for clients that already speak it.
+*RetrievalApi* | [**retrievalSearch**](docs/Api/RetrievalApi.md#retrievalsearch) | **POST** /v1/search | Search the web through the provider this gateway is configured with; optionally read the top results in the same request.
+*RetrievalApi* | [**retrievalSearchAlias**](docs/Api/RetrievalApi.md#retrievalsearchalias) | **GET** /v1/search/{q} | The s.jina.ai-shaped alias — &#x60;GET /v1/search/&lt;query&gt;&#x60; — the top results WITH their content.
 *SkillsApi* | [**skillsGet**](docs/Api/SkillsApi.md#skillsget) | **GET** /skills/{skillId} | One skill, with its prompt.
 *SkillsApi* | [**skillsList**](docs/Api/SkillsApi.md#skillslist) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
 *TeamsApi* | [**teamsAnswer**](docs/Api/TeamsApi.md#teamsanswer) | **POST** /v1/teams/runs/{runId}/answer | A person answers an ask on the board.
@@ -160,6 +167,10 @@ Class | Method | HTTP request | Description
 - [AgentsRateRequest](docs/Model/AgentsRateRequest.md)
 - [AgentsScorecards200Response](docs/Model/AgentsScorecards200Response.md)
 - [Audit](docs/Model/Audit.md)
+- [CapabilitiesDocument](docs/Model/CapabilitiesDocument.md)
+- [CapabilitiesDocumentServer](docs/Model/CapabilitiesDocumentServer.md)
+- [Capability](docs/Model/Capability.md)
+- [CapabilityStats](docs/Model/CapabilityStats.md)
 - [ChatCompletion](docs/Model/ChatCompletion.md)
 - [ChatCompletionChoicesInner](docs/Model/ChatCompletionChoicesInner.md)
 - [ChatCompletionChunk](docs/Model/ChatCompletionChunk.md)
@@ -168,10 +179,15 @@ Class | Method | HTTP request | Description
 - [ChatContentPart](docs/Model/ChatContentPart.md)
 - [ChatMessage](docs/Model/ChatMessage.md)
 - [ChatMessageContent](docs/Model/ChatMessageContent.md)
+- [DetectRequest](docs/Model/DetectRequest.md)
+- [DetectResponse](docs/Model/DetectResponse.md)
+- [DetectedEntity](docs/Model/DetectedEntity.md)
 - [EnginesList200Response](docs/Model/EnginesList200Response.md)
 - [ErrorResponse](docs/Model/ErrorResponse.md)
 - [ErrorResponseError](docs/Model/ErrorResponseError.md)
 - [ErrorResponseErrorOneOf](docs/Model/ErrorResponseErrorOneOf.md)
+- [ExtractRequest](docs/Model/ExtractRequest.md)
+- [ExtractResponse](docs/Model/ExtractResponse.md)
 - [GatewayPairRequest](docs/Model/GatewayPairRequest.md)
 - [Health](docs/Model/Health.md)
 - [HistoryGet200Response](docs/Model/HistoryGet200Response.md)
@@ -213,6 +229,10 @@ Class | Method | HTTP request | Description
 - [ProjectsRecruitRequest](docs/Model/ProjectsRecruitRequest.md)
 - [PutRecordsRequest](docs/Model/PutRecordsRequest.md)
 - [PutRecordsResponse](docs/Model/PutRecordsResponse.md)
+- [ReadRequest](docs/Model/ReadRequest.md)
+- [ReadResponse](docs/Model/ReadResponse.md)
+- [ReadRestriction](docs/Model/ReadRestriction.md)
+- [ReadSection](docs/Model/ReadSection.md)
 - [RecallRequest](docs/Model/RecallRequest.md)
 - [RecallResponse](docs/Model/RecallResponse.md)
 - [RecordType](docs/Model/RecordType.md)
@@ -221,6 +241,9 @@ Class | Method | HTTP request | Description
 - [RedactionPreviewRequest](docs/Model/RedactionPreviewRequest.md)
 - [RememberRequest](docs/Model/RememberRequest.md)
 - [RememberResponse](docs/Model/RememberResponse.md)
+- [RetrievalReadAlias200Response](docs/Model/RetrievalReadAlias200Response.md)
+- [RetrievalSearchAlias200Response](docs/Model/RetrievalSearchAlias200Response.md)
+- [RetrievalSearchAlias200ResponseDataInner](docs/Model/RetrievalSearchAlias200ResponseDataInner.md)
 - [RunEvent](docs/Model/RunEvent.md)
 - [SearchFilters](docs/Model/SearchFilters.md)
 - [SearchHit](docs/Model/SearchHit.md)
@@ -241,6 +264,9 @@ Class | Method | HTTP request | Description
 - [TeamsHandoffRequest](docs/Model/TeamsHandoffRequest.md)
 - [TeamsListRuns200Response](docs/Model/TeamsListRuns200Response.md)
 - [TeamsPostRequest](docs/Model/TeamsPostRequest.md)
+- [WebSearchRequest](docs/Model/WebSearchRequest.md)
+- [WebSearchResponse](docs/Model/WebSearchResponse.md)
+- [WebSearchResult](docs/Model/WebSearchResult.md)
 - [WhoAmI](docs/Model/WhoAmI.md)
 
 ## Authorization
@@ -274,6 +300,6 @@ vendor/bin/phpunit
 
 This PHP package is automatically generated by the [OpenAPI Generator](https://openapi-generator.tech) project:
 
-- API version: `0.11.0`
+- API version: `0.15.0`
     - Generator version: `7.25.0`
 - Build package: `org.openapitools.codegen.languages.PhpClientCodegen`

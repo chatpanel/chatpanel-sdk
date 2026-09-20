@@ -24,7 +24,7 @@ info:
   license:
     name: Apache-2.0
   title: ChatPanel Gateway API
-  version: 0.11.0
+  version: 0.15.0
 servers:
 - description: The local gateway. Loopback only.
   url: http://127.0.0.1:4320
@@ -55,8 +55,14 @@ tags:
   name: agents
 - description: The model ledger — every engine's card.
   name: engines
+- description: "The small non-generative models this gateway provides — discovery,\
+    \ and one standard signature per capability (docs/capability-endpoints.md)."
+  name: capabilities
 - description: The skills on this machine (served through the bridge).
   name: skills
+- description: "Web retrieval — search through the provider the user chose, and a\
+    \ page as LLM-ready Markdown, cited where it landed, with its sections (docs/web-retrieval.md)."
+  name: retrieval
 paths:
   /health:
     get:
@@ -1441,6 +1447,398 @@ paths:
       - agents
       x-chatpanel-auth: open
       x-chatpanel-since: 0.6.87
+  /v1/capabilities:
+    get:
+      description: |
+        The discovery document a client chooses a provider from: one entry per capability
+        (`detect`, `stt`, `tts` today; `decide`, `rerank`, `embed` as they land), each at its
+        standard route, with the models it can serve, the loaded model's own label vocabulary
+        (`detect`), the measured latency record, and the runtime's state. Never loads a model.
+      operationId: capabilities.list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CapabilitiesDocument"
+          description: The provider's capabilities.
+      summary: "What this provider can do — which capabilities, models, measured cost\
+        \ and runtime state."
+      tags:
+      - capabilities
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.13.0
+  /v1/detect:
+    post:
+      description: |
+        The standard `detect` signature over the in-process entity detector. Labels are the
+        model's own (`private_person`, `PER`, `GIVENNAME`…) — the client maps them; the
+        vocabulary is listed by `GET /v1/capabilities`. `budgetMs` is refused (503
+        `over_budget`) from the provider's own latency record before the model runs, never
+        missed. An engine that is still loading answers 503 `detector_unready`; an empty
+        `entities` on 200 means the model found nothing. Raw text reaches the model here and
+        nowhere else — this route is loopback-only like the rest of the gateway.
+      operationId: capabilities.detect
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DetectRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectResponse"
+          description: The spans found.
+        "400":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "The detector is not ready (`detector_unready`, `detector_error`)\
+            \ or the budget cannot be met (`over_budget`, with `predictedMs` and `budgetMs`)."
+      summary: "Find entities in text — the model's own labels, with offsets and scores."
+      tags:
+      - capabilities
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.13.0
+      x-chatpanel-scope: "the request text, in this process"
+  /v1/search:
+    post:
+      description: |
+        The `search` capability (docs/web-retrieval.md §4.1). Providers are listed by
+        `GET /v1/capabilities`: `serp` (a results page fetched and read with the shared rules —
+        no install, the default) and `searxng` (the user's own metasearch, preferred the moment it
+        answers). `read: N` reads the top N results in parallel in this request, each carrying a
+        §4.2 document under `read` — one round-trip instead of 1 + N; a page that will not be read
+        keeps its snippet with `read.restricted.reason`. The query goes through layer-1 redaction
+        (emails, cards, keys, dictionary terms — never the name detector) before it leaves; what
+        was replaced is dropped and `redacted: true` says so; a query with nothing left is 400
+        `unsafe_query`. `freshness` and `lang` are honoured by SearXNG; `site` by both. `budgetMs`
+        covers the search and its reads and is refused (503 `over_budget`) from the provider's
+        record. `engines` names what was actually asked, so an empty list can be told from a
+        blocked one.
+      operationId: retrieval.search
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebSearchRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebSearchResponse"
+          description: "Ranked results — possibly none, with `engines` naming what\
+            \ was asked."
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "A bad body (`invalid_request`), or a query that was only private\
+            \ values (`unsafe_query`)."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: The named provider is not available here (`provider_not_found`).
+        "502":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: The provider failed (`provider_failed` — a SearXNG 403/429
+            names the settings fix).
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: The budget cannot be met (`over_budget`).
+        "504":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: The provider did not answer within the budget (`fetch_timeout`).
+      summary: Search the web through the provider this gateway is configured with;
+        optionally read the top results in the same request.
+      tags:
+      - retrieval
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.15.0
+      x-chatpanel-scope: "the query (after layer-1 redaction), to the configured provider;\
+        \ the top pages when `read` is set"
+  /v1/search/{q}:
+    get:
+      description: |
+        Same search as `POST /v1/search` with `read: 5` (`?read=N`, 0–10, changes it), answered
+        in the shape the shipped ChatPanel extension's *Web search API* engine already reads:
+        `{ code, status, data: [{ url, title, description, content, publishedTime? }] }` where
+        `content` is the page's Markdown when it was read and the snippet otherwise — nothing
+        needs fetching on the client. A Bearer token is accepted and ignored.
+      operationId: retrieval.searchAlias
+      parameters:
+      - description: "The query, percent-encoded."
+        explode: false
+        in: path
+        name: q
+        required: true
+        schema:
+          maxLength: 1024
+          type: string
+        style: simple
+      - explode: true
+        in: query
+        name: read
+        required: false
+        schema:
+          default: 5
+          maximum: 10
+          minimum: 0
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/retrieval_searchAlias_200_response"
+          description: The results with content.
+        "400":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+        "504":
+          $ref: "#/components/responses/Error"
+      summary: The s.jina.ai-shaped alias — `GET /v1/search/<query>` — the top results
+        WITH their content.
+      tags:
+      - retrieval
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.15.0
+      x-chatpanel-scope: "the query (after layer-1 redaction), to the configured provider;\
+        \ the top pages"
+  /v1/extract:
+    post:
+      description: |
+        The `extract` capability (docs/capability-endpoints.md): the third leg beside `search`
+        and `read`. Two calls on one route. With `name` and `data` (the file, base64), the
+        document is parsed in a worker process on this machine — no network, the vault
+        unreadable — and the answer is its identity (`hash`, SHA-256 of the bytes), its `type`
+        as read from the bytes, its `title` when it has one and how many `pages` it has; the
+        text stays on the server. With `hash` and `page`, one page's text comes back; the
+        bytes crossed once. A page is the format's own unit (a PDF page, a slide, a sheet) or,
+        for a document with none (DOCX, Markdown, text), a run of ~6,000 characters cut at a
+        heading. Readers: PDF (pdf.js, the text layer — a scanned document is `scanned: true`
+        with empty pages, never OCR'd), DOCX (Markdown), XLSX/ODS (rows of cells), PPTX/ODP
+        (a slide per page, speaker notes appended), ODT, Markdown, text, CSV, HTML. A hash the
+        worker no longer holds (it is dropped when idle) is a 404 `unknown_document`: send the
+        bytes again. `budgetMs` is refused (503 `over_budget`) from the worker's own record.
+      operationId: retrieval.extract
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExtractRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExtractResponse"
+          description: "The document opened (hash, type, pages) — or, with `page`,\
+            \ that page's text."
+        "400":
+          $ref: "#/components/responses/Error"
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: The hash is not open in the worker (`unknown_document`) — send
+            the bytes again.
+        "413":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: The document is over the 64 MB limit (`too_large`).
+        "415":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: No reader for these bytes (`unsupported`).
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "The budget cannot be met (`over_budget`, with `predictedMs`)."
+        "504":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: The parse took too long and the worker was restarted (`extract_timeout`).
+      summary: "A document's pages from its bytes — a PDF, a Word file, a sheet, a\
+        \ deck — parsed once, paged by hash."
+      tags:
+      - retrieval
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.16.0
+      x-chatpanel-scope: "one document, parsed on this machine, never sent anywhere"
+  /v1/read:
+    post:
+      description: |
+        The `read` capability (docs/web-retrieval.md §4.2). The page is fetched from this
+        machine as the user's agent — public web only (the shared SSRF guard, re-checked
+        where a redirect lands), a browser User-Agent, no cookies — and turned into Markdown
+        that keeps headings, lists, tables, code and links. `url` in the answer is where the
+        page should be CITED: the same-origin canonical when it declares one, else where the
+        fetch landed; `sections` are the page's own heading ids with their offset into the
+        content so a citation can point at `url#section`. A page that could not be read as
+        the article — a login wall, a paywall, a 429 — is a 200 with `restricted.reason` and
+        the caller's `snippet` standing in for the content, never the wall rendered as prose.
+        `maxChars` cuts at a section boundary. A read is served from this process's page
+        cache when fresh (`cached: true`), revalidated with its ETag when stale. `budgetMs`
+        is refused (503 `over_budget`) from the provider's own record, never missed. Providers
+        are listed by `GET /v1/capabilities`: `defuddle` (in-process), `text` (the DOM-less
+        fallback), `remote` (an `r.jina.ai`-shaped reader configured under `read.remote`).
+      operationId: retrieval.read
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReadRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadResponse"
+          description: "The page — or, with `restricted` set, the reason it was not\
+            \ read and the snippet in its place."
+        "400":
+          $ref: "#/components/responses/Error"
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: The named provider is not available here (`provider_not_found`).
+        "415":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: The page is not HTML or text (`unsupported_content`).
+        "502":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "The page could not be fetched (`fetch_failed`), or its host\
+            \ — or where it redirected — is not public web (`blocked_host`)."
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "The budget cannot be met (`over_budget`, with `predictedMs`\
+            \ and `budgetMs`)."
+        "504":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: The page did not answer within the budget (`fetch_timeout`).
+      summary: "Read one public page as LLM-ready Markdown, cited where it landed,\
+        \ with its sections."
+      tags:
+      - retrieval
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.14.0
+      x-chatpanel-scope: "one public page, fetched on request"
+  /v1/read/{url}:
+    get:
+      description: |
+        Same read as `POST /v1/read`, addressed the way the shipped ChatPanel extension's
+        *reader service* slot (and anything else built for `r.jina.ai`) already addresses a
+        reader: the page URL appended to the base, as is or percent-encoded, with its own
+        query string kept. Answers `text/plain` with `Title:` / `URL Source:` / `Published
+        Time:` header lines, a blank line and `Markdown Content:`; under
+        `Accept: application/json` the §4.2 document wrapped as `{ code, status, data }`.
+        `X-Return-Format: text` selects the text form. A Bearer token is accepted and ignored.
+      operationId: retrieval.readAlias
+      parameters:
+      - description: "The page URL, as is or percent-encoded."
+        explode: false
+        in: path
+        name: url
+        required: true
+        schema:
+          maxLength: 4096
+          type: string
+        style: simple
+      - description: '`application/json` for the document; text otherwise.'
+        explode: false
+        in: header
+        name: Accept
+        required: false
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: X-Return-Format
+        required: false
+        schema:
+          enum:
+          - markdown
+          - text
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            text/plain:
+              schema:
+                type: string
+            application/json:
+              schema:
+                $ref: "#/components/schemas/retrieval_readAlias_200_response"
+          description: The page.
+        "400":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+        "504":
+          $ref: "#/components/responses/Error"
+      summary: The r.jina.ai-shaped alias — `GET /v1/read/https://…` — for clients
+        that already speak it.
+      tags:
+      - retrieval
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.14.0
+      x-chatpanel-scope: "one public page, fetched on request"
   /v1/engines:
     get:
       operationId: engines.list
@@ -2142,6 +2540,717 @@ components:
       - choices
       - id
       - object
+    CapabilitiesDocument:
+      example:
+        capabilities:
+        - id: detect
+          route: route
+          models:
+          - models
+          - models
+          providers:
+          - providers
+          - providers
+          default: default
+          labels:
+          - labels
+          - labels
+          maxTokens: 0
+          requirements:
+            key: ""
+          stats:
+            calls: 6
+            p50Ms: 1.4658129805029452
+            p95Ms: 5.962133916683182
+            maxMs: 5.637376656633329
+            lastMs: 2.3021358869347655
+            charsPerSec: 7.061401241503109
+          runtime: ""
+          streaming: streaming
+          voices: voices
+        - id: detect
+          route: route
+          models:
+          - models
+          - models
+          providers:
+          - providers
+          - providers
+          default: default
+          labels:
+          - labels
+          - labels
+          maxTokens: 0
+          requirements:
+            key: ""
+          stats:
+            calls: 6
+            p50Ms: 1.4658129805029452
+            p95Ms: 5.962133916683182
+            maxMs: 5.637376656633329
+            lastMs: 2.3021358869347655
+            charsPerSec: 7.061401241503109
+          runtime: ""
+          streaming: streaming
+          voices: voices
+        server:
+          name: name
+          version: version
+          audit: audit
+      properties:
+        capabilities:
+          items:
+            $ref: "#/components/schemas/Capability"
+          type: array
+          default: null
+        server:
+          $ref: "#/components/schemas/CapabilitiesDocument_server"
+      required:
+      - capabilities
+      - server
+    Capability:
+      example:
+        id: detect
+        route: route
+        models:
+        - models
+        - models
+        providers:
+        - providers
+        - providers
+        default: default
+        labels:
+        - labels
+        - labels
+        maxTokens: 0
+        requirements:
+          key: ""
+        stats:
+          calls: 6
+          p50Ms: 1.4658129805029452
+          p95Ms: 5.962133916683182
+          maxMs: 5.637376656633329
+          lastMs: 2.3021358869347655
+          charsPerSec: 7.061401241503109
+        runtime: ""
+        streaming: streaming
+        voices: voices
+      properties:
+        id:
+          enum:
+          - detect
+          - decide
+          - rerank
+          - embed
+          - stt
+          - tts
+          - search
+          - read
+          type: string
+        route:
+          description: The standard route for this capability on this provider.
+          type: string
+        models:
+          description: "Model capabilities (detect, decide, rerank, embed, stt, tts):\
+            \ the models offered. Required for those."
+          items:
+            type: string
+          type: array
+          default: null
+        providers:
+          description: "Provider capabilities (search, read): the providers offered\
+            \ — a SearXNG, a SERP scraper, an extractor. Required for those."
+          items:
+            type: string
+          type: array
+          default: null
+        default:
+          description: "One of `models`, or of `providers`."
+          type: string
+        labels:
+          description: "detect: the loaded model's label vocabulary, BIOES prefixes\
+            \ stripped. Empty until a model is loaded."
+          items:
+            type: string
+          type: array
+          default: null
+        maxTokens:
+          description: "detect: the tokenizer's limit; null when effectively unbounded."
+          nullable: true
+          type: integer
+        requirements:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+        stats:
+          $ref: "#/components/schemas/CapabilityStats"
+        runtime:
+          allOf:
+          - $ref: "#/components/schemas/AnyObject"
+          description: "state (off | loading | downloading | ready | error | external),\
+            \ name, dtype, error…"
+        streaming:
+          description: "stt: the session route for live dictation."
+          type: string
+        voices:
+          description: "tts: the voices route."
+          type: string
+      required:
+      - id
+      - route
+    CapabilityStats:
+      example:
+        calls: 6
+        p50Ms: 1.4658129805029452
+        p95Ms: 5.962133916683182
+        maxMs: 5.637376656633329
+        lastMs: 2.3021358869347655
+        charsPerSec: 7.061401241503109
+      properties:
+        calls:
+          type: integer
+        p50Ms:
+          type: number
+        p95Ms:
+          type: number
+        maxMs:
+          type: number
+        lastMs:
+          type: number
+        charsPerSec:
+          nullable: true
+          type: number
+      required:
+      - calls
+    DetectRequest:
+      example:
+        text: text
+        model: model
+        labels:
+        - labels
+        - labels
+        budgetMs: 0.08008281904610115
+      properties:
+        text:
+          type: string
+        model:
+          description: A model this provider lists; 404 otherwise.
+          type: string
+        labels:
+          description: Keep only these of the model's labels.
+          items:
+            type: string
+          type: array
+          default: null
+        budgetMs:
+          description: Refused before running if the provider's record predicts it
+            cannot be met.
+          minimum: 0
+          type: number
+      required:
+      - text
+    DetectedEntity:
+      example:
+        value: value
+        type: type
+        start: 0
+        end: 6
+        score: 0.14658129805029452
+      properties:
+        value:
+          type: string
+        type:
+          description: The model's own label.
+          type: string
+        start:
+          description: Character offset into the request text.
+          type: integer
+        end:
+          type: integer
+        score:
+          maximum: 1
+          minimum: 0
+          type: number
+      required:
+      - end
+      - score
+      - start
+      - type
+      - value
+    DetectResponse:
+      example:
+        entities:
+        - value: value
+          type: type
+          start: 0
+          end: 6
+          score: 0.14658129805029452
+        - value: value
+          type: type
+          start: 0
+          end: 6
+          score: 0.14658129805029452
+        model: model
+        ms: 5.962133916683182
+        runtime:
+          key: ""
+      properties:
+        entities:
+          items:
+            $ref: "#/components/schemas/DetectedEntity"
+          type: array
+          default: null
+        model:
+          type: string
+        ms:
+          type: number
+        runtime:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+      required:
+      - entities
+      - model
+      - ms
+    WebSearchRequest:
+      example:
+        q: q
+        limit: 4
+        lang: lang
+        site: site
+        freshness: day
+        read: 6
+        provider: provider
+        budgetMs: 0.14658129805029452
+      properties:
+        q:
+          minLength: 1
+          type: string
+        limit:
+          default: 8
+          maximum: 50
+          minimum: 1
+          type: integer
+        lang:
+          description: en or en-US; honoured by SearXNG.
+          type: string
+        site:
+          description: "A hostname — the site: operator."
+          type: string
+        freshness:
+          description: Honoured by SearXNG (time_range); week maps to month.
+          enum:
+          - day
+          - week
+          - month
+          - year
+          type: string
+        read:
+          default: 0
+          description: Read the top N results in this request.
+          maximum: 10
+          minimum: 0
+          type: integer
+        provider:
+          description: One of the providers `GET /v1/capabilities` lists for `search`;
+            404 otherwise.
+          type: string
+        budgetMs:
+          minimum: 0
+          type: number
+      required:
+      - q
+    WebSearchResult:
+      example:
+        rank: 1
+        url: url
+        title: title
+        snippet: snippet
+        engine: engine
+        engines:
+        - engines
+        - engines
+        score: 6.027456183070403
+        publishedDate: publishedDate
+        read: ""
+      properties:
+        rank:
+          minimum: 1
+          type: integer
+        url:
+          type: string
+        title:
+          type: string
+        snippet:
+          type: string
+        engine:
+          description: "The engine that produced it (SearXNG: the first of `engines`;\
+            \ serp: the results page asked)."
+          type: string
+        engines:
+          description: "SearXNG: every engine that returned it."
+          items:
+            type: string
+          type: array
+          default: null
+        score:
+          description: SearXNG's fused score.
+          type: number
+        publishedDate:
+          type: string
+        read:
+          allOf:
+          - $ref: "#/components/schemas/ReadResponse"
+          description: Present for the top `read` results.
+      required:
+      - rank
+      - snippet
+      - title
+      - url
+    WebSearchResponse:
+      example:
+        results:
+        - rank: 1
+          url: url
+          title: title
+          snippet: snippet
+          engine: engine
+          engines:
+          - engines
+          - engines
+          score: 6.027456183070403
+          publishedDate: publishedDate
+          read: ""
+        - rank: 1
+          url: url
+          title: title
+          snippet: snippet
+          engine: engine
+          engines:
+          - engines
+          - engines
+          score: 6.027456183070403
+          publishedDate: publishedDate
+          read: ""
+        answers:
+        - answers
+        - answers
+        suggestions:
+        - suggestions
+        - suggestions
+        engines:
+        - engines
+        - engines
+        unresponsive:
+        - unresponsive
+        - unresponsive
+        redacted: true
+        query: query
+        provider: provider
+        ms: 1.4658129805029452
+      properties:
+        results:
+          items:
+            $ref: "#/components/schemas/WebSearchResult"
+          type: array
+          default: null
+        answers:
+          description: "SearXNG's direct answers, when it had any."
+          items:
+            type: string
+          type: array
+          default: null
+        suggestions:
+          items:
+            type: string
+          type: array
+          default: null
+        engines:
+          description: What was actually asked.
+          items:
+            type: string
+          type: array
+          default: null
+        unresponsive:
+          description: SearXNG engines that did not answer.
+          items:
+            type: string
+          type: array
+          default: null
+        redacted:
+          description: Layer-1 redaction removed something from the query.
+          type: boolean
+        query:
+          description: "The query as sent, when `redacted`."
+          type: string
+        provider:
+          type: string
+        ms:
+          type: number
+      required:
+      - ms
+      - provider
+      - results
+    ExtractRequest:
+      description: Either `name` + `data` (open a document) or `hash` + `page` (read
+        one page of an open document).
+      example:
+        name: name
+        type: type
+        data: data
+        hash: hash
+        page: 1
+        budgetMs: 0.6027456183070403
+      properties:
+        name:
+          description: The file name — its extension helps tell office formats apart.
+          type: string
+        type:
+          description: "The client's guess at the type (e.g. `pdf`, `docx`); the bytes\
+            \ decide."
+          type: string
+        data:
+          description: "The whole file, base64. At most 64 MB decoded."
+          format: byte
+          type: string
+        hash:
+          description: The `hash` an open call returned.
+          pattern: "^[0-9a-f]{64}$"
+          type: string
+        page:
+          description: "The page to read, 1-based."
+          minimum: 1
+          type: integer
+        budgetMs:
+          description: Refused before parsing if the worker's record predicts it cannot
+            be met.
+          minimum: 0
+          type: number
+    ExtractResponse:
+      example:
+        hash: hash
+        type: type
+        pages: 0
+        title: title
+        scanned: true
+        page: 1
+        text: text
+        provider: provider
+        ms: 1.4658129805029452
+      properties:
+        hash:
+          description: SHA-256 of the bytes — the document's identity for page calls.
+          pattern: "^[0-9a-f]{64}$"
+          type: string
+        type:
+          description: "What the bytes are: pdf, docx, xlsx, pptx, odt, ods, odp,\
+            \ md, txt, csv, html."
+          type: string
+        pages:
+          minimum: 0
+          type: integer
+        title:
+          description: "The document's own title, when it declares one; else empty."
+          type: string
+        scanned:
+          description: "A PDF with no text layer: its pages are empty and need OCR,\
+            \ which this does not do."
+          type: boolean
+        page:
+          description: Present on a page call.
+          minimum: 1
+          type: integer
+        text:
+          description: "The page's text, on a page call. May be empty."
+          type: string
+        provider:
+          description: '`chatpanel-extract`.'
+          type: string
+        ms:
+          type: number
+      required:
+      - hash
+      - ms
+      - pages
+      - provider
+      - type
+    ReadRequest:
+      example:
+        url: url
+        format: markdown
+        maxChars: 200
+        snippet: snippet
+        provider: provider
+        budgetMs: 0.6027456183070403
+      properties:
+        url:
+          description: Absolute http(s) URL of a public page.
+          type: string
+        format:
+          default: markdown
+          enum:
+          - markdown
+          - text
+          type: string
+        maxChars:
+          description: Cut at a section boundary near this length; `truncated` says
+            so.
+          minimum: 200
+          type: integer
+        snippet:
+          description: A search snippet to stand in for the content when the page
+            cannot be read.
+          type: string
+        provider:
+          description: One of the providers `GET /v1/capabilities` lists for `read`;
+            404 otherwise.
+          type: string
+        budgetMs:
+          description: Refused before fetching if the provider's record predicts it
+            cannot be met.
+          minimum: 0
+          type: number
+      required:
+      - url
+    ReadSection:
+      example:
+        id: id
+        heading: heading
+        level: 4
+        offset: 1
+      properties:
+        id:
+          description: "The page's own heading id when it has one, else a slug — cite\
+            \ as `url#id`."
+          type: string
+        heading:
+          type: string
+        level:
+          maximum: 6
+          minimum: 1
+          type: integer
+        offset:
+          description: Character offset of the heading line into the content.
+          type: integer
+      required:
+      - heading
+      - id
+      - level
+      - offset
+    ReadRestriction:
+      properties:
+        reason:
+          description: '`robots` and `tdm` come only from a hosted (crawler) provider;
+            on the user''s machine the reader is a user agent.'
+          enum:
+          - login
+          - paywall
+          - rate_limited
+          - robots
+          - tdm
+          type: string
+        detail:
+          type: string
+      required:
+      - reason
+    ReadResponse:
+      example:
+        url: url
+        requested: requested
+        title: title
+        author: author
+        published: published
+        site: site
+        lang: lang
+        format: markdown
+        markdown: markdown
+        text: text
+        chars: 0
+        truncated: true
+        sections:
+        - id: id
+          heading: heading
+          level: 4
+          offset: 1
+        - id: id
+          heading: heading
+          level: 4
+          offset: 1
+        fetched: 2000-01-23T04:56:07.000+00:00
+        cached: true
+        provider: provider
+        ms: 5.962133916683182
+        restricted: ""
+      properties:
+        url:
+          description: "Where to CITE the page: the same-origin canonical, else where\
+            \ the fetch landed. Fragments dropped."
+          type: string
+        requested:
+          description: The URL that was asked for.
+          type: string
+        title:
+          type: string
+        author:
+          type: string
+        published:
+          description: As the page declared it (ISO date or datetime when it gave
+            one).
+          type: string
+        site:
+          description: The hostname of `url`.
+          type: string
+        lang:
+          type: string
+        format:
+          enum:
+          - markdown
+          - text
+          type: string
+        markdown:
+          description: "The content, when `format` is markdown."
+          type: string
+        text:
+          description: "The content, when `format` is text."
+          type: string
+        chars:
+          description: Length of the content field.
+          type: integer
+        truncated:
+          type: boolean
+        sections:
+          items:
+            $ref: "#/components/schemas/ReadSection"
+          type: array
+          default: null
+        fetched:
+          description: When the page was fetched (the cached copy's time on a cache
+            hit).
+          format: date-time
+          type: string
+        cached:
+          type: boolean
+        provider:
+          type: string
+        ms:
+          type: number
+        restricted:
+          allOf:
+          - $ref: "#/components/schemas/ReadRestriction"
+          description: Set when the page was not read as the article; the content
+            is then the request's `snippet`.
+          nullable: true
+      required:
+      - chars
+      - format
+      - ms
+      - provider
+      - sections
+      - title
+      - truncated
+      - url
     RedactionPreview:
       example:
         text: text
@@ -3499,6 +4608,70 @@ components:
           type: object
       required:
       - score
+    retrieval_searchAlias_200_response_data_inner:
+      example:
+        url: url
+        title: title
+        description: description
+        content: content
+        publishedTime: publishedTime
+      properties:
+        url:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        content:
+          type: string
+        publishedTime:
+          type: string
+      required:
+      - content
+      - description
+      - title
+      - url
+    retrieval_searchAlias_200_response:
+      example:
+        code: 0
+        status: 6
+        data:
+        - url: url
+          title: title
+          description: description
+          content: content
+          publishedTime: publishedTime
+        - url: url
+          title: title
+          description: description
+          content: content
+          publishedTime: publishedTime
+      properties:
+        code:
+          type: integer
+        status:
+          type: integer
+        data:
+          items:
+            $ref: "#/components/schemas/retrieval_searchAlias_200_response_data_inner"
+          type: array
+          default: null
+      required:
+      - code
+      - data
+      - status
+    retrieval_readAlias_200_response:
+      properties:
+        code:
+          type: integer
+        status:
+          type: integer
+        data:
+          $ref: "#/components/schemas/ReadResponse"
+      required:
+      - code
+      - data
+      - status
     engines_list_200_response:
       example:
         ok: true
@@ -3607,6 +4780,22 @@ components:
         finish_reason:
           nullable: true
           type: string
+    CapabilitiesDocument_server:
+      example:
+        name: name
+        version: version
+        audit: audit
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        audit:
+          description: Where this provider's egress audit is served.
+          type: string
+      required:
+      - name
+      - version
     HistoryStatus_lossless:
       example:
         records: 5

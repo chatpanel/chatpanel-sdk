@@ -2,7 +2,7 @@
 
 ChatPanel Gateway API
 
-- API version: 0.11.0
+- API version: 0.15.0
 
 - Generator version: 7.25.0
 
@@ -60,7 +60,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>net.chatpanel</groupId>
   <artifactId>chatpanel-sdk</artifactId>
-  <version>0.11.0</version>
+  <version>0.15.0</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -70,7 +70,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "net.chatpanel:chatpanel-sdk:0.11.0"
+compile "net.chatpanel:chatpanel-sdk:0.15.0"
 ```
 
 ### Others
@@ -83,7 +83,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/chatpanel-sdk-0.11.0.jar`
+- `target/chatpanel-sdk-0.15.0.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -132,6 +132,10 @@ Class | Method | HTTP request | Description
 *AgentsApi* | [**agentsScorecardWithHttpInfo**](docs/AgentsApi.md#agentsScorecardWithHttpInfo) | **GET** /v1/agents/{agentId}/scorecard | One agent&#39;s attested scorecard.
 *AgentsApi* | [**agentsScorecards**](docs/AgentsApi.md#agentsScorecards) | **GET** /v1/agents/scorecards | Every agent&#39;s scorecard.
 *AgentsApi* | [**agentsScorecardsWithHttpInfo**](docs/AgentsApi.md#agentsScorecardsWithHttpInfo) | **GET** /v1/agents/scorecards | Every agent&#39;s scorecard.
+*CapabilitiesApi* | [**capabilitiesDetect**](docs/CapabilitiesApi.md#capabilitiesDetect) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores.
+*CapabilitiesApi* | [**capabilitiesDetectWithHttpInfo**](docs/CapabilitiesApi.md#capabilitiesDetectWithHttpInfo) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores.
+*CapabilitiesApi* | [**capabilitiesList**](docs/CapabilitiesApi.md#capabilitiesList) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state.
+*CapabilitiesApi* | [**capabilitiesListWithHttpInfo**](docs/CapabilitiesApi.md#capabilitiesListWithHttpInfo) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state.
 *ChatApi* | [**chatCompletions**](docs/ChatApi.md#chatCompletions) | **POST** /v1/chat/completions | One chat turn through the gateway (OpenAI-compatible).
 *ChatApi* | [**chatCompletionsWithHttpInfo**](docs/ChatApi.md#chatCompletionsWithHttpInfo) | **POST** /v1/chat/completions | One chat turn through the gateway (OpenAI-compatible).
 *EnginesApi* | [**enginesAppendEntry**](docs/EnginesApi.md#enginesAppendEntry) | **POST** /v1/engines/{engineKey}/entries | Append a ledger entry for an engine.
@@ -214,6 +218,16 @@ Class | Method | HTTP request | Description
 *ProjectsApi* | [**projectsRecruitWithHttpInfo**](docs/ProjectsApi.md#projectsRecruitWithHttpInfo) | **POST** /v1/projects/{projectId}/jobs/{jobId}/recruit | One pass — fit recomputed, the evaluation read through the schema, the pick landed as events.
 *RedactionApi* | [**redactionPreview**](docs/RedactionApi.md#redactionPreview) | **POST** /redact | What the model would receive if this text were sent now.
 *RedactionApi* | [**redactionPreviewWithHttpInfo**](docs/RedactionApi.md#redactionPreviewWithHttpInfo) | **POST** /redact | What the model would receive if this text were sent now.
+*RetrievalApi* | [**retrievalExtract**](docs/RetrievalApi.md#retrievalExtract) | **POST** /v1/extract | A document&#39;s pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash.
+*RetrievalApi* | [**retrievalExtractWithHttpInfo**](docs/RetrievalApi.md#retrievalExtractWithHttpInfo) | **POST** /v1/extract | A document&#39;s pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash.
+*RetrievalApi* | [**retrievalRead**](docs/RetrievalApi.md#retrievalRead) | **POST** /v1/read | Read one public page as LLM-ready Markdown, cited where it landed, with its sections.
+*RetrievalApi* | [**retrievalReadWithHttpInfo**](docs/RetrievalApi.md#retrievalReadWithHttpInfo) | **POST** /v1/read | Read one public page as LLM-ready Markdown, cited where it landed, with its sections.
+*RetrievalApi* | [**retrievalReadAlias**](docs/RetrievalApi.md#retrievalReadAlias) | **GET** /v1/read/{url} | The r.jina.ai-shaped alias — &#x60;GET /v1/read/https://…&#x60; — for clients that already speak it.
+*RetrievalApi* | [**retrievalReadAliasWithHttpInfo**](docs/RetrievalApi.md#retrievalReadAliasWithHttpInfo) | **GET** /v1/read/{url} | The r.jina.ai-shaped alias — &#x60;GET /v1/read/https://…&#x60; — for clients that already speak it.
+*RetrievalApi* | [**retrievalSearch**](docs/RetrievalApi.md#retrievalSearch) | **POST** /v1/search | Search the web through the provider this gateway is configured with; optionally read the top results in the same request.
+*RetrievalApi* | [**retrievalSearchWithHttpInfo**](docs/RetrievalApi.md#retrievalSearchWithHttpInfo) | **POST** /v1/search | Search the web through the provider this gateway is configured with; optionally read the top results in the same request.
+*RetrievalApi* | [**retrievalSearchAlias**](docs/RetrievalApi.md#retrievalSearchAlias) | **GET** /v1/search/{q} | The s.jina.ai-shaped alias — &#x60;GET /v1/search/&lt;query&gt;&#x60; — the top results WITH their content.
+*RetrievalApi* | [**retrievalSearchAliasWithHttpInfo**](docs/RetrievalApi.md#retrievalSearchAliasWithHttpInfo) | **GET** /v1/search/{q} | The s.jina.ai-shaped alias — &#x60;GET /v1/search/&lt;query&gt;&#x60; — the top results WITH their content.
 *SkillsApi* | [**skillsGet**](docs/SkillsApi.md#skillsGet) | **GET** /skills/{skillId} | One skill, with its prompt.
 *SkillsApi* | [**skillsGetWithHttpInfo**](docs/SkillsApi.md#skillsGetWithHttpInfo) | **GET** /skills/{skillId} | One skill, with its prompt.
 *SkillsApi* | [**skillsList**](docs/SkillsApi.md#skillsList) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
@@ -253,6 +267,10 @@ Class | Method | HTTP request | Description
  - [AgentsRateRequest](docs/AgentsRateRequest.md)
  - [AgentsScorecards200Response](docs/AgentsScorecards200Response.md)
  - [Audit](docs/Audit.md)
+ - [CapabilitiesDocument](docs/CapabilitiesDocument.md)
+ - [CapabilitiesDocumentServer](docs/CapabilitiesDocumentServer.md)
+ - [Capability](docs/Capability.md)
+ - [CapabilityStats](docs/CapabilityStats.md)
  - [ChatCompletion](docs/ChatCompletion.md)
  - [ChatCompletionChoicesInner](docs/ChatCompletionChoicesInner.md)
  - [ChatCompletionChunk](docs/ChatCompletionChunk.md)
@@ -261,10 +279,15 @@ Class | Method | HTTP request | Description
  - [ChatContentPart](docs/ChatContentPart.md)
  - [ChatMessage](docs/ChatMessage.md)
  - [ChatMessageContent](docs/ChatMessageContent.md)
+ - [DetectRequest](docs/DetectRequest.md)
+ - [DetectResponse](docs/DetectResponse.md)
+ - [DetectedEntity](docs/DetectedEntity.md)
  - [EnginesList200Response](docs/EnginesList200Response.md)
  - [ErrorResponse](docs/ErrorResponse.md)
  - [ErrorResponseError](docs/ErrorResponseError.md)
  - [ErrorResponseErrorOneOf](docs/ErrorResponseErrorOneOf.md)
+ - [ExtractRequest](docs/ExtractRequest.md)
+ - [ExtractResponse](docs/ExtractResponse.md)
  - [GatewayPairRequest](docs/GatewayPairRequest.md)
  - [Health](docs/Health.md)
  - [HistoryGet200Response](docs/HistoryGet200Response.md)
@@ -306,6 +329,10 @@ Class | Method | HTTP request | Description
  - [ProjectsRecruitRequest](docs/ProjectsRecruitRequest.md)
  - [PutRecordsRequest](docs/PutRecordsRequest.md)
  - [PutRecordsResponse](docs/PutRecordsResponse.md)
+ - [ReadRequest](docs/ReadRequest.md)
+ - [ReadResponse](docs/ReadResponse.md)
+ - [ReadRestriction](docs/ReadRestriction.md)
+ - [ReadSection](docs/ReadSection.md)
  - [RecallRequest](docs/RecallRequest.md)
  - [RecallResponse](docs/RecallResponse.md)
  - [RecordType](docs/RecordType.md)
@@ -314,6 +341,9 @@ Class | Method | HTTP request | Description
  - [RedactionPreviewRequest](docs/RedactionPreviewRequest.md)
  - [RememberRequest](docs/RememberRequest.md)
  - [RememberResponse](docs/RememberResponse.md)
+ - [RetrievalReadAlias200Response](docs/RetrievalReadAlias200Response.md)
+ - [RetrievalSearchAlias200Response](docs/RetrievalSearchAlias200Response.md)
+ - [RetrievalSearchAlias200ResponseDataInner](docs/RetrievalSearchAlias200ResponseDataInner.md)
  - [RunEvent](docs/RunEvent.md)
  - [SearchFilters](docs/SearchFilters.md)
  - [SearchHit](docs/SearchHit.md)
@@ -334,6 +364,9 @@ Class | Method | HTTP request | Description
  - [TeamsHandoffRequest](docs/TeamsHandoffRequest.md)
  - [TeamsListRuns200Response](docs/TeamsListRuns200Response.md)
  - [TeamsPostRequest](docs/TeamsPostRequest.md)
+ - [WebSearchRequest](docs/WebSearchRequest.md)
+ - [WebSearchResponse](docs/WebSearchResponse.md)
+ - [WebSearchResult](docs/WebSearchResult.md)
  - [WhoAmI](docs/WhoAmI.md)
 
 
