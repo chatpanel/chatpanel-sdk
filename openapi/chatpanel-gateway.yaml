@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.20.0
+  version: 0.22.0
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -1239,18 +1239,25 @@ paths:
     post:
       operationId: runtime.service
       tags: [runtime]
-      summary: Start or stop a catalogue service — SearXNG runs loopback-only and the gateway's search points at it.
+      summary: Start or stop a catalogue service, or pick a capability container's model — each runs loopback-only and the gateway points at it.
       description: |
         `{ action: 'start' | 'stop' }`. `start` brings the engine up if it is not, runs the
         service's container from its kit (SearXNG: `127.0.0.1:8888`, JSON on, the limiter off,
-        a random secret, capabilities dropped) — the first start pulls the image — waits for
-        it to answer, and sets `search.searxng.url`. `stop` stops the container and clears the
-        URL it set.
+        a random secret, capabilities dropped; `reranker` on 8889 and `opendecision` on 8890
+        with the shared model cache mounted, gateway 0.20+) — the first start pulls the image
+        — waits for it to answer, and sets the config that points the gateway at it
+        (`search.searxng.url`; `capabilities.rerank` / `capabilities.decide`, so `/v1/rerank`
+        and `/v1/decide` are served and listed). `stop` stops the container and clears what it
+        set. `{ action: 'model', model }` (gateway 0.22+) picks the model a capability
+        container runs — an id from its catalogue (`GET /v1/runtime` `services.<id>.models`)
+        or a Hugging Face `owner/name` — gated by the container ENGINE's memory (a model it
+        cannot hold is refused with the command that raises the ceiling); the container is
+        re-created with the pick and restarted when it ran.
       x-chatpanel-auth: token
       x-chatpanel-since: '0.19.0'
       security: [{ gatewayToken: [] }, { tokenHeader: [] }]
       parameters:
-        - { name: id, in: path, required: true, schema: { type: string, enum: [searxng], maxLength: 32 } }
+        - { name: id, in: path, required: true, schema: { type: string, enum: [searxng, reranker, opendecision], maxLength: 32 } }
       requestBody:
         required: false
         content:
@@ -1258,7 +1265,8 @@ paths:
             schema:
               type: object
               properties:
-                action: { type: string, enum: [start, stop], default: start }
+                action: { type: string, enum: [start, stop, model], default: start }
+                model: { type: string, description: "With `action: model` — a catalogue id or a Hugging Face owner/name." }
       responses:
         '200': { description: Done; `url` and `answering` on a start., content: { application/json: { schema: { $ref: '#/components/schemas/RuntimeActionResult' } } } }
         '400': { description: Could not; `install` when there is no engine., content: { application/json: { schema: { $ref: '#/components/schemas/RuntimeActionResult' } } } }
@@ -1993,7 +2001,7 @@ components:
         refused: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "{ id, engine, host, at } newest first" }
         bridge: { type: object, properties: { ok: { type: boolean }, version: { type: string } } }
         engines: { $ref: '#/components/schemas/AnyObject', description: "podman/docker: { installed, version?, running?, machine? }; preferred; install? { command, url, note }" }
-        services: { $ref: '#/components/schemas/AnyObject', description: "searxng: { id, label, image, container, port, blurb, engine, state, url, configured, answering }" }
+        services: { $ref: '#/components/schemas/AnyObject', description: "Per catalogue service (searxng · reranker · opendecision): { id, label, image, container, port, blurb, provides, engine, state, url, configured, answering } — a capability container also { model, default, models: [{ id, label, lang, tier, approxMB, ramMB, licence, recommended, installed, note, unavailable?, ramNote? }], machine: { engineRamMB } } (gateway 0.22+)." }
     RuntimeActionResult:
       type: object
       properties:
@@ -2003,6 +2011,10 @@ components:
         url: { type: string }
         answering: { type: boolean }
         install: { $ref: '#/components/schemas/AnyObject' }
+        provides: { type: array, items: { type: string }, description: "The capabilities the service now stands behind (gateway 0.20+)." }
+        model: { type: string, description: "The model the container runs, on a start or a model pick (gateway 0.22+)." }
+        restarted: { type: boolean, description: "A model pick re-created a running container." }
+        note: { type: string, description: "A model pick that fits but is tight for the engine's memory." }
       required: [ok]
     CapabilitiesDocument:
       type: object

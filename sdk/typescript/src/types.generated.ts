@@ -168,7 +168,7 @@ export interface RuntimeDocument {
   };
   /** podman/docker: { installed, version?, running?, machine? }; preferred; install? { command, url, note } */
   engines?: AnyObject;
-  /** searxng: { id, label, image, container, port, blurb, engine, state, url, configured, answering } */
+  /** Per catalogue service (searxng · reranker · opendecision): { id, label, image, container, port, blurb, provides, engine, state, url, configured, answering } — a capability container also { model, default, models: [{ id, label, lang, tier, approxMB, ramMB, licence, recommended, installed, note, unavailable?, ramNote? }], machine: { engineRamMB } } (gateway 0.22+). */
   services?: AnyObject;
 }
 
@@ -179,6 +179,14 @@ export interface RuntimeActionResult {
   url?: string;
   answering?: boolean;
   install?: AnyObject;
+  /** The capabilities the service now stands behind (gateway 0.20+). */
+  provides?: Array<string>;
+  /** The model the container runs, on a start or a model pick (gateway 0.22+). */
+  model?: string;
+  /** A model pick re-created a running container. */
+  restarted?: boolean;
+  /** A model pick that fits but is tight for the engine's memory. */
+  note?: string;
 }
 
 export interface CapabilitiesDocument {

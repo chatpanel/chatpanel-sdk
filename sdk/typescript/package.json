@@ -1,6 +1,6 @@
 {
   "name": "@chatpanel/sdk",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Typed client for the local ChatPanel gateway — chat through the privacy proxy, search the user's history, read and write memory, follow team runs. Zero dependencies.",
   "type": "module",
   "main": "./dist/index.js",

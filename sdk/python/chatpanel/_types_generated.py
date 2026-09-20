@@ -128,7 +128,7 @@ class RuntimeDocument(TypedDict, total=False):
     refused: NotRequired[List["AnyObject"]]  # { id, engine, host, at } newest first
     bridge: NotRequired[Dict[str, Any]]
     engines: NotRequired["AnyObject"]  # podman/docker: { installed, version?, running?, machine? }; preferred; install? { command, url, note }
-    services: NotRequired["AnyObject"]  # searxng: { id, label, image, container, port, blurb, engine, state, url, configured, answering }
+    services: NotRequired["AnyObject"]  # Per catalogue service (searxng · reranker · opendecision): { id, label, image, container, port, blurb, provides, engine, state, url, configured, answering } — a capability container also { model, default, models: [{ id, label, lang, tier, approxMB, ramMB, licence, recommended, installed, note, unavailable?, ramNote? }], machine: { engineRamMB } } (gateway 0.22+).
 
 
 class RuntimeActionResult(TypedDict, total=False):
@@ -139,6 +139,10 @@ class RuntimeActionResult(TypedDict, total=False):
     url: NotRequired[str]
     answering: NotRequired[bool]
     install: NotRequired["AnyObject"]
+    provides: NotRequired[List[str]]  # The capabilities the service now stands behind (gateway 0.20+).
+    model: NotRequired[str]  # The model the container runs, on a start or a model pick (gateway 0.22+).
+    restarted: NotRequired[bool]  # A model pick re-created a running container.
+    note: NotRequired[str]  # A model pick that fits but is tight for the engine's memory.
 
 
 class CapabilitiesDocument(TypedDict, total=False):
