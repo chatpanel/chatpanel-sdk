@@ -21,7 +21,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const sibling = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'chatpanel-events', 'capability-endpoints.js');
 const schemas = await import('@chatpanel/events/capability-endpoints.js').catch(() => (existsSync(sibling) ? import(pathToFileURL(sibling).href) : null));
 if (!schemas) { console.error('conformance: needs @chatpanel/events (npm i -D @chatpanel/events) or the sibling checkout ../chatpanel-events'); process.exit(2); }
-const { validateCapabilitiesResponse, validateDetectResponse, validateReadResponse, validateSearchResponse, CAPABILITY_ROUTES, OVER_BUDGET } = schemas;
+const { validateCapabilitiesResponse, validateDetectResponse, validateReadResponse, validateSearchResponse, validateRerankRequest, validateRerankResponse, validateDecideRequest, validateDecideResponse, CAPABILITY_ROUTES, OVER_BUDGET } = schemas;
 
 const args = process.argv.slice(2);
 const base = (args.find((a) => !a.startsWith('--')) || 'http://127.0.0.1:4320').replace(/\/+$/, '');
@@ -152,6 +152,57 @@ if (sr) {
       } else bad(`POST /v1/search ${JSON.stringify(q)} → ${r.status} ${JSON.stringify(body).slice(0, 200)}`);
     } catch (e) { bad(`search ${q}: ${e.message}`); }
   } else ok('search: set CHATPANEL_SEARCH_QUERY=<a query> to also validate one real search');
+}
+
+// 5. rerank — listed only while a reranker is configured; when it is, one real ordering
+//    validated against the contract: distinct indexes, best first, the obvious match on top.
+const rr = doc.capabilities.find((c) => c.id === 'rerank');
+if (rr) {
+  check(Array.isArray(rr.models) && rr.models.length > 0, `rerank lists models (${(rr.models || []).join(', ')})`);
+  try { const r = await post('/v1/rerank', { query: 'q', documents: [] }); check(r.status === 400, `POST /v1/rerank with no documents → 400 (got ${r.status})`); } catch (e) { bad(`rerank 400: ${e.message}`); }
+  try {
+    const req = validateRerankRequest ? validateRerankRequest({ query: 'What is deep learning?', documents: ['The weather in Lisbon is mild in spring.', 'Deep learning is a family of machine learning methods based on neural networks.', 'A recipe for sourdough bread.'], top_n: 2 }) : null;
+    const t0 = Date.now();
+    const r = await post('/v1/rerank', req);
+    const body = await r.json().catch(() => null);
+    if (r.status === 200) {
+      validateRerankResponse(body, req);
+      check(body.results[0]?.index === 1, `the deep-learning sentence ranks first (got index ${body.results[0]?.index}, score ${body.results[0]?.relevance_score})`);
+      ok(`POST /v1/rerank → ${body.results.length} of 3 in ${body.ms} ms, model ${body.model} [${Date.now() - t0} ms]`);
+    } else if (r.status === 503 && body?.error?.type === 'provider_unavailable') ok(`POST /v1/rerank → 503 provider_unavailable (the reranker is listed but not answering yet — ${rr.runtime?.state})`);
+    else bad(`POST /v1/rerank → ${r.status} ${JSON.stringify(body).slice(0, 200)}`);
+  } catch (e) { bad(`rerank: ${e.message}`); }
+  try { const r = await post('/v1/rerank', { query: 'q', documents: ['a'], model: 'nobody/serves-this' }); check(r.status === 404, `unknown rerank model → 404 (got ${r.status})`); } catch (e) { bad(`rerank model: ${e.message}`); }
+} else {
+  try { const r = await post('/v1/rerank', { query: 'q', documents: ['a'] }); check(r.status === 404, `no reranker listed → POST /v1/rerank is 404 (got ${r.status})`); } catch { ok('rerank: not served'); }
+}
+
+// 6. decide — likewise: the three primitives in one request, each answer's shape checked
+//    against its question, and `calibrated` present so a caller knows what `p` is.
+const dc = doc.capabilities.find((c) => c.id === 'decide');
+if (dc) {
+  check(Array.isArray(dc.models) && dc.models.length > 0, `decide lists models (${(dc.models || []).join(', ')})`);
+  check(typeof dc.calibrated === 'boolean', `decide says whether it is calibrated (${dc.calibrated})`);
+  try { const r = await post('/v1/decide', { state: 'x', questions: {} }); check(r.status === 400, `POST /v1/decide with no questions → 400 (got ${r.status})`); } catch (e) { bad(`decide 400: ${e.message}`); }
+  try {
+    const req = validateDecideRequest({ state: 'This is the third time my order arrived broken. I want a refund now.', questions: {
+      sentiment: { type: 'choice', instructions: 'The overall sentiment of the text.', options: ['positive', 'negative', 'neutral'] },
+      urgency: { type: 'score', instructions: 'How urgent is this?', options: ['not urgent', 'somewhat urgent', 'very urgent'] },
+      wants_refund: { type: 'noul', instructions: 'Does the writer ask for a refund?' },
+    } });
+    const t0 = Date.now();
+    const r = await post('/v1/decide', req);
+    const body = await r.json().catch(() => null);
+    if (r.status === 200) {
+      validateDecideResponse(body, req);
+      check(body.answers.sentiment.value === 'negative', `a broken order is negative (got ${body.answers.sentiment.value} at ${body.answers.sentiment.p})`);
+      check(body.answers.wants_refund.value === true, `"I want a refund" is a yes (got ${body.answers.wants_refund.p})`);
+      ok(`POST /v1/decide → 3 answers in ${body.ms} ms, model ${body.model}, calibrated ${body.calibrated} [${Date.now() - t0} ms]`);
+    } else if (r.status === 503 && body?.error?.type === 'provider_unavailable') ok(`POST /v1/decide → 503 provider_unavailable (the decision model is listed but not answering yet — ${dc.runtime?.state})`);
+    else bad(`POST /v1/decide → ${r.status} ${JSON.stringify(body).slice(0, 200)}`);
+  } catch (e) { bad(`decide: ${e.message}`); }
+} else {
+  try { const r = await post('/v1/decide', { state: 's', questions: { k: { type: 'noul', instructions: 'i' } } }); check(r.status === 404, `no decision model listed → POST /v1/decide is 404 (got ${r.status})`); } catch { ok('decide: not served'); }
 }
 
 console.log(failed ? `conformance: ${failed} problem(s)` : 'conformance: ok — this server is a ChatPanel capability provider');

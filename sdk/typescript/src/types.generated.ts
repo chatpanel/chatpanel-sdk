@@ -251,6 +251,83 @@ export interface DetectResponse {
   runtime?: AnyObject;
 }
 
+export interface RerankRequest {
+  query: string;
+  documents: Array<string>;
+  /** Return only the best this many. */
+  top_n?: number;
+  /** The model this provider serves; 404 otherwise. */
+  model?: string;
+  /** Refused before dialling if the gateway's record predicts it cannot be met. */
+  budgetMs?: number;
+}
+
+export interface RerankResult {
+  /** Into the request's documents. */
+  index: number;
+  relevance_score: number;
+}
+
+export interface RerankResponse {
+  /** Distinct indexes, best first; at most top_n. */
+  results: Array<RerankResult>;
+  model: string;
+  ms: number;
+}
+
+export interface DecideOption {
+  value: string;
+  /** What the option means — travels to the model as its criterion. */
+  describe?: string;
+}
+
+export interface DecideQuestion {
+  type: "choice" | "score" | "noul";
+  instructions: string;
+  /** choice: the values to pick from; score: the rubric, in order. A noul has none. */
+  options?: Array<string | DecideOption>;
+}
+
+export interface DecideRequest {
+  /** The text judged. */
+  state: string;
+  /** Keyed by identifier ([A-Za-z_][A-Za-z0-9_]*). */
+  questions: {
+    [key: string]: DecideQuestion;
+  };
+  /** The model this provider serves; 404 otherwise. */
+  model?: string;
+  budgetMs?: number;
+}
+
+export interface DecideAnswerOption {
+  /** A string (choice, score rubric entry) or a boolean (noul). */
+  value: unknown;
+  p: number;
+}
+
+export interface DecideAnswer {
+  /** choice: the option picked; score: a number on the rubric; noul: a boolean. */
+  value: unknown;
+  /** The probability of `value` — read it as one only when the response says `calibrated`. */
+  p: number;
+  /** The whole distribution. */
+  options: Array<DecideAnswerOption>;
+  /** The provider's own confidence, when it reports one. */
+  confidence?: number;
+}
+
+export interface DecideResponse {
+  /** One per question asked, under the same key. */
+  answers: {
+    [key: string]: DecideAnswer;
+  };
+  model: string;
+  ms: number;
+  /** Whether `p` is a calibrated probability. false for a zero-shot NLI concentration. */
+  calibrated?: boolean;
+}
+
 export interface WebSearchRequest {
   q: string;
   limit?: number;

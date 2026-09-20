@@ -198,6 +198,71 @@ class DetectResponse(TypedDict, total=False):
     runtime: NotRequired["AnyObject"]
 
 
+class RerankRequest(TypedDict, total=False):
+    """RerankRequest"""
+    query: str
+    documents: List[str]
+    top_n: NotRequired[int]  # Return only the best this many.
+    model: NotRequired[str]  # The model this provider serves; 404 otherwise.
+    budgetMs: NotRequired[float]  # Refused before dialling if the gateway's record predicts it cannot be met.
+
+
+class RerankResult(TypedDict, total=False):
+    """RerankResult"""
+    index: int  # Into the request's documents.
+    relevance_score: float
+
+
+class RerankResponse(TypedDict, total=False):
+    """RerankResponse"""
+    results: List["RerankResult"]  # Distinct indexes, best first; at most top_n.
+    model: str
+    ms: float
+
+
+class DecideOption(TypedDict, total=False):
+    """DecideOption"""
+    value: str
+    describe: NotRequired[str]  # What the option means — travels to the model as its criterion.
+
+
+class DecideQuestion(TypedDict, total=False):
+    """DecideQuestion"""
+    type: Literal["choice", "score", "noul"]
+    instructions: str
+    options: NotRequired[List[Union[str, "DecideOption"]]]  # choice: the values to pick from; score: the rubric, in order. A noul has none.
+
+
+class DecideRequest(TypedDict, total=False):
+    """DecideRequest"""
+    state: str  # The text judged.
+    questions: Dict[str, "DecideQuestion"]  # Keyed by identifier ([A-Za-z_][A-Za-z0-9_]*).
+    model: NotRequired[str]  # The model this provider serves; 404 otherwise.
+    budgetMs: NotRequired[float]
+
+
+class DecideAnswerOption(TypedDict, total=False):
+    """DecideAnswerOption"""
+    value: Any  # A string (choice, score rubric entry) or a boolean (noul).
+    p: float
+
+
+class DecideAnswer(TypedDict, total=False):
+    """DecideAnswer"""
+    value: Any  # choice: the option picked; score: a number on the rubric; noul: a boolean.
+    p: float  # The probability of `value` — read it as one only when the response says `calibrated`.
+    options: List["DecideAnswerOption"]  # The whole distribution.
+    confidence: NotRequired[float]  # The provider's own confidence, when it reports one.
+
+
+class DecideResponse(TypedDict, total=False):
+    """DecideResponse"""
+    answers: Dict[str, "DecideAnswer"]  # One per question asked, under the same key.
+    model: str
+    ms: float
+    calibrated: NotRequired[bool]  # Whether `p` is a calibrated probability. false for a zero-shot NLI concentration.
+
+
 class WebSearchRequest(TypedDict, total=False):
     """WebSearchRequest"""
     q: str

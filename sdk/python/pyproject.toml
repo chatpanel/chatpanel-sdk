@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chatpanel"
-version = "0.7.0"
+version = "0.8.0"
 description = "Typed client for the local ChatPanel gateway — chat through the privacy proxy, search the user's history, read and write memory, follow team runs. Zero dependencies."
 readme = "README.md"
 requires-python = ">=3.11"
