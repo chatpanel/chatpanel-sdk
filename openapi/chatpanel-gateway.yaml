@@ -1895,8 +1895,10 @@ components:
         processes:
           type: object
           properties:
+            all: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "every process running for the user — the bridge's (kind agent | warm | mcp | probe) and the gateway's own workers (kind worker): id, kind, engine, command (basename), label, pid, since, sandbox (the record), refused[] — never argv or env (0.19.1)" }
             localMcp: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "id, command (basename), pid, since, sandbox (the record), refused[] — never argv or env" }
             warm: { $ref: '#/components/schemas/AnyObject' }
+        containers: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "every container the engine has, running or not: name, image, state, status, ports[], ours (a chatpanel- name), engine (0.19.1)" }
         refused: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "{ id, engine, host, at } newest first" }
         bridge: { type: object, properties: { ok: { type: boolean }, version: { type: string } } }
         engines: { $ref: '#/components/schemas/AnyObject', description: "podman/docker: { installed, version?, running?, machine? }; preferred; install? { command, url, note }" }

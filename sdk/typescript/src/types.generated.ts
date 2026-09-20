@@ -152,10 +152,14 @@ export interface RuntimeDocument {
   /** the bridge's /health.sandbox: enabled, mode, runtime, reason?, extras, ownSessions, refused[] (names only), provisioned? (Windows) */
   sandbox?: AnyObject;
   processes?: {
+    /** every process running for the user — the bridge's (kind agent | warm | mcp | probe) and the gateway's own workers (kind worker): id, kind, engine, command (basename), label, pid, since, sandbox (the record), refused[] — never argv or env (0.19.1) */
+    all?: Array<AnyObject>;
     /** id, command (basename), pid, since, sandbox (the record), refused[] — never argv or env */
     localMcp?: Array<AnyObject>;
     warm?: AnyObject;
   };
+  /** every container the engine has, running or not: name, image, state, status, ports[], ours (a chatpanel- name), engine (0.19.1) */
+  containers?: Array<AnyObject>;
   /** { id, engine, host, at } newest first */
   refused?: Array<AnyObject>;
   bridge?: {

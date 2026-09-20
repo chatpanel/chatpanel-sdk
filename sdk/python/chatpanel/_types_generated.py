@@ -124,6 +124,7 @@ class RuntimeDocument(TypedDict, total=False):
     """The runtime — Settings › Runtime's one document (docs/sandboxing.md S1)."""
     sandbox: NotRequired["AnyObject"]  # the bridge's /health.sandbox: enabled, mode, runtime, reason?, extras, ownSessions, refused[] (names only), provisioned? (Windows)
     processes: NotRequired[Dict[str, Any]]
+    containers: NotRequired[List["AnyObject"]]  # every container the engine has, running or not: name, image, state, status, ports[], ours (a chatpanel- name), engine (0.19.1)
     refused: NotRequired[List["AnyObject"]]  # { id, engine, host, at } newest first
     bridge: NotRequired[Dict[str, Any]]
     engines: NotRequired["AnyObject"]  # podman/docker: { installed, version?, running?, machine? }; preferred; install? { command, url, note }
