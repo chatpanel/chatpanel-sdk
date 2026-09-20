@@ -25,6 +25,7 @@ const CLI = process.env.CHATPANEL_CLI_REPO || join(ROOT, '..', 'chatpanel-cli');
 const NOT_IN_SDK = {
   '/admin/token': 'the extension\'s Origin→token handshake; an SDK holds the token already',
   '/config': 'rewrites the gateway\'s routing/redaction config — admin UI, not an app',
+  '/channels': 'Telegram/WhatsApp setup — bot tokens and pairing, admin-gated like /config (0.11.5)',
   '/logs': 'in-memory request traces — admin UI',
   '/update': 'installs software',
   '/status': 'the extension\'s Gateway tab; /health carries what an app needs',
@@ -73,6 +74,8 @@ if (!existsSync(join(GATEWAY, 'src', 'server.js'))) {
     ['/v1/engines/{engineKey}/entries', /\/v1\\\/engines\\\/\(\.\+\)\\\/\(card\|entries\)/.test(src)],
     ['/skills/{skillId}', /\^\\\/skills\\\/\[\^\/\]\+\$/.test(src)],
     ['/stt/sessions/{id}', /stt\\\/sessions\\\//.test(src)],
+    ['/v1/read/{url}', /\^\\\/v1\\\/read\\\/\./.test(src)],
+    ['/v1/search/{q}', /\^\\\/v1\\\/search\\\/\./.test(src)],
   ];
   console.log(`contract: gateway ${GATEWAY} — ${literal.size} literal routes, ${regexRoutes.filter(([, on]) => on).length} regex families`);
   for (const p of literal) {

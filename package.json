@@ -1,7 +1,7 @@
 {
   "name": "chatpanel-sdk",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "ChatPanel client SDKs — one OpenAPI contract for the local gateway, generated into every language.",
   "type": "module",
   "engines": { "node": ">=22.12" },
@@ -14,7 +14,8 @@
     "test": "node tools/lint-spec.mjs && node tools/gen-core.mjs --check && npm --prefix sdk/typescript test && node --test tests/*.test.mjs && npm run test:py",
     "test:py": "python3 -m unittest discover -s sdk/python/tests -t sdk/python -v",
     "test:live": "CHATPANEL_LIVE=1 node --test tests/live.test.mjs",
-    "contract": "node tools/contract.mjs"
+    "contract": "node tools/contract.mjs",
+    "conformance": "node tools/conformance.mjs"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.41.0",

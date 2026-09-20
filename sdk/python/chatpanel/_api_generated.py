@@ -13,7 +13,6 @@ OPERATIONS: Dict[str, Operation] = {
     "models.list": Operation(id="models.list", method="GET", path="/v1/models", auth="open", since=None, stream=None, path_params=(), query_params=()),
     "chat.completions": Operation(id="chat.completions", method="POST", path="/v1/chat/completions", auth="open", since=None, stream="sse-when-stream", path_params=(), query_params=()),
     "redaction.preview": Operation(id="redaction.preview", method="POST", path="/redact", auth="open", since="0.6.62", stream=None, path_params=(), query_params=()),
-    "retrieval.extract": Operation(id="retrieval.extract", method="POST", path="/v1/extract", auth="open", since="0.16.0", stream=None, path_params=(), query_params=()),
     "history.search": Operation(id="history.search", method="POST", path="/v1/history/search", auth="open", since=None, stream=None, path_params=(), query_params=()),
     "history.smartSearch": Operation(id="history.smartSearch", method="POST", path="/v1/history/smart-search", auth="open", since=None, stream=None, path_params=(), query_params=()),
     "history.related": Operation(id="history.related", method="GET", path="/v1/history/related", auth="open", since=None, stream=None, path_params=(), query_params=("id", "limit",)),
@@ -61,6 +60,13 @@ OPERATIONS: Dict[str, Operation] = {
     "agents.scorecards": Operation(id="agents.scorecards", method="GET", path="/v1/agents/scorecards", auth="open", since="0.6.87", stream=None, path_params=(), query_params=()),
     "agents.scorecard": Operation(id="agents.scorecard", method="GET", path="/v1/agents/{agentId}/scorecard", auth="open", since="0.6.87", stream=None, path_params=("agentId",), query_params=()),
     "agents.rate": Operation(id="agents.rate", method="POST", path="/v1/agents/{agentId}/scorecard", auth="open", since="0.6.87", stream=None, path_params=("agentId",), query_params=()),
+    "capabilities.list": Operation(id="capabilities.list", method="GET", path="/v1/capabilities", auth="open", since="0.13.0", stream=None, path_params=(), query_params=()),
+    "capabilities.detect": Operation(id="capabilities.detect", method="POST", path="/v1/detect", auth="open", since="0.13.0", stream=None, path_params=(), query_params=()),
+    "retrieval.search": Operation(id="retrieval.search", method="POST", path="/v1/search", auth="open", since="0.15.0", stream=None, path_params=(), query_params=()),
+    "retrieval.searchAlias": Operation(id="retrieval.searchAlias", method="GET", path="/v1/search/{q}", auth="open", since="0.15.0", stream=None, path_params=("q",), query_params=("read",)),
+    "retrieval.extract": Operation(id="retrieval.extract", method="POST", path="/v1/extract", auth="open", since="0.16.0", stream=None, path_params=(), query_params=()),
+    "retrieval.read": Operation(id="retrieval.read", method="POST", path="/v1/read", auth="open", since="0.14.0", stream=None, path_params=(), query_params=()),
+    "retrieval.readAlias": Operation(id="retrieval.readAlias", method="GET", path="/v1/read/{url}", auth="open", since="0.14.0", stream=None, path_params=("url",), query_params=()),
     "engines.list": Operation(id="engines.list", method="GET", path="/v1/engines", auth="open", since="0.6.89", stream=None, path_params=(), query_params=("minCalls",)),
     "engines.card": Operation(id="engines.card", method="GET", path="/v1/engines/{engineKey}/card", auth="open", since="0.6.89", stream=None, path_params=("engineKey",), query_params=("entries", "minCalls",)),
     "engines.appendEntry": Operation(id="engines.appendEntry", method="POST", path="/v1/engines/{engineKey}/entries", auth="open", since="0.6.89", stream=None, path_params=("engineKey",), query_params=()),
@@ -131,17 +137,6 @@ class RedactionApi:
     def preview(self, body: Dict[str, Any], query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.RedactionPreview":
         """What the model would receive if this text were sent now. Runs the same redaction path as a real turn. The reply carries placeholder types, never the real values. — Gateway 0.6.62+."""
         return self._rt.request(OPERATIONS["redaction.preview"], path={}, query=query, headers=headers, body=body, timeout=timeout)
-
-
-class RetrievalApi:
-    """What the model reads on demand — a document attached by reference, parsed into pages on this machine (`extract`); web search and page reading join it as they ship."""
-
-    def __init__(self, rt: Runtime) -> None:
-        self._rt = rt
-
-    def extract(self, body: "T.ExtractRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.ExtractResponse":
-        """A document's pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash. The `extract` capability (docs/capability-endpoints.md): the third leg beside `search` and `read`. Two calls on one route. With `name` and `data` (the file, base64), the document is parsed in a worker process on this machine — no network, the vault unreadable — and the answer is its identity (`hash`, SHA-256 of the bytes), its `type` as read from the bytes, its `title` when it has one and how many `pages` it has; the text stays on the server. With `hash` and `page`, one page's text comes back; the bytes crossed once. A page is the format's own unit (a PDF page, a slide, a sheet) or, for a document with none (DOCX, Markdown, text), a run of ~6,000 characters cut at a heading. Readers: PDF (pdf.js, the text layer — a scanned document is `scanned: true` with empty pages, never OCR'd), DOCX (Markdown), XLSX/ODS (rows of cells), PPTX/ODP (a slide per page, speaker notes appended), ODT, Markdown, text, CSV, HTML. A hash the worker no longer holds (it is dropped when idle) is a 404 `unknown_document`: send the bytes again. `budgetMs` is refused (503 `over_budget`) from the worker's own record. — Gateway 0.16.0+."""
-        return self._rt.request(OPERATIONS["retrieval.extract"], path={}, query=query, headers=headers, body=body, timeout=timeout)
 
 
 class HistoryApi:
@@ -374,6 +369,48 @@ class AgentsApi:
         return self._rt.request(OPERATIONS["agents.rate"], path={"agentId": agent_id}, query=query, headers=headers, body=body, timeout=timeout)
 
 
+class CapabilitiesApi:
+    """The small non-generative models this gateway provides — discovery, and one standard signature per capability (docs/capability-endpoints.md)."""
+
+    def __init__(self, rt: Runtime) -> None:
+        self._rt = rt
+
+    def list(self, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.CapabilitiesDocument":
+        """What this provider can do — which capabilities, models, measured cost and runtime state. The discovery document a client chooses a provider from: one entry per capability (`detect`, `stt`, `tts` today; `decide`, `rerank`, `embed` as they land), each at its standard route, with the models it can serve, the loaded model's own label vocabulary (`detect`), the measured latency record, and the runtime's state. Never loads a model. — Gateway 0.13.0+."""
+        return self._rt.request(OPERATIONS["capabilities.list"], path={}, query=None, headers=headers, body=None, timeout=timeout)
+
+    def detect(self, body: "T.DetectRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.DetectResponse":
+        """Find entities in text — the model's own labels, with offsets and scores. The standard `detect` signature over the in-process entity detector. Labels are the model's own (`private_person`, `PER`, `GIVENNAME`…) — the client maps them; the vocabulary is listed by `GET /v1/capabilities`. `budgetMs` is refused (503 `over_budget`) from the provider's own latency record before the model runs, never missed. An engine that is still loading answers 503 `detector_unready`; an empty `entities` on 200 means the model found nothing. Raw text reaches the model here and nowhere else — this route is loopback-only like the rest of the gateway. — Gateway 0.13.0+."""
+        return self._rt.request(OPERATIONS["capabilities.detect"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+
+class RetrievalApi:
+    """Web retrieval — search through the provider the user chose, and a page as LLM-ready Markdown, cited where it landed, with its sections (docs/web-retrieval.md)."""
+
+    def __init__(self, rt: Runtime) -> None:
+        self._rt = rt
+
+    def search(self, body: "T.WebSearchRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.WebSearchResponse":
+        """Search the web through the provider this gateway is configured with; optionally read the top results in the same request. The `search` capability (docs/web-retrieval.md §4.1). Providers are listed by `GET /v1/capabilities`: `serp` (a results page fetched and read with the shared rules — no install, the default) and `searxng` (the user's own metasearch, preferred the moment it answers). `read: N` reads the top N results in parallel in this request, each carrying a §4.2 document under `read` — one round-trip instead of 1 + N; a page that will not be read keeps its snippet with `read.restricted.reason`. The query goes through layer-1 redaction (emails, cards, keys, dictionary terms — never the name detector) before it leaves; what was replaced is dropped and `redacted: true` says so; a query with nothing left is 400 `unsafe_query`. `freshness` and `lang` are honoured by SearXNG; `site` by both. `budgetMs` covers the search and its reads and is refused (503 `over_budget`) from the provider's record. `engines` names what was actually asked, so an empty list can be told from a blocked one. — Gateway 0.15.0+."""
+        return self._rt.request(OPERATIONS["retrieval.search"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def search_alias(self, q: str, query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """The s.jina.ai-shaped alias — `GET /v1/search/<query>` — the top results WITH their content. Same search as `POST /v1/search` with `read: 5` (`?read=N`, 0–10, changes it), answered in the shape the shipped ChatPanel extension's *Web search API* engine already reads: `{ code, status, data: [{ url, title, description, content, publishedTime? }] }` where `content` is the page's Markdown when it was read and the snippet otherwise — nothing needs fetching on the client. A Bearer token is accepted and ignored. — Gateway 0.15.0+."""
+        return self._rt.request(OPERATIONS["retrieval.searchAlias"], path={"q": q}, query=query, headers=headers, body=None, timeout=timeout)
+
+    def extract(self, body: "T.ExtractRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.ExtractResponse":
+        """A document's pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash. The `extract` capability (docs/capability-endpoints.md): the third leg beside `search` and `read`. Two calls on one route. With `name` and `data` (the file, base64), the document is parsed in a worker process on this machine — no network, the vault unreadable — and the answer is its identity (`hash`, SHA-256 of the bytes), its `type` as read from the bytes, its `title` when it has one and how many `pages` it has; the text stays on the server. With `hash` and `page`, one page's text comes back; the bytes crossed once. A page is the format's own unit (a PDF page, a slide, a sheet) or, for a document with none (DOCX, Markdown, text), a run of ~6,000 characters cut at a heading. Readers: PDF (pdf.js, the text layer — a scanned document is `scanned: true` with empty pages, never OCR'd), DOCX (Markdown), XLSX/ODS (rows of cells), PPTX/ODP (a slide per page, speaker notes appended), ODT, Markdown, text, CSV, HTML. A hash the worker no longer holds (it is dropped when idle) is a 404 `unknown_document`: send the bytes again. `budgetMs` is refused (503 `over_budget`) from the worker's own record. — Gateway 0.16.0+."""
+        return self._rt.request(OPERATIONS["retrieval.extract"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def read(self, body: "T.ReadRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.ReadResponse":
+        """Read one public page as LLM-ready Markdown, cited where it landed, with its sections. The `read` capability (docs/web-retrieval.md §4.2). The page is fetched from this machine as the user's agent — public web only (the shared SSRF guard, re-checked where a redirect lands), a browser User-Agent, no cookies — and turned into Markdown that keeps headings, lists, tables, code and links. `url` in the answer is where the page should be CITED: the same-origin canonical when it declares one, else where the fetch landed; `sections` are the page's own heading ids with their offset into the content so a citation can point at `url#section`. A page that could not be read as the article — a login wall, a paywall, a 429 — is a 200 with `restricted.reason` and the caller's `snippet` standing in for the content, never the wall rendered as prose. `maxChars` cuts at a section boundary. A read is served from this process's page cache when fresh (`cached: true`), revalidated with its ETag when stale. `budgetMs` is refused (503 `over_budget`) from the provider's own record, never missed. Providers are listed by `GET /v1/capabilities`: `defuddle` (in-process), `text` (the DOM-less fallback), `remote` (an `r.jina.ai`-shaped reader configured under `read.remote`). — Gateway 0.14.0+."""
+        return self._rt.request(OPERATIONS["retrieval.read"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def read_alias(self, url: str, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """The r.jina.ai-shaped alias — `GET /v1/read/https://…` — for clients that already speak it. Same read as `POST /v1/read`, addressed the way the shipped ChatPanel extension's *reader service* slot (and anything else built for `r.jina.ai`) already addresses a reader: the page URL appended to the base, as is or percent-encoded, with its own query string kept. Answers `text/plain` with `Title:` / `URL Source:` / `Published Time:` header lines, a blank line and `Markdown Content:`; under `Accept: application/json` the §4.2 document wrapped as `{ code, status, data }`. `X-Return-Format: text` selects the text form. A Bearer token is accepted and ignored. — Gateway 0.14.0+."""
+        return self._rt.request(OPERATIONS["retrieval.readAlias"], path={"url": url}, query=None, headers=headers, body=None, timeout=timeout)
+
+
 class EnginesApi:
     """The model ledger — every engine's card."""
 
@@ -416,12 +453,13 @@ class Api:
         self.models = ModelsApi(rt)
         self.chat = ChatApi(rt)
         self.redaction = RedactionApi(rt)
-        self.retrieval = RetrievalApi(rt)
         self.history = HistoryApi(rt)
         self.memory = MemoryApi(rt)
         self.prefs = PrefsApi(rt)
         self.teams = TeamsApi(rt)
         self.projects = ProjectsApi(rt)
         self.agents = AgentsApi(rt)
+        self.capabilities = CapabilitiesApi(rt)
+        self.retrieval = RetrievalApi(rt)
         self.engines = EnginesApi(rt)
         self.skills = SkillsApi(rt)

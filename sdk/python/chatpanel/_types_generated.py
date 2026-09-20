@@ -4,29 +4,6 @@ from typing import Any, Dict, List, Literal, NotRequired, TypedDict, Union
 AnyObject = Dict[str, Any]
 """A domain object whose shape is owned by `@chatpanel/events`; the SDK carries it as-is."""
 
-class ExtractRequest(TypedDict, total=False):
-    """Either `name` + `data` (open a document) or `hash` + `page` (read one page of an open document)."""
-    name: NotRequired[str]  # The file name — its extension helps tell office formats apart.
-    type: NotRequired[str]  # The client's guess at the type (e.g. `pdf`, `docx`); the bytes decide.
-    data: NotRequired[str]  # The whole file, base64. At most 64 MB decoded.
-    hash: NotRequired[str]  # The `hash` an open call returned.
-    page: NotRequired[int]  # The page to read, 1-based.
-    budgetMs: NotRequired[float]  # Refused before parsing if the worker's record predicts it cannot be met.
-
-
-class ExtractResponse(TypedDict, total=False):
-    """ExtractResponse"""
-    hash: str  # SHA-256 of the bytes — the document's identity for page calls.
-    type: str  # What the bytes are: pdf, docx, xlsx, pptx, odt, ods, odp, md, txt, csv, html.
-    pages: int
-    title: NotRequired[str]  # The document's own title, when it declares one; else empty.
-    scanned: NotRequired[bool]  # A PDF with no text layer: its pages are empty and need OCR, which this does not do.
-    page: NotRequired[int]  # Present on a page call.
-    text: NotRequired[str]  # The page's text, on a page call. May be empty.
-    provider: str  # `chatpanel-extract`.
-    ms: float
-
-
 class ErrorResponse(TypedDict, total=False):
     """ErrorResponse"""
     error: Union[str, Dict[str, Any]]
@@ -141,6 +118,170 @@ class ChatCompletionChunk(TypedDict, total=False):
     model: NotRequired[str]
     choices: List[Dict[str, Any]]
     usage: NotRequired["AnyObject"]
+
+
+class CapabilitiesDocument(TypedDict, total=False):
+    """CapabilitiesDocument"""
+    capabilities: List["Capability"]
+    server: Dict[str, Any]
+
+
+class Capability(TypedDict, total=False):
+    """Capability"""
+    id: Literal["detect", "decide", "rerank", "embed", "stt", "tts", "search", "read"]
+    route: str  # The standard route for this capability on this provider.
+    models: NotRequired[List[str]]  # Model capabilities (detect, decide, rerank, embed, stt, tts): the models offered. Required for those.
+    providers: NotRequired[List[str]]  # Provider capabilities (search, read): the providers offered — a SearXNG, a SERP scraper, an extractor. Required for those.
+    default: NotRequired[str]  # One of `models`, or of `providers`.
+    labels: NotRequired[List[str]]  # detect: the loaded model's label vocabulary, BIOES prefixes stripped. Empty until a model is loaded.
+    maxTokens: NotRequired[Union[int, None]]  # detect: the tokenizer's limit; null when effectively unbounded.
+    requirements: NotRequired["AnyObject"]
+    stats: NotRequired["CapabilityStats"]
+    runtime: NotRequired["AnyObject"]  # state (off | loading | downloading | ready | error | external), name, dtype, error…
+    streaming: NotRequired[str]  # stt: the session route for live dictation.
+    voices: NotRequired[str]  # tts: the voices route.
+
+
+class CapabilityStats(TypedDict, total=False):
+    """CapabilityStats"""
+    calls: int
+    p50Ms: NotRequired[float]
+    p95Ms: NotRequired[float]
+    maxMs: NotRequired[float]
+    lastMs: NotRequired[float]
+    charsPerSec: NotRequired[Union[float, None]]
+
+
+class DetectRequest(TypedDict, total=False):
+    """DetectRequest"""
+    text: str
+    model: NotRequired[str]  # A model this provider lists; 404 otherwise.
+    labels: NotRequired[List[str]]  # Keep only these of the model's labels.
+    budgetMs: NotRequired[float]  # Refused before running if the provider's record predicts it cannot be met.
+
+
+class DetectedEntity(TypedDict, total=False):
+    """DetectedEntity"""
+    value: str
+    type: str  # The model's own label.
+    start: int  # Character offset into the request text.
+    end: int
+    score: float
+
+
+class DetectResponse(TypedDict, total=False):
+    """DetectResponse"""
+    entities: List["DetectedEntity"]
+    model: str
+    ms: float
+    runtime: NotRequired["AnyObject"]
+
+
+class WebSearchRequest(TypedDict, total=False):
+    """WebSearchRequest"""
+    q: str
+    limit: NotRequired[int]
+    lang: NotRequired[str]  # en or en-US; honoured by SearXNG.
+    site: NotRequired[str]  # A hostname — the site: operator.
+    freshness: NotRequired[Literal["day", "week", "month", "year"]]  # Honoured by SearXNG (time_range); week maps to month.
+    read: NotRequired[int]  # Read the top N results in this request.
+    provider: NotRequired[str]  # One of the providers `GET /v1/capabilities` lists for `search`; 404 otherwise.
+    budgetMs: NotRequired[float]
+
+
+class WebSearchResult(TypedDict, total=False):
+    """WebSearchResult"""
+    rank: int
+    url: str
+    title: str
+    snippet: str
+    engine: NotRequired[str]  # The engine that produced it (SearXNG: the first of `engines`; serp: the results page asked).
+    engines: NotRequired[List[str]]  # SearXNG: every engine that returned it.
+    score: NotRequired[float]  # SearXNG's fused score.
+    publishedDate: NotRequired[str]
+    read: NotRequired["ReadResponse"]  # Present for the top `read` results.
+
+
+class WebSearchResponse(TypedDict, total=False):
+    """WebSearchResponse"""
+    results: List["WebSearchResult"]
+    answers: NotRequired[List[str]]  # SearXNG's direct answers, when it had any.
+    suggestions: NotRequired[List[str]]
+    engines: NotRequired[List[str]]  # What was actually asked.
+    unresponsive: NotRequired[List[str]]  # SearXNG engines that did not answer.
+    redacted: NotRequired[bool]  # Layer-1 redaction removed something from the query.
+    query: NotRequired[str]  # The query as sent, when `redacted`.
+    provider: str
+    ms: float
+
+
+class ExtractRequest(TypedDict, total=False):
+    """Either `name` + `data` (open a document) or `hash` + `page` (read one page of an open document)."""
+    name: NotRequired[str]  # The file name — its extension helps tell office formats apart.
+    type: NotRequired[str]  # The client's guess at the type (e.g. `pdf`, `docx`); the bytes decide.
+    data: NotRequired[str]  # The whole file, base64. At most 64 MB decoded.
+    hash: NotRequired[str]  # The `hash` an open call returned.
+    page: NotRequired[int]  # The page to read, 1-based.
+    budgetMs: NotRequired[float]  # Refused before parsing if the worker's record predicts it cannot be met.
+
+
+class ExtractResponse(TypedDict, total=False):
+    """ExtractResponse"""
+    hash: str  # SHA-256 of the bytes — the document's identity for page calls.
+    type: str  # What the bytes are: pdf, docx, xlsx, pptx, odt, ods, odp, md, txt, csv, html.
+    pages: int
+    title: NotRequired[str]  # The document's own title, when it declares one; else empty.
+    scanned: NotRequired[bool]  # A PDF with no text layer: its pages are empty and need OCR, which this does not do.
+    page: NotRequired[int]  # Present on a page call.
+    text: NotRequired[str]  # The page's text, on a page call. May be empty.
+    provider: str  # `chatpanel-extract`.
+    ms: float
+
+
+class ReadRequest(TypedDict, total=False):
+    """ReadRequest"""
+    url: str  # Absolute http(s) URL of a public page.
+    format: NotRequired[Literal["markdown", "text"]]
+    maxChars: NotRequired[int]  # Cut at a section boundary near this length; `truncated` says so.
+    snippet: NotRequired[str]  # A search snippet to stand in for the content when the page cannot be read.
+    provider: NotRequired[str]  # One of the providers `GET /v1/capabilities` lists for `read`; 404 otherwise.
+    budgetMs: NotRequired[float]  # Refused before fetching if the provider's record predicts it cannot be met.
+
+
+class ReadSection(TypedDict, total=False):
+    """ReadSection"""
+    id: str  # The page's own heading id when it has one, else a slug — cite as `url#id`.
+    heading: str
+    level: int
+    offset: int  # Character offset of the heading line into the content.
+
+
+class ReadRestriction(TypedDict, total=False):
+    """ReadRestriction"""
+    reason: Literal["login", "paywall", "rate_limited", "robots", "tdm"]  # `robots` and `tdm` come only from a hosted (crawler) provider; on the user's machine the reader is a user agent.
+    detail: NotRequired[str]
+
+
+class ReadResponse(TypedDict, total=False):
+    """ReadResponse"""
+    url: str  # Where to CITE the page: the same-origin canonical, else where the fetch landed. Fragments dropped.
+    requested: NotRequired[str]  # The URL that was asked for.
+    title: str
+    author: NotRequired[str]
+    published: NotRequired[str]  # As the page declared it (ISO date or datetime when it gave one).
+    site: NotRequired[str]  # The hostname of `url`.
+    lang: NotRequired[str]
+    format: Literal["markdown", "text"]
+    markdown: NotRequired[str]  # The content, when `format` is markdown.
+    text: NotRequired[str]  # The content, when `format` is text.
+    chars: int  # Length of the content field.
+    truncated: bool
+    sections: List["ReadSection"]
+    fetched: NotRequired[str]  # When the page was fetched (the cached copy's time on a cache hit).
+    cached: NotRequired[bool]
+    provider: str
+    ms: float
+    restricted: NotRequired[Union["ReadRestriction", None]]  # Set when the page was not read as the article; the content is then the request's `snippet`.
 
 
 class RedactionPreview(TypedDict, total=False):

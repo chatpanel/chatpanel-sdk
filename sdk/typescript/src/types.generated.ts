@@ -6,41 +6,6 @@ export interface AnyObject {
   [key: string]: unknown;
 }
 
-/** Either `name` + `data` (open a document) or `hash` + `page` (read one page of an open document). */
-export interface ExtractRequest {
-  /** The file name — its extension helps tell office formats apart. */
-  name?: string;
-  /** The client's guess at the type (e.g. `pdf`, `docx`); the bytes decide. */
-  type?: string;
-  /** The whole file, base64. At most 64 MB decoded. */
-  data?: string;
-  /** The `hash` an open call returned. */
-  hash?: string;
-  /** The page to read, 1-based. */
-  page?: number;
-  /** Refused before parsing if the worker's record predicts it cannot be met. */
-  budgetMs?: number;
-}
-
-export interface ExtractResponse {
-  /** SHA-256 of the bytes — the document's identity for page calls. */
-  hash: string;
-  /** What the bytes are: pdf, docx, xlsx, pptx, odt, ods, odp, md, txt, csv, html. */
-  type: string;
-  pages: number;
-  /** The document's own title, when it declares one; else empty. */
-  title?: string;
-  /** A PDF with no text layer: its pages are empty and need OCR, which this does not do. */
-  scanned?: boolean;
-  /** Present on a page call. */
-  page?: number;
-  /** The page's text, on a page call. May be empty. */
-  text?: string;
-  /** `chatpanel-extract`. */
-  provider: string;
-  ms: number;
-}
-
 export interface ErrorResponse {
   error: string | {
     message: string;
@@ -180,6 +145,219 @@ export interface ChatCompletionChunk {
   }>;
   usage?: AnyObject;
   [key: string]: unknown;
+}
+
+export interface CapabilitiesDocument {
+  capabilities: Array<Capability>;
+  server: {
+    name: string;
+    version: string;
+    /** Where this provider's egress audit is served. */
+    audit?: string;
+  };
+}
+
+export interface Capability {
+  id: "detect" | "decide" | "rerank" | "embed" | "stt" | "tts" | "search" | "read";
+  /** The standard route for this capability on this provider. */
+  route: string;
+  /** Model capabilities (detect, decide, rerank, embed, stt, tts): the models offered. Required for those. */
+  models?: Array<string>;
+  /** Provider capabilities (search, read): the providers offered — a SearXNG, a SERP scraper, an extractor. Required for those. */
+  providers?: Array<string>;
+  /** One of `models`, or of `providers`. */
+  default?: string;
+  /** detect: the loaded model's label vocabulary, BIOES prefixes stripped. Empty until a model is loaded. */
+  labels?: Array<string>;
+  /** detect: the tokenizer's limit; null when effectively unbounded. */
+  maxTokens?: number | null;
+  requirements?: AnyObject;
+  stats?: CapabilityStats;
+  /** state (off | loading | downloading | ready | error | external), name, dtype, error… */
+  runtime?: AnyObject;
+  /** stt: the session route for live dictation. */
+  streaming?: string;
+  /** tts: the voices route. */
+  voices?: string;
+}
+
+export interface CapabilityStats {
+  calls: number;
+  p50Ms?: number;
+  p95Ms?: number;
+  maxMs?: number;
+  lastMs?: number;
+  charsPerSec?: number | null;
+}
+
+export interface DetectRequest {
+  text: string;
+  /** A model this provider lists; 404 otherwise. */
+  model?: string;
+  /** Keep only these of the model's labels. */
+  labels?: Array<string>;
+  /** Refused before running if the provider's record predicts it cannot be met. */
+  budgetMs?: number;
+}
+
+export interface DetectedEntity {
+  value: string;
+  /** The model's own label. */
+  type: string;
+  /** Character offset into the request text. */
+  start: number;
+  end: number;
+  score: number;
+}
+
+export interface DetectResponse {
+  entities: Array<DetectedEntity>;
+  model: string;
+  ms: number;
+  runtime?: AnyObject;
+}
+
+export interface WebSearchRequest {
+  q: string;
+  limit?: number;
+  /** en or en-US; honoured by SearXNG. */
+  lang?: string;
+  /** A hostname — the site: operator. */
+  site?: string;
+  /** Honoured by SearXNG (time_range); week maps to month. */
+  freshness?: "day" | "week" | "month" | "year";
+  /** Read the top N results in this request. */
+  read?: number;
+  /** One of the providers `GET /v1/capabilities` lists for `search`; 404 otherwise. */
+  provider?: string;
+  budgetMs?: number;
+}
+
+export interface WebSearchResult {
+  rank: number;
+  url: string;
+  title: string;
+  snippet: string;
+  /** The engine that produced it (SearXNG: the first of `engines`; serp: the results page asked). */
+  engine?: string;
+  /** SearXNG: every engine that returned it. */
+  engines?: Array<string>;
+  /** SearXNG's fused score. */
+  score?: number;
+  publishedDate?: string;
+  /** Present for the top `read` results. */
+  read?: ReadResponse;
+}
+
+export interface WebSearchResponse {
+  results: Array<WebSearchResult>;
+  /** SearXNG's direct answers, when it had any. */
+  answers?: Array<string>;
+  suggestions?: Array<string>;
+  /** What was actually asked. */
+  engines?: Array<string>;
+  /** SearXNG engines that did not answer. */
+  unresponsive?: Array<string>;
+  /** Layer-1 redaction removed something from the query. */
+  redacted?: boolean;
+  /** The query as sent, when `redacted`. */
+  query?: string;
+  provider: string;
+  ms: number;
+}
+
+/** Either `name` + `data` (open a document) or `hash` + `page` (read one page of an open document). */
+export interface ExtractRequest {
+  /** The file name — its extension helps tell office formats apart. */
+  name?: string;
+  /** The client's guess at the type (e.g. `pdf`, `docx`); the bytes decide. */
+  type?: string;
+  /** The whole file, base64. At most 64 MB decoded. */
+  data?: string;
+  /** The `hash` an open call returned. */
+  hash?: string;
+  /** The page to read, 1-based. */
+  page?: number;
+  /** Refused before parsing if the worker's record predicts it cannot be met. */
+  budgetMs?: number;
+}
+
+export interface ExtractResponse {
+  /** SHA-256 of the bytes — the document's identity for page calls. */
+  hash: string;
+  /** What the bytes are: pdf, docx, xlsx, pptx, odt, ods, odp, md, txt, csv, html. */
+  type: string;
+  pages: number;
+  /** The document's own title, when it declares one; else empty. */
+  title?: string;
+  /** A PDF with no text layer: its pages are empty and need OCR, which this does not do. */
+  scanned?: boolean;
+  /** Present on a page call. */
+  page?: number;
+  /** The page's text, on a page call. May be empty. */
+  text?: string;
+  /** `chatpanel-extract`. */
+  provider: string;
+  ms: number;
+}
+
+export interface ReadRequest {
+  /** Absolute http(s) URL of a public page. */
+  url: string;
+  format?: "markdown" | "text";
+  /** Cut at a section boundary near this length; `truncated` says so. */
+  maxChars?: number;
+  /** A search snippet to stand in for the content when the page cannot be read. */
+  snippet?: string;
+  /** One of the providers `GET /v1/capabilities` lists for `read`; 404 otherwise. */
+  provider?: string;
+  /** Refused before fetching if the provider's record predicts it cannot be met. */
+  budgetMs?: number;
+}
+
+export interface ReadSection {
+  /** The page's own heading id when it has one, else a slug — cite as `url#id`. */
+  id: string;
+  heading: string;
+  level: number;
+  /** Character offset of the heading line into the content. */
+  offset: number;
+}
+
+export interface ReadRestriction {
+  /** `robots` and `tdm` come only from a hosted (crawler) provider; on the user's machine the reader is a user agent. */
+  reason: "login" | "paywall" | "rate_limited" | "robots" | "tdm";
+  detail?: string;
+}
+
+export interface ReadResponse {
+  /** Where to CITE the page: the same-origin canonical, else where the fetch landed. Fragments dropped. */
+  url: string;
+  /** The URL that was asked for. */
+  requested?: string;
+  title: string;
+  author?: string;
+  /** As the page declared it (ISO date or datetime when it gave one). */
+  published?: string;
+  /** The hostname of `url`. */
+  site?: string;
+  lang?: string;
+  format: "markdown" | "text";
+  /** The content, when `format` is markdown. */
+  markdown?: string;
+  /** The content, when `format` is text. */
+  text?: string;
+  /** Length of the content field. */
+  chars: number;
+  truncated: boolean;
+  sections: Array<ReadSection>;
+  /** When the page was fetched (the cached copy's time on a cache hit). */
+  fetched?: string;
+  cached?: boolean;
+  provider: string;
+  ms: number;
+  /** Set when the page was not read as the article; the content is then the request's `snippet`. */
+  restricted?: ReadRestriction | null;
 }
 
 export interface RedactionPreview {
