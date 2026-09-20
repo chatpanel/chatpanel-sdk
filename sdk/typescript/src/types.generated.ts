@@ -147,6 +147,36 @@ export interface ChatCompletionChunk {
   [key: string]: unknown;
 }
 
+/** The runtime — Settings › Runtime's one document (docs/sandboxing.md S1). */
+export interface RuntimeDocument {
+  /** the bridge's /health.sandbox: enabled, mode, runtime, reason?, extras, ownSessions, refused[] (names only), provisioned? (Windows) */
+  sandbox?: AnyObject;
+  processes?: {
+    /** id, command (basename), pid, since, sandbox (the record), refused[] — never argv or env */
+    localMcp?: Array<AnyObject>;
+    warm?: AnyObject;
+  };
+  /** { id, engine, host, at } newest first */
+  refused?: Array<AnyObject>;
+  bridge?: {
+    ok?: boolean;
+    version?: string;
+  };
+  /** podman/docker: { installed, version?, running?, machine? }; preferred; install? { command, url, note } */
+  engines?: AnyObject;
+  /** searxng: { id, label, image, container, port, blurb, engine, state, url, configured, answering } */
+  services?: AnyObject;
+}
+
+export interface RuntimeActionResult {
+  ok: boolean;
+  error?: string;
+  already?: boolean;
+  url?: string;
+  answering?: boolean;
+  install?: AnyObject;
+}
+
 export interface CapabilitiesDocument {
   capabilities: Array<Capability>;
   server: {

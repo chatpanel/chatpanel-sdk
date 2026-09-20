@@ -120,6 +120,26 @@ class ChatCompletionChunk(TypedDict, total=False):
     usage: NotRequired["AnyObject"]
 
 
+class RuntimeDocument(TypedDict, total=False):
+    """The runtime — Settings › Runtime's one document (docs/sandboxing.md S1)."""
+    sandbox: NotRequired["AnyObject"]  # the bridge's /health.sandbox: enabled, mode, runtime, reason?, extras, ownSessions, refused[] (names only), provisioned? (Windows)
+    processes: NotRequired[Dict[str, Any]]
+    refused: NotRequired[List["AnyObject"]]  # { id, engine, host, at } newest first
+    bridge: NotRequired[Dict[str, Any]]
+    engines: NotRequired["AnyObject"]  # podman/docker: { installed, version?, running?, machine? }; preferred; install? { command, url, note }
+    services: NotRequired["AnyObject"]  # searxng: { id, label, image, container, port, blurb, engine, state, url, configured, answering }
+
+
+class RuntimeActionResult(TypedDict, total=False):
+    """RuntimeActionResult"""
+    ok: bool
+    error: NotRequired[str]
+    already: NotRequired[bool]
+    url: NotRequired[str]
+    answering: NotRequired[bool]
+    install: NotRequired["AnyObject"]
+
+
 class CapabilitiesDocument(TypedDict, total=False):
     """CapabilitiesDocument"""
     capabilities: List["Capability"]

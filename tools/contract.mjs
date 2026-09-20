@@ -76,6 +76,8 @@ if (!existsSync(join(GATEWAY, 'src', 'server.js'))) {
     ['/stt/sessions/{id}', /stt\\\/sessions\\\//.test(src)],
     ['/v1/read/{url}', /\^\\\/v1\\\/read\\\/\./.test(src)],
     ['/v1/search/{q}', /\^\\\/v1\\\/search\\\/\./.test(src)],
+    ['/v1/runtime/engines/{name}', /\^\\\/v1\\\/runtime\\\/\(engines\|services\)/.test(src)],
+    ['/v1/runtime/services/{id}', /\^\\\/v1\\\/runtime\\\/\(engines\|services\)/.test(src)],
   ];
   console.log(`contract: gateway ${GATEWAY} — ${literal.size} literal routes, ${regexRoutes.filter(([, on]) => on).length} regex families`);
   for (const p of literal) {

@@ -61,6 +61,9 @@ export const OPERATIONS = {
   "agents.scorecard": { id: "agents.scorecard", method: "GET", path: "/v1/agents/{agentId}/scorecard", auth: "open", since: "0.6.87", stream: null, pathParams: ["agentId"], queryParams: [] },
   "agents.rate": { id: "agents.rate", method: "POST", path: "/v1/agents/{agentId}/scorecard", auth: "open", since: "0.6.87", stream: null, pathParams: ["agentId"], queryParams: [] },
   "capabilities.list": { id: "capabilities.list", method: "GET", path: "/v1/capabilities", auth: "open", since: "0.13.0", stream: null, pathParams: [], queryParams: [] },
+  "runtime.status": { id: "runtime.status", method: "GET", path: "/v1/runtime", auth: "open", since: "0.19.0", stream: null, pathParams: [], queryParams: [] },
+  "runtime.engine": { id: "runtime.engine", method: "POST", path: "/v1/runtime/engines/{name}", auth: "token", since: "0.19.0", stream: null, pathParams: ["name"], queryParams: [] },
+  "runtime.service": { id: "runtime.service", method: "POST", path: "/v1/runtime/services/{id}", auth: "token", since: "0.19.0", stream: null, pathParams: ["id"], queryParams: [] },
   "capabilities.detect": { id: "capabilities.detect", method: "POST", path: "/v1/detect", auth: "open", since: "0.13.0", stream: null, pathParams: [], queryParams: [] },
   "retrieval.search": { id: "retrieval.search", method: "POST", path: "/v1/search", auth: "open", since: "0.15.0", stream: null, pathParams: [], queryParams: [] },
   "retrieval.searchAlias": { id: "retrieval.searchAlias", method: "GET", path: "/v1/search/{q}", auth: "open", since: "0.15.0", stream: null, pathParams: ["q"], queryParams: ["read"] },
@@ -516,6 +519,28 @@ export class CapabilitiesApi {
   }
 }
 
+/** What runs processes for the user and how — the process sandbox (through the bridge), the container engine on this machine, and the services the gateway runs for the user (docs/sandboxing.md S1). */
+export class RuntimeApi {
+  private readonly rt: Runtime;
+  constructor(rt: Runtime) { this.rt = rt; }
+  /** The runtime — the process sandbox, what is running now, the container engine, the services. One document for Settings › Runtime. `sandbox` is the bridge's own (`/health.sandbox`: enabled, mode `open` | `allowlist` | `none`, the runtime found, the reason when none, the global `extras`, whether a process can get a session of its own, and `refused` — the last hosts any process was refused, names only). `processes` lists every local MCP server running for the user with its sandbox record and the hosts it was refused, and the warm agent processes. `engines` says which container engine exists (`podman` first, `docker`) and whether it can run a container now; when none does, `install` carries the command for this platform — shown to the person, never run by the gateway. `services` is the catalogue: `searxng` with its state (`no-engine` | `engine-stopped` | `absent` | `stopped` | `running`), its loopback URL and whether it answers. — Gateway 0.19.0+. */
+  status(opts?: RequestOptions): Promise<T.RuntimeDocument> {
+    return this.rt.request(OPERATIONS["runtime.status"], { path: {  }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+  /** Start the container engine (Podman — creates and starts its machine where one is needed). `{ action: 'start' }`. Podman on macOS and Windows runs containers in a machine: made on first start (`podman machine init`), then started. Linux Podman is rootless and needs nothing. Docker is not started by the gateway — the response says so. — Requires the gateway token. Gateway 0.19.0+. */
+  engine(name: string, body: {
+    action?: "start";
+  }, opts?: RequestOptions): Promise<T.RuntimeActionResult> {
+    return this.rt.request(OPERATIONS["runtime.engine"], { path: { name }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** Start or stop a catalogue service — SearXNG runs loopback-only and the gateway's search points at it. `{ action: 'start' | 'stop' }`. `start` brings the engine up if it is not, runs the service's container from its kit (SearXNG: `127.0.0.1:8888`, JSON on, the limiter off, a random secret, capabilities dropped) — the first start pulls the image — waits for it to answer, and sets `search.searxng.url`. `stop` stops the container and clears the URL it set. — Requires the gateway token. Gateway 0.19.0+. */
+  service(id: string, body: {
+    action?: "start" | "stop";
+  }, opts?: RequestOptions): Promise<T.RuntimeActionResult> {
+    return this.rt.request(OPERATIONS["runtime.service"], { path: { id }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+}
+
 /** Web retrieval — search through the provider the user chose, and a page as LLM-ready Markdown, cited where it landed, with its sections (docs/web-retrieval.md). */
 export class RetrievalApi {
   private readonly rt: Runtime;
@@ -609,6 +634,7 @@ export function buildApi(rt: Runtime) {
     projects: new ProjectsApi(rt),
     agents: new AgentsApi(rt),
     capabilities: new CapabilitiesApi(rt),
+    runtime: new RuntimeApi(rt),
     retrieval: new RetrievalApi(rt),
     engines: new EnginesApi(rt),
     skills: new SkillsApi(rt),

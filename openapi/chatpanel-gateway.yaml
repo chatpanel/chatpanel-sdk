@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.15.0
+  version: 0.16.0
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -88,6 +88,8 @@ tags:
     description: The skills on this machine (served through the bridge).
   - name: retrieval
     description: Web retrieval — search through the provider the user chose, and a page as LLM-ready Markdown, cited where it landed, with its sections (docs/web-retrieval.md).
+  - name: runtime
+    description: What runs processes for the user and how — the process sandbox (through the bridge), the container engine on this machine, and the services the gateway runs for the user (docs/sandboxing.md S1).
 
 paths:
   # ------------------------------------------------------------------ gateway
@@ -1180,6 +1182,88 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/CapabilitiesDocument' }
 
+  # ------------------------------------------------------------------ runtime
+  /v1/runtime:
+    get:
+      operationId: runtime.status
+      tags: [runtime]
+      summary: The runtime — the process sandbox, what is running now, the container engine, the services.
+      description: |
+        One document for Settings › Runtime. `sandbox` is the bridge's own (`/health.sandbox`:
+        enabled, mode `open` | `allowlist` | `none`, the runtime found, the reason when none,
+        the global `extras`, whether a process can get a session of its own, and `refused` —
+        the last hosts any process was refused, names only). `processes` lists every local
+        MCP server running for the user with its sandbox record and the hosts it was refused,
+        and the warm agent processes. `engines` says which container engine exists (`podman`
+        first, `docker`) and whether it can run a container now; when none does, `install`
+        carries the command for this platform — shown to the person, never run by the gateway.
+        `services` is the catalogue: `searxng` with its state (`no-engine` | `engine-stopped`
+        | `absent` | `stopped` | `running`), its loopback URL and whether it answers.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.19.0'
+      responses:
+        '200':
+          description: The runtime document.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RuntimeDocument' }
+
+  /v1/runtime/engines/{name}:
+    post:
+      operationId: runtime.engine
+      tags: [runtime]
+      summary: Start the container engine (Podman — creates and starts its machine where one is needed).
+      description: |
+        `{ action: 'start' }`. Podman on macOS and Windows runs containers in a machine: made
+        on first start (`podman machine init`), then started. Linux Podman is rootless and
+        needs nothing. Docker is not started by the gateway — the response says so.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.19.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      parameters:
+        - { name: name, in: path, required: true, schema: { type: string, enum: [podman, docker], maxLength: 16 } }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action: { type: string, enum: [start], default: start }
+      responses:
+        '200': { description: Started, or already running (`already: true`)., content: { application/json: { schema: { $ref: '#/components/schemas/RuntimeActionResult' } } } }
+        '400': { description: Could not start; `install` when the engine is not installed., content: { application/json: { schema: { $ref: '#/components/schemas/RuntimeActionResult' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /v1/runtime/services/{id}:
+    post:
+      operationId: runtime.service
+      tags: [runtime]
+      summary: Start or stop a catalogue service — SearXNG runs loopback-only and the gateway's search points at it.
+      description: |
+        `{ action: 'start' | 'stop' }`. `start` brings the engine up if it is not, runs the
+        service's container from its kit (SearXNG: `127.0.0.1:8888`, JSON on, the limiter off,
+        a random secret, capabilities dropped) — the first start pulls the image — waits for
+        it to answer, and sets `search.searxng.url`. `stop` stops the container and clears the
+        URL it set.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.19.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, enum: [searxng], maxLength: 32 } }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action: { type: string, enum: [start, stop], default: start }
+      responses:
+        '200': { description: Done; `url` and `answering` on a start., content: { application/json: { schema: { $ref: '#/components/schemas/RuntimeActionResult' } } } }
+        '400': { description: Could not; `install` when there is no engine., content: { application/json: { schema: { $ref: '#/components/schemas/RuntimeActionResult' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
   /v1/detect:
     post:
       operationId: capabilities.detect
@@ -1803,6 +1887,30 @@ components:
               finish_reason: { type: [string, 'null'] }
         usage: { $ref: '#/components/schemas/AnyObject' }
 
+    RuntimeDocument:
+      type: object
+      description: The runtime — Settings › Runtime's one document (docs/sandboxing.md S1).
+      properties:
+        sandbox: { $ref: '#/components/schemas/AnyObject', description: "the bridge's /health.sandbox: enabled, mode, runtime, reason?, extras, ownSessions, refused[] (names only), provisioned? (Windows)" }
+        processes:
+          type: object
+          properties:
+            localMcp: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "id, command (basename), pid, since, sandbox (the record), refused[] — never argv or env" }
+            warm: { $ref: '#/components/schemas/AnyObject' }
+        refused: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "{ id, engine, host, at } newest first" }
+        bridge: { type: object, properties: { ok: { type: boolean }, version: { type: string } } }
+        engines: { $ref: '#/components/schemas/AnyObject', description: "podman/docker: { installed, version?, running?, machine? }; preferred; install? { command, url, note }" }
+        services: { $ref: '#/components/schemas/AnyObject', description: "searxng: { id, label, image, container, port, blurb, engine, state, url, configured, answering }" }
+    RuntimeActionResult:
+      type: object
+      properties:
+        ok: { type: boolean }
+        error: { type: string }
+        already: { type: boolean }
+        url: { type: string }
+        answering: { type: boolean }
+        install: { $ref: '#/components/schemas/AnyObject' }
+      required: [ok]
     CapabilitiesDocument:
       type: object
       required: [capabilities, server]
