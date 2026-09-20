@@ -6,6 +6,41 @@ export interface AnyObject {
   [key: string]: unknown;
 }
 
+/** Either `name` + `data` (open a document) or `hash` + `page` (read one page of an open document). */
+export interface ExtractRequest {
+  /** The file name — its extension helps tell office formats apart. */
+  name?: string;
+  /** The client's guess at the type (e.g. `pdf`, `docx`); the bytes decide. */
+  type?: string;
+  /** The whole file, base64. At most 64 MB decoded. */
+  data?: string;
+  /** The `hash` an open call returned. */
+  hash?: string;
+  /** The page to read, 1-based. */
+  page?: number;
+  /** Refused before parsing if the worker's record predicts it cannot be met. */
+  budgetMs?: number;
+}
+
+export interface ExtractResponse {
+  /** SHA-256 of the bytes — the document's identity for page calls. */
+  hash: string;
+  /** What the bytes are: pdf, docx, xlsx, pptx, odt, ods, odp, md, txt, csv, html. */
+  type: string;
+  pages: number;
+  /** The document's own title, when it declares one; else empty. */
+  title?: string;
+  /** A PDF with no text layer: its pages are empty and need OCR, which this does not do. */
+  scanned?: boolean;
+  /** Present on a page call. */
+  page?: number;
+  /** The page's text, on a page call. May be empty. */
+  text?: string;
+  /** `chatpanel-extract`. */
+  provider: string;
+  ms: number;
+}
+
 export interface ErrorResponse {
   error: string | {
     message: string;

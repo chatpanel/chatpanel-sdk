@@ -84,6 +84,8 @@ tags:
     description: The model ledger — every engine's card.
   - name: skills
     description: The skills on this machine (served through the bridge).
+  - name: retrieval
+    description: What the model reads on demand — a document attached by reference, parsed into pages on this machine (`extract`); web search and page reading join it as they ship.
 
 paths:
   # ------------------------------------------------------------------ gateway
@@ -257,6 +259,55 @@ paths:
         '500': { $ref: '#/components/responses/Error' }
 
   # ------------------------------------------------------------------ history
+  /v1/extract:
+    post:
+      operationId: retrieval.extract
+      tags: [retrieval]
+      summary: A document's pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash.
+      description: |
+        The `extract` capability (docs/capability-endpoints.md): the third leg beside `search`
+        and `read`. Two calls on one route. With `name` and `data` (the file, base64), the
+        document is parsed in a worker process on this machine — no network, the vault
+        unreadable — and the answer is its identity (`hash`, SHA-256 of the bytes), its `type`
+        as read from the bytes, its `title` when it has one and how many `pages` it has; the
+        text stays on the server. With `hash` and `page`, one page's text comes back; the
+        bytes crossed once. A page is the format's own unit (a PDF page, a slide, a sheet) or,
+        for a document with none (DOCX, Markdown, text), a run of ~6,000 characters cut at a
+        heading. Readers: PDF (pdf.js, the text layer — a scanned document is `scanned: true`
+        with empty pages, never OCR'd), DOCX (Markdown), XLSX/ODS (rows of cells), PPTX/ODP
+        (a slide per page, speaker notes appended), ODT, Markdown, text, CSV, HTML. A hash the
+        worker no longer holds (it is dropped when idle) is a 404 `unknown_document`: send the
+        bytes again. `budgetMs` is refused (503 `over_budget`) from the worker's own record.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.16.0'
+      x-chatpanel-scope: one document, parsed on this machine, never sent anywhere
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExtractRequest' }
+      responses:
+        '200':
+          description: The document opened (hash, type, pages) — or, with `page`, that page's text.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExtractResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '404':
+          description: The hash is not open in the worker (`unknown_document`) — send the bytes again.
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+        '413':
+          description: The document is over the 64 MB limit (`too_large`).
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+        '415':
+          description: No reader for these bytes (`unsupported`).
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+        '503':
+          description: The budget cannot be met (`over_budget`, with `predictedMs`).
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+        '504':
+          description: The parse took too long and the worker was restarted (`extract_timeout`).
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
   /v1/history/search:
     post:
       operationId: history.search
@@ -1354,6 +1405,29 @@ components:
       additionalProperties: true
       description: A domain object whose shape is owned by `@chatpanel/events`; the SDK carries it as-is.
 
+    ExtractRequest:
+      type: object
+      description: "Either `name` + `data` (open a document) or `hash` + `page` (read one page of an open document)."
+      properties:
+        name: { type: string, description: "The file name — its extension helps tell office formats apart." }
+        type: { type: string, description: "The client's guess at the type (e.g. `pdf`, `docx`); the bytes decide." }
+        data: { type: string, format: byte, description: "The whole file, base64. At most 64 MB decoded." }
+        hash: { type: string, pattern: '^[0-9a-f]{64}$', description: "The `hash` an open call returned." }
+        page: { type: integer, minimum: 1, description: "The page to read, 1-based." }
+        budgetMs: { type: number, minimum: 0, description: "Refused before parsing if the worker's record predicts it cannot be met." }
+    ExtractResponse:
+      type: object
+      required: [hash, type, pages, provider, ms]
+      properties:
+        hash: { type: string, pattern: '^[0-9a-f]{64}$', description: "SHA-256 of the bytes — the document's identity for page calls." }
+        type: { type: string, description: "What the bytes are: pdf, docx, xlsx, pptx, odt, ods, odp, md, txt, csv, html." }
+        pages: { type: integer, minimum: 0 }
+        title: { type: string, description: "The document's own title, when it declares one; else empty." }
+        scanned: { type: boolean, description: "A PDF with no text layer: its pages are empty and need OCR, which this does not do." }
+        page: { type: integer, minimum: 1, description: "Present on a page call." }
+        text: { type: string, description: "The page's text, on a page call. May be empty." }
+        provider: { type: string, description: "`chatpanel-extract`." }
+        ms: { type: number }
     ErrorResponse:
       type: object
       required: [error]

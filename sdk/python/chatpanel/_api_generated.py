@@ -13,6 +13,7 @@ OPERATIONS: Dict[str, Operation] = {
     "models.list": Operation(id="models.list", method="GET", path="/v1/models", auth="open", since=None, stream=None, path_params=(), query_params=()),
     "chat.completions": Operation(id="chat.completions", method="POST", path="/v1/chat/completions", auth="open", since=None, stream="sse-when-stream", path_params=(), query_params=()),
     "redaction.preview": Operation(id="redaction.preview", method="POST", path="/redact", auth="open", since="0.6.62", stream=None, path_params=(), query_params=()),
+    "retrieval.extract": Operation(id="retrieval.extract", method="POST", path="/v1/extract", auth="open", since="0.16.0", stream=None, path_params=(), query_params=()),
     "history.search": Operation(id="history.search", method="POST", path="/v1/history/search", auth="open", since=None, stream=None, path_params=(), query_params=()),
     "history.smartSearch": Operation(id="history.smartSearch", method="POST", path="/v1/history/smart-search", auth="open", since=None, stream=None, path_params=(), query_params=()),
     "history.related": Operation(id="history.related", method="GET", path="/v1/history/related", auth="open", since=None, stream=None, path_params=(), query_params=("id", "limit",)),
@@ -130,6 +131,17 @@ class RedactionApi:
     def preview(self, body: Dict[str, Any], query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.RedactionPreview":
         """What the model would receive if this text were sent now. Runs the same redaction path as a real turn. The reply carries placeholder types, never the real values. — Gateway 0.6.62+."""
         return self._rt.request(OPERATIONS["redaction.preview"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+
+class RetrievalApi:
+    """What the model reads on demand — a document attached by reference, parsed into pages on this machine (`extract`); web search and page reading join it as they ship."""
+
+    def __init__(self, rt: Runtime) -> None:
+        self._rt = rt
+
+    def extract(self, body: "T.ExtractRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.ExtractResponse":
+        """A document's pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash. The `extract` capability (docs/capability-endpoints.md): the third leg beside `search` and `read`. Two calls on one route. With `name` and `data` (the file, base64), the document is parsed in a worker process on this machine — no network, the vault unreadable — and the answer is its identity (`hash`, SHA-256 of the bytes), its `type` as read from the bytes, its `title` when it has one and how many `pages` it has; the text stays on the server. With `hash` and `page`, one page's text comes back; the bytes crossed once. A page is the format's own unit (a PDF page, a slide, a sheet) or, for a document with none (DOCX, Markdown, text), a run of ~6,000 characters cut at a heading. Readers: PDF (pdf.js, the text layer — a scanned document is `scanned: true` with empty pages, never OCR'd), DOCX (Markdown), XLSX/ODS (rows of cells), PPTX/ODP (a slide per page, speaker notes appended), ODT, Markdown, text, CSV, HTML. A hash the worker no longer holds (it is dropped when idle) is a 404 `unknown_document`: send the bytes again. `budgetMs` is refused (503 `over_budget`) from the worker's own record. — Gateway 0.16.0+."""
+        return self._rt.request(OPERATIONS["retrieval.extract"], path={}, query=query, headers=headers, body=body, timeout=timeout)
 
 
 class HistoryApi:
@@ -404,6 +416,7 @@ class Api:
         self.models = ModelsApi(rt)
         self.chat = ChatApi(rt)
         self.redaction = RedactionApi(rt)
+        self.retrieval = RetrievalApi(rt)
         self.history = HistoryApi(rt)
         self.memory = MemoryApi(rt)
         self.prefs = PrefsApi(rt)

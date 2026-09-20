@@ -13,6 +13,7 @@ export const OPERATIONS = {
   "models.list": { id: "models.list", method: "GET", path: "/v1/models", auth: "open", since: null, stream: null, pathParams: [], queryParams: [] },
   "chat.completions": { id: "chat.completions", method: "POST", path: "/v1/chat/completions", auth: "open", since: null, stream: "sse-when-stream", pathParams: [], queryParams: [] },
   "redaction.preview": { id: "redaction.preview", method: "POST", path: "/redact", auth: "open", since: "0.6.62", stream: null, pathParams: [], queryParams: [] },
+  "retrieval.extract": { id: "retrieval.extract", method: "POST", path: "/v1/extract", auth: "open", since: "0.16.0", stream: null, pathParams: [], queryParams: [] },
   "history.search": { id: "history.search", method: "POST", path: "/v1/history/search", auth: "open", since: null, stream: null, pathParams: [], queryParams: [] },
   "history.smartSearch": { id: "history.smartSearch", method: "POST", path: "/v1/history/smart-search", auth: "open", since: null, stream: null, pathParams: [], queryParams: [] },
   "history.related": { id: "history.related", method: "GET", path: "/v1/history/related", auth: "open", since: null, stream: null, pathParams: [], queryParams: ["id","limit"] },
@@ -131,6 +132,16 @@ export class RedactionApi {
     text: string;
   }, opts?: RequestOptions): Promise<T.RedactionPreview> {
     return this.rt.request(OPERATIONS["redaction.preview"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+}
+
+/** What the model reads on demand — a document attached by reference, parsed into pages on this machine (`extract`); web search and page reading join it as they ship. */
+export class RetrievalApi {
+  private readonly rt: Runtime;
+  constructor(rt: Runtime) { this.rt = rt; }
+  /** A document's pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash. The `extract` capability (docs/capability-endpoints.md): the third leg beside `search` and `read`. Two calls on one route. With `name` and `data` (the file, base64), the document is parsed in a worker process on this machine — no network, the vault unreadable — and the answer is its identity (`hash`, SHA-256 of the bytes), its `type` as read from the bytes, its `title` when it has one and how many `pages` it has; the text stays on the server. With `hash` and `page`, one page's text comes back; the bytes crossed once. A page is the format's own unit (a PDF page, a slide, a sheet) or, for a document with none (DOCX, Markdown, text), a run of ~6,000 characters cut at a heading. Readers: PDF (pdf.js, the text layer — a scanned document is `scanned: true` with empty pages, never OCR'd), DOCX (Markdown), XLSX/ODS (rows of cells), PPTX/ODP (a slide per page, speaker notes appended), ODT, Markdown, text, CSV, HTML. A hash the worker no longer holds (it is dropped when idle) is a 404 `unknown_document`: send the bytes again. `budgetMs` is refused (503 `over_budget`) from the worker's own record. — Gateway 0.16.0+. */
+  extract(body: T.ExtractRequest, opts?: RequestOptions): Promise<T.ExtractResponse> {
+    return this.rt.request(OPERATIONS["retrieval.extract"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
   }
 }
 
@@ -541,6 +552,7 @@ export function buildApi(rt: Runtime) {
     models: new ModelsApi(rt),
     chat: new ChatApi(rt),
     redaction: new RedactionApi(rt),
+    retrieval: new RetrievalApi(rt),
     history: new HistoryApi(rt),
     memory: new MemoryApi(rt),
     prefs: new PrefsApi(rt),

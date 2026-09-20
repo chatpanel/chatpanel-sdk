@@ -4,6 +4,29 @@ from typing import Any, Dict, List, Literal, NotRequired, TypedDict, Union
 AnyObject = Dict[str, Any]
 """A domain object whose shape is owned by `@chatpanel/events`; the SDK carries it as-is."""
 
+class ExtractRequest(TypedDict, total=False):
+    """Either `name` + `data` (open a document) or `hash` + `page` (read one page of an open document)."""
+    name: NotRequired[str]  # The file name — its extension helps tell office formats apart.
+    type: NotRequired[str]  # The client's guess at the type (e.g. `pdf`, `docx`); the bytes decide.
+    data: NotRequired[str]  # The whole file, base64. At most 64 MB decoded.
+    hash: NotRequired[str]  # The `hash` an open call returned.
+    page: NotRequired[int]  # The page to read, 1-based.
+    budgetMs: NotRequired[float]  # Refused before parsing if the worker's record predicts it cannot be met.
+
+
+class ExtractResponse(TypedDict, total=False):
+    """ExtractResponse"""
+    hash: str  # SHA-256 of the bytes — the document's identity for page calls.
+    type: str  # What the bytes are: pdf, docx, xlsx, pptx, odt, ods, odp, md, txt, csv, html.
+    pages: int
+    title: NotRequired[str]  # The document's own title, when it declares one; else empty.
+    scanned: NotRequired[bool]  # A PDF with no text layer: its pages are empty and need OCR, which this does not do.
+    page: NotRequired[int]  # Present on a page call.
+    text: NotRequired[str]  # The page's text, on a page call. May be empty.
+    provider: str  # `chatpanel-extract`.
+    ms: float
+
+
 class ErrorResponse(TypedDict, total=False):
     """ErrorResponse"""
     error: Union[str, Dict[str, Any]]
