@@ -50,6 +50,60 @@ or the ChatPanel desktop app, which bundles it). Reads on the `/v1` data plane a
 local process; writes that change what every client sees (remember, forget, ingest) need the
 per-install token — `fromEnvironment()` finds it, a browser client `pair()`s for it.
 
+## Decisions and ranking — the small models
+
+Not every question needs a language model. A **typed decision** — which team, how urgent, is
+this spam, is this a complaint — is one forward pass of a small classifier: tens of
+milliseconds, on the user's machine, a probability per option. **Ranking** — which of these
+twenty passages answers the query — is a cross-encoder, the same way. The gateway runs both as
+loopback-only containers (Settings › Runtime; pick the model there, or any Hugging Face id of
+the right kind) and serves them at `POST /v1/decide` and `POST /v1/rerank`, which every SDK
+carries as `capabilities.decide` / `capabilities.rerank`. `GET /v1/capabilities` says whether
+a provider is up.
+
+```ts
+const r = await cp.capabilities.decide({
+  state: 'Third time my order arrived broken. I want a refund now.',
+  questions: {
+    department: { type: 'choice', instructions: 'Which team should handle this?',
+                  options: [{ value: 'billing', describe: 'payments, invoices, refunds' }, { value: 'technical', describe: 'bugs, outages' }] },
+    urgency:    { type: 'score',  instructions: 'How urgent is this?', options: ['not urgent', 'somewhat urgent', 'very urgent'] },
+    refund:     { type: 'noul',   instructions: 'Does the writer ask for a refund?' },
+  },
+});
+r.answers.department.value;  // 'billing' — with .p, and .options: the whole distribution
+r.answers.refund.value;      // true
+r.calibrated;                // false: a zero-shot classifier's p is an ordering, not a probability
+
+const ranked = await cp.capabilities.rerank({ query: 'What is deep learning?', documents: passages, top_n: 5 });
+ranked.results;              // [{ index, relevance_score }] best first — indexes into `documents`
+```
+
+```python
+r = cp.capabilities.decide({"state": text, "questions": {"spam": {"type": "noul", "instructions": "Is this unsolicited promotion?"}}})
+if r["answers"]["spam"]["value"]: ...
+```
+
+What it is for, with the question shape that fits:
+
+| Use | Shape | Note |
+|---|---|---|
+| **Routing** — queue, team, workflow | `choice` with a `describe` per option | the classifier reads your criteria, not just the label; run it before any language model sees the ticket |
+| **Scoring** — quality, satisfaction, severity | `score` over your rubric | the answer is a position on the rubric (1.7 = between the second and third) plus the distribution |
+| **Fraud & risk** — asks for credentials, payment redirect, urgency pressure | several `noul`s in one call | passive, on every message; no language model in the loop, so nothing to prompt-inject |
+| **Moderation** — toxic, harassment, off-topic | `choice` over your categories, or a `noul` per policy line | tens of milliseconds, on-device |
+| **Recommendation** — the next action | `choice` over the candidates, or `rerank` twenty and take three | |
+| **Sentiment & triage** | `choice` / `noul` | built into every ChatPanel client's fast path ("is this email spam?") |
+| **Ranking for retrieval** | `rerank` | order search results or a note's sources before a language model reads them |
+
+The rules: `budgetMs` is refused (`503 over_budget`) from the provider's own latency record
+before it runs, never missed; no provider is `404 no_provider`; a container that is down is
+`503 provider_unavailable`; an answer outside the contract is a `502` at the gateway, never a
+bad answer in your code. Any server that speaks TypeSafe's `/v1/systemone` (Jev, OpenDecision,
+Laya) or Text Embeddings Inference's `/rerank` can stand behind the same routes — point the
+gateway's `capabilities.decide` / `capabilities.rerank` at it; your code does not change.
+`npm run conformance -- http://127.0.0.1:4320` checks a server against the contract.
+
 ## The rules every SDK follows
 
 These are in the hand-written runtimes (`sdk/typescript/src/runtime.ts`, `sdk/python/chatpanel/_runtime.py`)
