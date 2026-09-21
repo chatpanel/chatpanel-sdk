@@ -508,6 +508,13 @@ class EventsPage(TypedDict, total=False):
     more: bool
 
 
+class EventsStats(TypedDict, total=False):
+    """EventsStats"""
+    ok: bool
+    stats: Dict[str, Any]
+    year: NotRequired[Union[Dict[str, Any], None]]  # `eventsPerYear`, `bytesPerYear`, `daysToCap` at the observed rate; null before there is a span.
+
+
 class EventsStreamEvent(TypedDict, total=False):
     """EventsStreamEvent"""
     event: Literal["hello", "cloudevent"]  # The SSE event name.

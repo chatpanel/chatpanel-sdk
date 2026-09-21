@@ -10,6 +10,8 @@ All URIs are relative to *http://127.0.0.1:4320*
 | [**eventsPushWithHttpInfo**](EventsApi.md#eventsPushWithHttpInfo) | **POST** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named. |
 | [**eventsSince**](EventsApi.md#eventsSince) | **GET** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged. |
 | [**eventsSinceWithHttpInfo**](EventsApi.md#eventsSinceWithHttpInfo) | **GET** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged. |
+| [**eventsStats**](EventsApi.md#eventsStats) | **GET** /v1/events/stats | What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap. |
+| [**eventsStatsWithHttpInfo**](EventsApi.md#eventsStatsWithHttpInfo) | **GET** /v1/events/stats | What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap. |
 | [**eventsStream**](EventsApi.md#eventsStream) | **GET** /v1/events/stream | Tail the merged log — &#x60;hello&#x60; once, then a &#x60;cloudevent&#x60; frame per appended event; with &#x60;cursor&#x60;, the backlog above it first. |
 | [**eventsStreamWithHttpInfo**](EventsApi.md#eventsStreamWithHttpInfo) | **GET** /v1/events/stream | Tail the merged log — &#x60;hello&#x60; once, then a &#x60;cloudevent&#x60; frame per appended event; with &#x60;cursor&#x60;, the backlog above it first. |
 
@@ -489,6 +491,154 @@ ApiResponse<[**EventsPage**](EventsPage.md)>
 |-------------|-------------|------------------|
 | **200** | A page; re-ask with the returned &#x60;cursor&#x60; while &#x60;more&#x60; is true. |  -  |
 | **400** | An error, in the gateway&#39;s words. |  -  |
+| **403** | The caller lacks the token this route needs. |  -  |
+| **501** | An error, in the gateway&#39;s words. |  -  |
+
+
+## eventsStats
+
+> EventsStats eventsStats()
+
+What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.EventsApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure API key authorization: tokenHeader
+        ApiKeyAuth tokenHeader = (ApiKeyAuth) defaultClient.getAuthentication("tokenHeader");
+        tokenHeader.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //tokenHeader.setApiKeyPrefix("Token");
+
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        EventsApi apiInstance = new EventsApi(defaultClient);
+        try {
+            EventsStats result = apiInstance.eventsStats();
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling EventsApi#eventsStats");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**EventsStats**](EventsStats.md)
+
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | The numbers, over the retained log (at most the last 25 000 events). |  -  |
+| **403** | The caller lacks the token this route needs. |  -  |
+| **501** | An error, in the gateway&#39;s words. |  -  |
+
+## eventsStatsWithHttpInfo
+
+> ApiResponse<EventsStats> eventsStatsWithHttpInfo()
+
+What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.ApiResponse;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.EventsApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure API key authorization: tokenHeader
+        ApiKeyAuth tokenHeader = (ApiKeyAuth) defaultClient.getAuthentication("tokenHeader");
+        tokenHeader.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //tokenHeader.setApiKeyPrefix("Token");
+
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        EventsApi apiInstance = new EventsApi(defaultClient);
+        try {
+            ApiResponse<EventsStats> response = apiInstance.eventsStatsWithHttpInfo();
+            System.out.println("Status code: " + response.getStatusCode());
+            System.out.println("Response headers: " + response.getHeaders());
+            System.out.println("Response body: " + response.getData());
+        } catch (ApiException e) {
+            System.err.println("Exception when calling EventsApi#eventsStats");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            System.err.println("Reason: " + e.getResponseBody());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+ApiResponse<[**EventsStats**](EventsStats.md)>
+
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | The numbers, over the retained log (at most the last 25 000 events). |  -  |
 | **403** | The caller lacks the token this route needs. |  -  |
 | **501** | An error, in the gateway&#39;s words. |  -  |
 

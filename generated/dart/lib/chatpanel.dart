@@ -59,6 +59,8 @@ export 'package:chatpanel/src/model/error_response_error.dart';
 export 'package:chatpanel/src/model/error_response_error_one_of.dart';
 export 'package:chatpanel/src/model/events_cursor.dart';
 export 'package:chatpanel/src/model/events_page.dart';
+export 'package:chatpanel/src/model/events_stats.dart';
+export 'package:chatpanel/src/model/events_stats_stats.dart';
 export 'package:chatpanel/src/model/events_stream_event.dart';
 export 'package:chatpanel/src/model/extract_request.dart';
 export 'package:chatpanel/src/model/extract_response.dart';

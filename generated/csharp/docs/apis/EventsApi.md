@@ -7,6 +7,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | [**EventsCursor**](EventsApi.md#eventscursor) | **GET** /v1/events/cursor | The gateway&#39;s highest &#x60;seq&#x60; per host — what a client asks for before it pushes. |
 | [**EventsPush**](EventsApi.md#eventspush) | **POST** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named. |
 | [**EventsSince**](EventsApi.md#eventssince) | **GET** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged. |
+| [**EventsStats**](EventsApi.md#eventsstats) | **GET** /v1/events/stats | What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap. |
 | [**EventsStream**](EventsApi.md#eventsstream) | **GET** /v1/events/stream | Tail the merged log — &#x60;hello&#x60; once, then a &#x60;cloudevent&#x60; frame per appended event; with &#x60;cursor&#x60;, the backlog above it first. |
 
 <a id="eventscursor"></a>
@@ -115,6 +116,38 @@ The merged log above a cursor — host by host in `seq` order, as CloudEvents, p
 |-------------|-------------|------------------|
 | **200** | A page; re-ask with the returned &#x60;cursor&#x60; while &#x60;more&#x60; is true. |  -  |
 | **400** | An error, in the gateway&#39;s words. |  -  |
+| **403** | The caller lacks the token this route needs. |  -  |
+| **501** | An error, in the gateway&#39;s words. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
+
+<a id="eventsstats"></a>
+# **EventsStats**
+> EventsStats EventsStats ()
+
+What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
+
+
+### Parameters
+This endpoint does not need any parameter.
+### Return type
+
+[**EventsStats**](EventsStats.md)
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | The numbers, over the retained log (at most the last 25 000 events). |  -  |
 | **403** | The caller lacks the token this route needs. |  -  |
 | **501** | An error, in the gateway&#39;s words. |  -  |
 

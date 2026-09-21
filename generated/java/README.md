@@ -2,7 +2,7 @@
 
 ChatPanel Gateway API
 
-- API version: 0.22.0
+- API version: 0.25.0
 
 - Generator version: 7.25.0
 
@@ -60,7 +60,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>net.chatpanel</groupId>
   <artifactId>chatpanel-sdk</artifactId>
-  <version>0.22.0</version>
+  <version>0.25.0</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -70,7 +70,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "net.chatpanel:chatpanel-sdk:0.22.0"
+compile "net.chatpanel:chatpanel-sdk:0.25.0"
 ```
 
 ### Others
@@ -83,7 +83,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/chatpanel-sdk-0.22.0.jar`
+- `target/chatpanel-sdk-0.25.0.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -154,6 +154,8 @@ Class | Method | HTTP request | Description
 *EventsApi* | [**eventsPushWithHttpInfo**](docs/EventsApi.md#eventsPushWithHttpInfo) | **POST** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named.
 *EventsApi* | [**eventsSince**](docs/EventsApi.md#eventsSince) | **GET** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged.
 *EventsApi* | [**eventsSinceWithHttpInfo**](docs/EventsApi.md#eventsSinceWithHttpInfo) | **GET** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged.
+*EventsApi* | [**eventsStats**](docs/EventsApi.md#eventsStats) | **GET** /v1/events/stats | What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
+*EventsApi* | [**eventsStatsWithHttpInfo**](docs/EventsApi.md#eventsStatsWithHttpInfo) | **GET** /v1/events/stats | What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
 *EventsApi* | [**eventsStream**](docs/EventsApi.md#eventsStream) | **GET** /v1/events/stream | Tail the merged log — &#x60;hello&#x60; once, then a &#x60;cloudevent&#x60; frame per appended event; with &#x60;cursor&#x60;, the backlog above it first.
 *EventsApi* | [**eventsStreamWithHttpInfo**](docs/EventsApi.md#eventsStreamWithHttpInfo) | **GET** /v1/events/stream | Tail the merged log — &#x60;hello&#x60; once, then a &#x60;cloudevent&#x60; frame per appended event; with &#x60;cursor&#x60;, the backlog above it first.
 *GatewayApi* | [**gatewayAudit**](docs/GatewayApi.md#gatewayAudit) | **GET** /audit | The egress audit — which hosts this gateway has contacted and which its config allows.
@@ -314,6 +316,8 @@ Class | Method | HTTP request | Description
  - [ErrorResponseErrorOneOf](docs/ErrorResponseErrorOneOf.md)
  - [EventsCursor](docs/EventsCursor.md)
  - [EventsPage](docs/EventsPage.md)
+ - [EventsStats](docs/EventsStats.md)
+ - [EventsStatsStats](docs/EventsStatsStats.md)
  - [EventsStreamEvent](docs/EventsStreamEvent.md)
  - [ExtractRequest](docs/ExtractRequest.md)
  - [ExtractResponse](docs/ExtractResponse.md)

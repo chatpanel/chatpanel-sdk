@@ -144,6 +144,46 @@ open class EventsAPI {
     }
 
     /**
+     What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
+     
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: EventsStats
+     */
+    open class func eventsStats(apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> EventsStats {
+        return try await eventsStatsWithRequestBuilder(apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
+     - GET /v1/events/stats
+     - API Key:
+       - type: apiKey X-ChatPanel-Token (HEADER)
+       - name: tokenHeader
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<EventsStats> 
+     */
+    open class func eventsStatsWithRequestBuilder(apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<EventsStats> {
+        let localVariablePath = "/v1/events/stats"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<EventsStats>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
      Tail the merged log — `hello` once, then a `cloudevent` frame per appended event; with `cursor`, the backlog above it first.
      
      - parameter cursor: (query) JSON &#x60;{ host: seq }&#x60;; when present the events above it are replayed before live frames. (optional)

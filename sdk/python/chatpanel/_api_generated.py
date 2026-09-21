@@ -25,6 +25,7 @@ OPERATIONS: Dict[str, Operation] = {
     "events.since": Operation(id="events.since", method="GET", path="/v1/events", auth="token", since="0.24.0", stream=None, path_params=(), query_params=("cursor", "limit", "host",)),
     "events.push": Operation(id="events.push", method="POST", path="/v1/events", auth="token", since="0.24.0", stream=None, path_params=(), query_params=()),
     "events.cursor": Operation(id="events.cursor", method="GET", path="/v1/events/cursor", auth="token", since="0.24.0", stream=None, path_params=(), query_params=()),
+    "events.stats": Operation(id="events.stats", method="GET", path="/v1/events/stats", auth="token", since="0.25.1", stream=None, path_params=(), query_params=()),
     "events.stream": Operation(id="events.stream", method="GET", path="/v1/events/stream", auth="token", since="0.24.0", stream="sse", path_params=(), query_params=("cursor",)),
     "history.ingest": Operation(id="history.ingest", method="POST", path="/v1/history/ingest", auth="token", since=None, stream=None, path_params=(), query_params=()),
     "memory.list": Operation(id="memory.list", method="GET", path="/v1/memory/list", auth="open", since=None, stream=None, path_params=(), query_params=()),
@@ -212,6 +213,10 @@ class EventsApi:
     def cursor(self, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.EventsCursor":
         """The gateway's highest `seq` per host — what a client asks for before it pushes. — Requires the gateway token. Gateway 0.24.0+."""
         return self._rt.request(OPERATIONS["events.cursor"], path={}, query=None, headers=headers, body=None, timeout=timeout)
+
+    def stats(self, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.EventsStats":
+        """What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap. — Requires the gateway token. Gateway 0.25.1+."""
+        return self._rt.request(OPERATIONS["events.stats"], path={}, query=None, headers=headers, body=None, timeout=timeout)
 
     def stream(self, query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Iterator[SseFrame["T.EventsStreamEvent"]]:
         """Tail the merged log — `hello` once, then a `cloudevent` frame per appended event; with `cursor`, the backlog above it first. — Requires the gateway token. Gateway 0.24.0+."""

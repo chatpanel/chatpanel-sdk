@@ -501,6 +501,22 @@ paths:
               schema: { $ref: '#/components/schemas/EventsCursor' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '501': { $ref: '#/components/responses/Error' }
+  /v1/events/stats:
+    get:
+      operationId: events.stats
+      tags: [events]
+      summary: What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.25.1'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      responses:
+        '200':
+          description: The numbers, over the retained log (at most the last 25 000 events).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventsStats' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '501': { $ref: '#/components/responses/Error' }
   /v1/events/stream:
     get:
       operationId: events.stream
@@ -2540,6 +2556,29 @@ components:
         events: { type: array, items: { $ref: '#/components/schemas/CloudEvent' } }
         cursor: { $ref: '#/components/schemas/EventsCursorMap', description: "Pass back as `cursor` for the next page." }
         more: { type: boolean }
+    EventsStats:
+      type: object
+      required: [ok, stats]
+      properties:
+        ok: { type: boolean }
+        stats:
+          type: object
+          additionalProperties: true
+          properties:
+            events: { type: integer }
+            bytes: { type: integer, format: int64 }
+            avgBytes: { type: integer }
+            span: { type: object, additionalProperties: true }
+            perDay: { type: object, additionalProperties: true }
+            hosts: { type: object, additionalProperties: true }
+            types: { type: object, additionalProperties: { type: integer } }
+            turns: { type: object, additionalProperties: true }
+            refs: { type: object, additionalProperties: true, description: "`total`, `distinct`, `dedupHitRate` (percent)." }
+            toolCalls: { type: object, additionalProperties: true }
+        year:
+          type: [object, 'null']
+          additionalProperties: true
+          description: "`eventsPerYear`, `bytesPerYear`, `daysToCap` at the observed rate; null before there is a span."
     EventsStreamEvent:
       type: object
       required: [event]

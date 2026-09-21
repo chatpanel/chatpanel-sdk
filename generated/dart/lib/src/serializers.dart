@@ -46,6 +46,8 @@ import 'package:chatpanel/src/model/error_response_error.dart';
 import 'package:chatpanel/src/model/error_response_error_one_of.dart';
 import 'package:chatpanel/src/model/events_cursor.dart';
 import 'package:chatpanel/src/model/events_page.dart';
+import 'package:chatpanel/src/model/events_stats.dart';
+import 'package:chatpanel/src/model/events_stats_stats.dart';
 import 'package:chatpanel/src/model/events_stream_event.dart';
 import 'package:chatpanel/src/model/extract_request.dart';
 import 'package:chatpanel/src/model/extract_response.dart';
@@ -177,6 +179,8 @@ part 'serializers.g.dart';
   ErrorResponseErrorOneOf,
   EventsCursor,
   EventsPage,
+  EventsStats,
+  EventsStatsStats,
   EventsStreamEvent,
   ExtractRequest,
   ExtractResponse,

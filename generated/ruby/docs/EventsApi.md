@@ -7,6 +7,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | [**events_cursor**](EventsApi.md#events_cursor) | **GET** /v1/events/cursor | The gateway&#39;s highest &#x60;seq&#x60; per host — what a client asks for before it pushes. |
 | [**events_push**](EventsApi.md#events_push) | **POST** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named. |
 | [**events_since**](EventsApi.md#events_since) | **GET** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged. |
+| [**events_stats**](EventsApi.md#events_stats) | **GET** /v1/events/stats | What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap. |
 | [**events_stream**](EventsApi.md#events_stream) | **GET** /v1/events/stream | Tail the merged log — &#x60;hello&#x60; once, then a &#x60;cloudevent&#x60; frame per appended event; with &#x60;cursor&#x60;, the backlog above it first. |
 
 
@@ -220,6 +221,75 @@ end
 ### Return type
 
 [**EventsPage**](EventsPage.md)
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+
+## events_stats
+
+> <EventsStats> events_stats
+
+What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
+
+### Examples
+
+```ruby
+require 'time'
+require 'chatpanel'
+# setup authorization
+ChatPanel.configure do |config|
+  # Configure API key authorization: tokenHeader
+  config.api_key['X-ChatPanel-Token'] = 'YOUR API KEY'
+  # Uncomment the following line to set a prefix for the API key, e.g. 'Bearer' (defaults to nil)
+  # config.api_key_prefix['X-ChatPanel-Token'] = 'Bearer'
+
+  # Configure Bearer authorization: gatewayToken
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = ChatPanel::EventsApi.new
+
+begin
+  # What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
+  result = api_instance.events_stats
+  p result
+rescue ChatPanel::ApiError => e
+  puts "Error when calling EventsApi->events_stats: #{e}"
+end
+```
+
+#### Using the events_stats_with_http_info variant
+
+This returns an Array which contains the response data, status code and headers.
+
+> <Array(<EventsStats>, Integer, Hash)> events_stats_with_http_info
+
+```ruby
+begin
+  # What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
+  data, status_code, headers = api_instance.events_stats_with_http_info
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => <EventsStats>
+rescue ChatPanel::ApiError => e
+  puts "Error when calling EventsApi->events_stats_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**EventsStats**](EventsStats.md)
 
 ### Authorization
 

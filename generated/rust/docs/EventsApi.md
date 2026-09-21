@@ -7,6 +7,7 @@ Method | HTTP request | Description
 [**events_cursor**](EventsApi.md#events_cursor) | **GET** /v1/events/cursor | The gateway's highest `seq` per host — what a client asks for before it pushes.
 [**events_push**](EventsApi.md#events_push) | **POST** /v1/events | Push a batch of this client's durable log as CloudEvents; each event is appended once, each refusal is named.
 [**events_since**](EventsApi.md#events_since) | **GET** /v1/events | The merged log above a cursor — host by host in `seq` order, as CloudEvents, paged.
+[**events_stats**](EventsApi.md#events_stats) | **GET** /v1/events/stats | What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
 [**events_stream**](EventsApi.md#events_stream) | **GET** /v1/events/stream | Tail the merged log — `hello` once, then a `cloudevent` frame per appended event; with `cursor`, the backlog above it first.
 
 
@@ -83,6 +84,31 @@ Name | Type | Description  | Required | Notes
 ### Return type
 
 [**models::EventsPage**](EventsPage.md)
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## events_stats
+
+> models::EventsStats events_stats()
+What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**models::EventsStats**](EventsStats.md)
 
 ### Authorization
 

@@ -30,6 +30,13 @@ void main() {
       // TODO
     });
 
+    // What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
+    //
+    //Future<EventsStats> eventsStats() async
+    test('test eventsStats', () async {
+      // TODO
+    });
+
     // Tail the merged log — `hello` once, then a `cloudevent` frame per appended event; with `cursor`, the backlog above it first.
     //
     //Future<String> eventsStream({ String cursor }) async

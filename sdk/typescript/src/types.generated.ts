@@ -636,6 +636,42 @@ export interface EventsPage {
   more: boolean;
 }
 
+export interface EventsStats {
+  ok: boolean;
+  stats: {
+    events?: number;
+    bytes?: number;
+    avgBytes?: number;
+    span?: {
+      [key: string]: unknown;
+    };
+    perDay?: {
+      [key: string]: unknown;
+    };
+    hosts?: {
+      [key: string]: unknown;
+    };
+    types?: {
+      [key: string]: number;
+    };
+    turns?: {
+      [key: string]: unknown;
+    };
+    /** `total`, `distinct`, `dedupHitRate` (percent). */
+    refs?: {
+      [key: string]: unknown;
+    };
+    toolCalls?: {
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
+  /** `eventsPerYear`, `bytesPerYear`, `daysToCap` at the observed rate; null before there is a span. */
+  year?: {
+    [key: string]: unknown;
+  } | null;
+}
+
 export interface EventsStreamEvent {
   /** The SSE event name. */
   event: "hello" | "cloudevent";

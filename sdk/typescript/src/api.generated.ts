@@ -25,6 +25,7 @@ export const OPERATIONS = {
   "events.since": { id: "events.since", method: "GET", path: "/v1/events", auth: "token", since: "0.24.0", stream: null, pathParams: [], queryParams: ["cursor","limit","host"] },
   "events.push": { id: "events.push", method: "POST", path: "/v1/events", auth: "token", since: "0.24.0", stream: null, pathParams: [], queryParams: [] },
   "events.cursor": { id: "events.cursor", method: "GET", path: "/v1/events/cursor", auth: "token", since: "0.24.0", stream: null, pathParams: [], queryParams: [] },
+  "events.stats": { id: "events.stats", method: "GET", path: "/v1/events/stats", auth: "token", since: "0.25.1", stream: null, pathParams: [], queryParams: [] },
   "events.stream": { id: "events.stream", method: "GET", path: "/v1/events/stream", auth: "token", since: "0.24.0", stream: "sse", pathParams: [], queryParams: ["cursor"] },
   "history.ingest": { id: "history.ingest", method: "POST", path: "/v1/history/ingest", auth: "token", since: null, stream: null, pathParams: [], queryParams: [] },
   "memory.list": { id: "memory.list", method: "GET", path: "/v1/memory/list", auth: "open", since: null, stream: null, pathParams: [], queryParams: [] },
@@ -220,6 +221,10 @@ export class EventsApi {
   /** The gateway's highest `seq` per host — what a client asks for before it pushes. — Requires the gateway token. Gateway 0.24.0+. */
   cursor(opts?: RequestOptions): Promise<T.EventsCursor> {
     return this.rt.request(OPERATIONS["events.cursor"], { path: {  }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+  /** What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap. — Requires the gateway token. Gateway 0.25.1+. */
+  stats(opts?: RequestOptions): Promise<T.EventsStats> {
+    return this.rt.request(OPERATIONS["events.stats"], { path: {  }, query: undefined, headers: opts?.headers, body: undefined, opts });
   }
   /** Tail the merged log — `hello` once, then a `cloudevent` frame per appended event; with `cursor`, the backlog above it first. — Requires the gateway token. Gateway 0.24.0+. */
   stream(query?: { cursor?: string }, opts?: RequestOptions): AsyncIterable<SseFrame<T.EventsStreamEvent>> {

@@ -30,6 +30,7 @@ import okhttp3.HttpUrl
 import net.chatpanel.sdk.models.ErrorResponse
 import net.chatpanel.sdk.models.EventsCursor
 import net.chatpanel.sdk.models.EventsPage
+import net.chatpanel.sdk.models.EventsStats
 import net.chatpanel.sdk.models.PushEventsRequest
 import net.chatpanel.sdk.models.PushEventsResponse
 
@@ -284,6 +285,76 @@ open class EventsApi(basePath: kotlin.String = defaultBasePath, client: Call.Fac
         return RequestConfig(
             method = RequestMethod.GET,
             path = "/v1/events",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * GET /v1/events/stats
+     * What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
+     * 
+     * @return EventsStats
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun eventsStats() : EventsStats {
+        val localVarResponse = eventsStatsWithHttpInfo()
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as EventsStats
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * GET /v1/events/stats
+     * What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
+     * 
+     * @return ApiResponse<EventsStats?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun eventsStatsWithHttpInfo() : ApiResponse<EventsStats?> {
+        val localVariableConfig = eventsStatsRequestConfig()
+
+        return request<Unit, EventsStats>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation eventsStats
+     *
+     * @return RequestConfig
+     */
+    fun eventsStatsRequestConfig() : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.GET,
+            path = "/v1/events/stats",
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,

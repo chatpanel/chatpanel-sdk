@@ -24,7 +24,7 @@ info:
   license:
     name: Apache-2.0
   title: ChatPanel Gateway API
-  version: 0.22.0
+  version: 0.25.0
 servers:
 - description: The local gateway. Loopback only.
   url: http://127.0.0.1:4320
@@ -195,6 +195,14 @@ paths:
         Send `tools` so a redacted turn can still act: the gateway relays a tool call back with
         real arguments and redacts the result. `X-ChatPanel-Redaction: off` is honoured only from
         a token-bearing caller (0.6.69+) and is recorded in the trace.
+
+        **Permission prompts (gateway 0.25.0+).** List a function tool named `permission_prompt`
+        to say your client can answer an agent's "may I run this?" — the gateway strips it from
+        what the agent sees and lets the agent ask instead of denying headlessly. The question
+        arrives as a `tool_calls` stop on that tool, its arguments `{ tool, input, description,
+        path, rules }`; answer with a `tool` message whose content is the JSON
+        `{ "behavior": "allow" | "deny", "scope": "once" | "chat", "message"?: string }`.
+        Anything else is a deny.
 
         **Two lanes.** An API destination (a cloud or local model endpoint) is a proxy hop and is
         open to any local caller. An AGENT destination (`codex`, `claude`, `opencode`, … —
@@ -658,6 +666,31 @@ paths:
       - events
       x-chatpanel-auth: token
       x-chatpanel-since: 0.24.0
+  /v1/events/stats:
+    get:
+      operationId: events.stats
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventsStats"
+          description: "The numbers, over the retained log (at most the last 25 000\
+            \ events)."
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "What the merged log measures — bytes and events per turn, per surface,\
+        \ per host and per day; the dedup hit-rate; tool calls; a year projected against\
+        \ the cap."
+      tags:
+      - events
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.25.1
   /v1/events/stream:
     get:
       operationId: events.stream
@@ -4579,6 +4612,43 @@ components:
       - events
       - more
       - ok
+    EventsStats:
+      example:
+        ok: true
+        stats:
+          events: 0
+          bytes: 6
+          avgBytes: 1
+          span:
+            key: ""
+          perDay:
+            key: ""
+          hosts:
+            key: ""
+          types:
+            key: 5
+          turns:
+            key: ""
+          refs:
+            key: ""
+          toolCalls:
+            key: ""
+        year:
+          key: ""
+      properties:
+        ok:
+          type: boolean
+        stats:
+          $ref: "#/components/schemas/EventsStats_stats"
+        year:
+          additionalProperties: true
+          description: "`eventsPerYear`, `bytesPerYear`, `daysToCap` at the observed\
+            \ rate; null before there is a span."
+          nullable: true
+          type: object
+      required:
+      - ok
+      - stats
     EventsStreamEvent:
       properties:
         event:
@@ -5908,6 +5978,57 @@ components:
       required:
       - code
       - message
+    EventsStats_stats:
+      additionalProperties: true
+      example:
+        events: 0
+        bytes: 6
+        avgBytes: 1
+        span:
+          key: ""
+        perDay:
+          key: ""
+        hosts:
+          key: ""
+        types:
+          key: 5
+        turns:
+          key: ""
+        refs:
+          key: ""
+        toolCalls:
+          key: ""
+      properties:
+        events:
+          type: integer
+        bytes:
+          format: int64
+          type: integer
+        avgBytes:
+          type: integer
+        span:
+          additionalProperties: true
+          type: object
+        perDay:
+          additionalProperties: true
+          type: object
+        hosts:
+          additionalProperties: true
+          type: object
+        types:
+          additionalProperties:
+            type: integer
+          type: object
+        turns:
+          additionalProperties: true
+          type: object
+        refs:
+          additionalProperties: true
+          description: "`total`, `distinct`, `dedupHitRate` (percent)."
+          type: object
+        toolCalls:
+          additionalProperties: true
+          type: object
     IngestRequest_upserts_inner:
       additionalProperties: true
       example:

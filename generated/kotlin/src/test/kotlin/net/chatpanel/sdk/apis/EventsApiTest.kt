@@ -30,6 +30,7 @@ import net.chatpanel.sdk.apis.EventsApi
 import net.chatpanel.sdk.models.ErrorResponse
 import net.chatpanel.sdk.models.EventsCursor
 import net.chatpanel.sdk.models.EventsPage
+import net.chatpanel.sdk.models.EventsStats
 import net.chatpanel.sdk.models.PushEventsRequest
 import net.chatpanel.sdk.models.PushEventsResponse
 
@@ -60,6 +61,13 @@ class EventsApiTest : ShouldSpec() {
             //val limit : kotlin.Int = 56 // kotlin.Int | 
             //val host : kotlin.String = host_example // kotlin.String | One host's slice only.
             //val result : EventsPage = apiInstance.eventsSince(cursor, limit, host)
+            //result shouldBe ("TODO")
+        }
+
+        // to test eventsStats
+        should("test eventsStats") {
+            // uncomment below to test eventsStats
+            //val result : EventsStats = apiInstance.eventsStats()
             //result shouldBe ("TODO")
         }
 
