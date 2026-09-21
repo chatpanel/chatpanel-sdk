@@ -2,7 +2,7 @@
 
 ChatPanel Gateway API
 
-- API version: 0.15.0
+- API version: 0.22.0
 
 - Generator version: 7.25.0
 
@@ -60,7 +60,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>net.chatpanel</groupId>
   <artifactId>chatpanel-sdk</artifactId>
-  <version>0.15.0</version>
+  <version>0.22.0</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -70,7 +70,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "net.chatpanel:chatpanel-sdk:0.15.0"
+compile "net.chatpanel:chatpanel-sdk:0.22.0"
 ```
 
 ### Others
@@ -83,7 +83,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/chatpanel-sdk-0.15.0.jar`
+- `target/chatpanel-sdk-0.22.0.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -132,10 +132,14 @@ Class | Method | HTTP request | Description
 *AgentsApi* | [**agentsScorecardWithHttpInfo**](docs/AgentsApi.md#agentsScorecardWithHttpInfo) | **GET** /v1/agents/{agentId}/scorecard | One agent&#39;s attested scorecard.
 *AgentsApi* | [**agentsScorecards**](docs/AgentsApi.md#agentsScorecards) | **GET** /v1/agents/scorecards | Every agent&#39;s scorecard.
 *AgentsApi* | [**agentsScorecardsWithHttpInfo**](docs/AgentsApi.md#agentsScorecardsWithHttpInfo) | **GET** /v1/agents/scorecards | Every agent&#39;s scorecard.
+*CapabilitiesApi* | [**capabilitiesDecide**](docs/CapabilitiesApi.md#capabilitiesDecide) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
+*CapabilitiesApi* | [**capabilitiesDecideWithHttpInfo**](docs/CapabilitiesApi.md#capabilitiesDecideWithHttpInfo) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
 *CapabilitiesApi* | [**capabilitiesDetect**](docs/CapabilitiesApi.md#capabilitiesDetect) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores.
 *CapabilitiesApi* | [**capabilitiesDetectWithHttpInfo**](docs/CapabilitiesApi.md#capabilitiesDetectWithHttpInfo) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores.
 *CapabilitiesApi* | [**capabilitiesList**](docs/CapabilitiesApi.md#capabilitiesList) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state.
 *CapabilitiesApi* | [**capabilitiesListWithHttpInfo**](docs/CapabilitiesApi.md#capabilitiesListWithHttpInfo) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state.
+*CapabilitiesApi* | [**capabilitiesRerank**](docs/CapabilitiesApi.md#capabilitiesRerank) | **POST** /v1/rerank | Order documents by relevance to a query — a cross-encoder, no language model.
+*CapabilitiesApi* | [**capabilitiesRerankWithHttpInfo**](docs/CapabilitiesApi.md#capabilitiesRerankWithHttpInfo) | **POST** /v1/rerank | Order documents by relevance to a query — a cross-encoder, no language model.
 *ChatApi* | [**chatCompletions**](docs/ChatApi.md#chatCompletions) | **POST** /v1/chat/completions | One chat turn through the gateway (OpenAI-compatible).
 *ChatApi* | [**chatCompletionsWithHttpInfo**](docs/ChatApi.md#chatCompletionsWithHttpInfo) | **POST** /v1/chat/completions | One chat turn through the gateway (OpenAI-compatible).
 *EnginesApi* | [**enginesAppendEntry**](docs/EnginesApi.md#enginesAppendEntry) | **POST** /v1/engines/{engineKey}/entries | Append a ledger entry for an engine.
@@ -144,6 +148,14 @@ Class | Method | HTTP request | Description
 *EnginesApi* | [**enginesCardWithHttpInfo**](docs/EnginesApi.md#enginesCardWithHttpInfo) | **GET** /v1/engines/{engineKey}/card | One engine&#39;s card, optionally with entries.
 *EnginesApi* | [**enginesList**](docs/EnginesApi.md#enginesList) | **GET** /v1/engines | Every engine&#39;s card.
 *EnginesApi* | [**enginesListWithHttpInfo**](docs/EnginesApi.md#enginesListWithHttpInfo) | **GET** /v1/engines | Every engine&#39;s card.
+*EventsApi* | [**eventsCursor**](docs/EventsApi.md#eventsCursor) | **GET** /v1/events/cursor | The gateway&#39;s highest &#x60;seq&#x60; per host — what a client asks for before it pushes.
+*EventsApi* | [**eventsCursorWithHttpInfo**](docs/EventsApi.md#eventsCursorWithHttpInfo) | **GET** /v1/events/cursor | The gateway&#39;s highest &#x60;seq&#x60; per host — what a client asks for before it pushes.
+*EventsApi* | [**eventsPush**](docs/EventsApi.md#eventsPush) | **POST** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named.
+*EventsApi* | [**eventsPushWithHttpInfo**](docs/EventsApi.md#eventsPushWithHttpInfo) | **POST** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named.
+*EventsApi* | [**eventsSince**](docs/EventsApi.md#eventsSince) | **GET** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged.
+*EventsApi* | [**eventsSinceWithHttpInfo**](docs/EventsApi.md#eventsSinceWithHttpInfo) | **GET** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged.
+*EventsApi* | [**eventsStream**](docs/EventsApi.md#eventsStream) | **GET** /v1/events/stream | Tail the merged log — &#x60;hello&#x60; once, then a &#x60;cloudevent&#x60; frame per appended event; with &#x60;cursor&#x60;, the backlog above it first.
+*EventsApi* | [**eventsStreamWithHttpInfo**](docs/EventsApi.md#eventsStreamWithHttpInfo) | **GET** /v1/events/stream | Tail the merged log — &#x60;hello&#x60; once, then a &#x60;cloudevent&#x60; frame per appended event; with &#x60;cursor&#x60;, the backlog above it first.
 *GatewayApi* | [**gatewayAudit**](docs/GatewayApi.md#gatewayAudit) | **GET** /audit | The egress audit — which hosts this gateway has contacted and which its config allows.
 *GatewayApi* | [**gatewayAuditWithHttpInfo**](docs/GatewayApi.md#gatewayAuditWithHttpInfo) | **GET** /audit | The egress audit — which hosts this gateway has contacted and which its config allows.
 *GatewayApi* | [**gatewayHealth**](docs/GatewayApi.md#gatewayHealth) | **GET** /health | Liveness, version and capabilities.
@@ -228,6 +240,12 @@ Class | Method | HTTP request | Description
 *RetrievalApi* | [**retrievalSearchWithHttpInfo**](docs/RetrievalApi.md#retrievalSearchWithHttpInfo) | **POST** /v1/search | Search the web through the provider this gateway is configured with; optionally read the top results in the same request.
 *RetrievalApi* | [**retrievalSearchAlias**](docs/RetrievalApi.md#retrievalSearchAlias) | **GET** /v1/search/{q} | The s.jina.ai-shaped alias — &#x60;GET /v1/search/&lt;query&gt;&#x60; — the top results WITH their content.
 *RetrievalApi* | [**retrievalSearchAliasWithHttpInfo**](docs/RetrievalApi.md#retrievalSearchAliasWithHttpInfo) | **GET** /v1/search/{q} | The s.jina.ai-shaped alias — &#x60;GET /v1/search/&lt;query&gt;&#x60; — the top results WITH their content.
+*RuntimeApi* | [**runtimeEngine**](docs/RuntimeApi.md#runtimeEngine) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed).
+*RuntimeApi* | [**runtimeEngineWithHttpInfo**](docs/RuntimeApi.md#runtimeEngineWithHttpInfo) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed).
+*RuntimeApi* | [**runtimeService**](docs/RuntimeApi.md#runtimeService) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it.
+*RuntimeApi* | [**runtimeServiceWithHttpInfo**](docs/RuntimeApi.md#runtimeServiceWithHttpInfo) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it.
+*RuntimeApi* | [**runtimeStatus**](docs/RuntimeApi.md#runtimeStatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
+*RuntimeApi* | [**runtimeStatusWithHttpInfo**](docs/RuntimeApi.md#runtimeStatusWithHttpInfo) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
 *SkillsApi* | [**skillsGet**](docs/SkillsApi.md#skillsGet) | **GET** /skills/{skillId} | One skill, with its prompt.
 *SkillsApi* | [**skillsGetWithHttpInfo**](docs/SkillsApi.md#skillsGetWithHttpInfo) | **GET** /skills/{skillId} | One skill, with its prompt.
 *SkillsApi* | [**skillsList**](docs/SkillsApi.md#skillsList) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
@@ -279,6 +297,14 @@ Class | Method | HTTP request | Description
  - [ChatContentPart](docs/ChatContentPart.md)
  - [ChatMessage](docs/ChatMessage.md)
  - [ChatMessageContent](docs/ChatMessageContent.md)
+ - [CloudEvent](docs/CloudEvent.md)
+ - [DecideAnswer](docs/DecideAnswer.md)
+ - [DecideAnswerOption](docs/DecideAnswerOption.md)
+ - [DecideOption](docs/DecideOption.md)
+ - [DecideQuestion](docs/DecideQuestion.md)
+ - [DecideQuestionOptionsInner](docs/DecideQuestionOptionsInner.md)
+ - [DecideRequest](docs/DecideRequest.md)
+ - [DecideResponse](docs/DecideResponse.md)
  - [DetectRequest](docs/DetectRequest.md)
  - [DetectResponse](docs/DetectResponse.md)
  - [DetectedEntity](docs/DetectedEntity.md)
@@ -286,6 +312,9 @@ Class | Method | HTTP request | Description
  - [ErrorResponse](docs/ErrorResponse.md)
  - [ErrorResponseError](docs/ErrorResponseError.md)
  - [ErrorResponseErrorOneOf](docs/ErrorResponseErrorOneOf.md)
+ - [EventsCursor](docs/EventsCursor.md)
+ - [EventsPage](docs/EventsPage.md)
+ - [EventsStreamEvent](docs/EventsStreamEvent.md)
  - [ExtractRequest](docs/ExtractRequest.md)
  - [ExtractResponse](docs/ExtractResponse.md)
  - [GatewayPairRequest](docs/GatewayPairRequest.md)
@@ -327,6 +356,9 @@ Class | Method | HTTP request | Description
  - [ProjectsPatchJobRequest](docs/ProjectsPatchJobRequest.md)
  - [ProjectsPostJobRequest](docs/ProjectsPostJobRequest.md)
  - [ProjectsRecruitRequest](docs/ProjectsRecruitRequest.md)
+ - [PushEventsRequest](docs/PushEventsRequest.md)
+ - [PushEventsResponse](docs/PushEventsResponse.md)
+ - [PushEventsResponseRejectedInner](docs/PushEventsResponseRejectedInner.md)
  - [PutRecordsRequest](docs/PutRecordsRequest.md)
  - [PutRecordsResponse](docs/PutRecordsResponse.md)
  - [ReadRequest](docs/ReadRequest.md)
@@ -341,10 +373,19 @@ Class | Method | HTTP request | Description
  - [RedactionPreviewRequest](docs/RedactionPreviewRequest.md)
  - [RememberRequest](docs/RememberRequest.md)
  - [RememberResponse](docs/RememberResponse.md)
+ - [RerankRequest](docs/RerankRequest.md)
+ - [RerankResponse](docs/RerankResponse.md)
+ - [RerankResult](docs/RerankResult.md)
  - [RetrievalReadAlias200Response](docs/RetrievalReadAlias200Response.md)
  - [RetrievalSearchAlias200Response](docs/RetrievalSearchAlias200Response.md)
  - [RetrievalSearchAlias200ResponseDataInner](docs/RetrievalSearchAlias200ResponseDataInner.md)
  - [RunEvent](docs/RunEvent.md)
+ - [RuntimeActionResult](docs/RuntimeActionResult.md)
+ - [RuntimeDocument](docs/RuntimeDocument.md)
+ - [RuntimeDocumentBridge](docs/RuntimeDocumentBridge.md)
+ - [RuntimeDocumentProcesses](docs/RuntimeDocumentProcesses.md)
+ - [RuntimeEngineRequest](docs/RuntimeEngineRequest.md)
+ - [RuntimeServiceRequest](docs/RuntimeServiceRequest.md)
  - [SearchFilters](docs/SearchFilters.md)
  - [SearchHit](docs/SearchHit.md)
  - [SearchRequest](docs/SearchRequest.md)

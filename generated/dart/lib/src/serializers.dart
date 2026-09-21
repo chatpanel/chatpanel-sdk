@@ -29,6 +29,14 @@ import 'package:chatpanel/src/model/chat_completion_request.dart';
 import 'package:chatpanel/src/model/chat_content_part.dart';
 import 'package:chatpanel/src/model/chat_message.dart';
 import 'package:chatpanel/src/model/chat_message_content.dart';
+import 'package:chatpanel/src/model/cloud_event.dart';
+import 'package:chatpanel/src/model/decide_answer.dart';
+import 'package:chatpanel/src/model/decide_answer_option.dart';
+import 'package:chatpanel/src/model/decide_option.dart';
+import 'package:chatpanel/src/model/decide_question.dart';
+import 'package:chatpanel/src/model/decide_question_options_inner.dart';
+import 'package:chatpanel/src/model/decide_request.dart';
+import 'package:chatpanel/src/model/decide_response.dart';
 import 'package:chatpanel/src/model/detect_request.dart';
 import 'package:chatpanel/src/model/detect_response.dart';
 import 'package:chatpanel/src/model/detected_entity.dart';
@@ -36,6 +44,9 @@ import 'package:chatpanel/src/model/engines_list200_response.dart';
 import 'package:chatpanel/src/model/error_response.dart';
 import 'package:chatpanel/src/model/error_response_error.dart';
 import 'package:chatpanel/src/model/error_response_error_one_of.dart';
+import 'package:chatpanel/src/model/events_cursor.dart';
+import 'package:chatpanel/src/model/events_page.dart';
+import 'package:chatpanel/src/model/events_stream_event.dart';
 import 'package:chatpanel/src/model/extract_request.dart';
 import 'package:chatpanel/src/model/extract_response.dart';
 import 'package:chatpanel/src/model/gateway_pair_request.dart';
@@ -77,6 +88,9 @@ import 'package:chatpanel/src/model/projects_list200_response.dart';
 import 'package:chatpanel/src/model/projects_patch_job_request.dart';
 import 'package:chatpanel/src/model/projects_post_job_request.dart';
 import 'package:chatpanel/src/model/projects_recruit_request.dart';
+import 'package:chatpanel/src/model/push_events_request.dart';
+import 'package:chatpanel/src/model/push_events_response.dart';
+import 'package:chatpanel/src/model/push_events_response_rejected_inner.dart';
 import 'package:chatpanel/src/model/put_records_request.dart';
 import 'package:chatpanel/src/model/put_records_response.dart';
 import 'package:chatpanel/src/model/read_request.dart';
@@ -91,10 +105,19 @@ import 'package:chatpanel/src/model/redaction_preview.dart';
 import 'package:chatpanel/src/model/redaction_preview_request.dart';
 import 'package:chatpanel/src/model/remember_request.dart';
 import 'package:chatpanel/src/model/remember_response.dart';
+import 'package:chatpanel/src/model/rerank_request.dart';
+import 'package:chatpanel/src/model/rerank_response.dart';
+import 'package:chatpanel/src/model/rerank_result.dart';
 import 'package:chatpanel/src/model/retrieval_read_alias200_response.dart';
 import 'package:chatpanel/src/model/retrieval_search_alias200_response.dart';
 import 'package:chatpanel/src/model/retrieval_search_alias200_response_data_inner.dart';
 import 'package:chatpanel/src/model/run_event.dart';
+import 'package:chatpanel/src/model/runtime_action_result.dart';
+import 'package:chatpanel/src/model/runtime_document.dart';
+import 'package:chatpanel/src/model/runtime_document_bridge.dart';
+import 'package:chatpanel/src/model/runtime_document_processes.dart';
+import 'package:chatpanel/src/model/runtime_engine_request.dart';
+import 'package:chatpanel/src/model/runtime_service_request.dart';
 import 'package:chatpanel/src/model/search_filters.dart';
 import 'package:chatpanel/src/model/search_hit.dart';
 import 'package:chatpanel/src/model/search_request.dart';
@@ -137,6 +160,14 @@ part 'serializers.g.dart';
   ChatContentPart,
   ChatMessage,
   ChatMessageContent,
+  CloudEvent,
+  DecideAnswer,
+  DecideAnswerOption,
+  DecideOption,
+  DecideQuestion,
+  DecideQuestionOptionsInner,
+  DecideRequest,
+  DecideResponse,
   DetectRequest,
   DetectResponse,
   DetectedEntity,
@@ -144,6 +175,9 @@ part 'serializers.g.dart';
   ErrorResponse,
   ErrorResponseError,
   ErrorResponseErrorOneOf,
+  EventsCursor,
+  EventsPage,
+  EventsStreamEvent,
   ExtractRequest,
   ExtractResponse,
   GatewayPairRequest,
@@ -185,6 +219,9 @@ part 'serializers.g.dart';
   ProjectsPatchJobRequest,
   ProjectsPostJobRequest,
   ProjectsRecruitRequest,
+  PushEventsRequest,
+  PushEventsResponse,
+  PushEventsResponseRejectedInner,
   PutRecordsRequest,
   PutRecordsResponse,
   ReadRequest,
@@ -199,10 +236,19 @@ part 'serializers.g.dart';
   RedactionPreviewRequest,
   RememberRequest,
   RememberResponse,
+  RerankRequest,
+  RerankResponse,
+  RerankResult,
   RetrievalReadAlias200Response,
   RetrievalSearchAlias200Response,
   RetrievalSearchAlias200ResponseDataInner,
   RunEvent,
+  RuntimeActionResult,
+  RuntimeDocument,
+  RuntimeDocumentBridge,
+  RuntimeDocumentProcesses,
+  RuntimeEngineRequest,
+  RuntimeServiceRequest,
   SearchFilters,$SearchFilters,
   SearchHit,
   SearchRequest,
@@ -229,10 +275,6 @@ part 'serializers.g.dart';
 ])
 Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
-        const FullType(BuiltMap, [FullType(String), FullType(PrefSection)]),
-        () => MapBuilder<String, PrefSection>(),
-      )
-      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(RunEvent)]),
         () => ListBuilder<RunEvent>(),
       )
@@ -241,8 +283,8 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<Capability>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(IngestRequestUpsertsInner)]),
-        () => ListBuilder<IngestRequestUpsertsInner>(),
+        const FullType(BuiltList, [FullType(CloudEvent)]),
+        () => ListBuilder<CloudEvent>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(RetrievalSearchAlias200ResponseDataInner)]),
@@ -251,10 +293,6 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(Skill)]),
         () => ListBuilder<Skill>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(ReadSection)]),
-        () => ListBuilder<ReadSection>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(TeamRun)]),
@@ -269,36 +307,76 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<ChatMessage>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(SearchHit)]),
-        () => ListBuilder<SearchHit>(),
-      )
-      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ChatCompletionChoicesInner)]),
         () => ListBuilder<ChatCompletionChoicesInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType(DecideAnswer)]),
+        () => MapBuilder<String, DecideAnswer>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(BuiltMap, [FullType(String), FullType(JsonObject)])]),
         () => ListBuilder<BuiltMap<String, JsonObject>>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(WebSearchResult)]),
-        () => ListBuilder<WebSearchResult>(),
+        const FullType(BuiltList, [FullType(DecideQuestionOptionsInner)]),
+        () => ListBuilder<DecideQuestionOptionsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(Project)]),
         () => ListBuilder<Project>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
-        () => MapBuilder<String, JsonObject?>(),
-      )
-      ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType(int)]),
         () => MapBuilder<String, int>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(PushEventsResponseRejectedInner)]),
+        () => ListBuilder<PushEventsResponseRejectedInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(HistoryItem)]),
         () => ListBuilder<HistoryItem>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType(DecideQuestion)]),
+        () => MapBuilder<String, DecideQuestion>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(Memory)]),
+        () => ListBuilder<Memory>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(DecideAnswerOption)]),
+        () => ListBuilder<DecideAnswerOption>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType(PrefSection)]),
+        () => MapBuilder<String, PrefSection>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(IngestRequestUpsertsInner)]),
+        () => ListBuilder<IngestRequestUpsertsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ReadSection)]),
+        () => ListBuilder<ReadSection>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(SearchHit)]),
+        () => ListBuilder<SearchHit>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(WebSearchResult)]),
+        () => ListBuilder<WebSearchResult>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
+        () => MapBuilder<String, JsonObject?>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(RerankResult)]),
+        () => ListBuilder<RerankResult>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(String)]),
@@ -311,10 +389,6 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(DetectedEntity)]),
         () => ListBuilder<DetectedEntity>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(Memory)]),
-        () => ListBuilder<Memory>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType(JsonObject)]),

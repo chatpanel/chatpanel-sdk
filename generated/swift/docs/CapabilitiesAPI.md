@@ -4,9 +4,61 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**capabilitiesDecide**](CapabilitiesAPI.md#capabilitiesdecide) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
 [**capabilitiesDetect**](CapabilitiesAPI.md#capabilitiesdetect) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores.
 [**capabilitiesList**](CapabilitiesAPI.md#capabilitieslist) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state.
+[**capabilitiesRerank**](CapabilitiesAPI.md#capabilitiesrerank) | **POST** /v1/rerank | Order documents by relevance to a query — a cross-encoder, no language model.
 
+
+# **capabilitiesDecide**
+```swift
+    open class func capabilitiesDecide(decideRequest: DecideRequest, completion: @escaping (_ data: DecideResponse?, _ error: Error?) -> Void)
+```
+
+Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
+
+ChatPanel's `decide` signature (docs/capability-endpoints.md §4.2): `state` is the text judged, `questions` are keyed by identifier — a `choice` picks one of its `options`, a `score` places the state on `options` read as an ordered rubric, a `noul` is yes/no. Served BY PROXY through the adapter the config names: the `opendecision` container started under Settings › Runtime (TypeSafe's `/v1/systemone` shape, loopback-only), or a server `capabilities.decide` names (a Jev endpoint with a token, another gateway). `calibrated` in the response says whether `p` may be read as a probability — an NLI concentration (OpenDecision) is not one. Errors as `/v1/rerank`. 
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import ChatPanel
+
+let decideRequest = DecideRequest(state: "state_example", questions: "TODO", model: "model_example", budgetMs: 123) // DecideRequest | 
+
+// Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
+CapabilitiesAPI.capabilitiesDecide(decideRequest: decideRequest) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **decideRequest** | [**DecideRequest**](DecideRequest.md) |  | 
+
+### Return type
+
+[**DecideResponse**](DecideResponse.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **capabilitiesDetect**
 ```swift
@@ -100,6 +152,56 @@ This endpoint does not need any parameter.
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **capabilitiesRerank**
+```swift
+    open class func capabilitiesRerank(rerankRequest: RerankRequest, completion: @escaping (_ data: RerankResponse?, _ error: Error?) -> Void)
+```
+
+Order documents by relevance to a query — a cross-encoder, no language model.
+
+The Cohere / Jina rerank shape, served BY PROXY: the gateway forwards to the reranker it is pointed at — the `reranker` container started under Settings › Runtime (Text Embeddings Inference with `BAAI/bge-reranker-v2-m3`, loopback-only), or the server `capabilities.rerank` names — through the adapter that speaks its wire, and validates the answer against the contract before it leaves (a wrong shape is 502 `bad_shape`, never a bad order). `budgetMs` is refused (503 `over_budget`) from the gateway's own latency record before dialling. 404 `no_provider` until a provider is configured; 503 `provider_unavailable` when it does not answer. `GET /v1/capabilities` lists it only while configured. 
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import ChatPanel
+
+let rerankRequest = RerankRequest(query: "query_example", documents: ["documents_example"], topN: 123, model: "model_example", budgetMs: 123) // RerankRequest | 
+
+// Order documents by relevance to a query — a cross-encoder, no language model.
+CapabilitiesAPI.capabilitiesRerank(rerankRequest: rerankRequest) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **rerankRequest** | [**RerankRequest**](RerankRequest.md) |  | 
+
+### Return type
+
+[**RerankResponse**](RerankResponse.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

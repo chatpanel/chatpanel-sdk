@@ -10,6 +10,46 @@ import Foundation
 open class CapabilitiesAPI {
 
     /**
+     Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
+     
+     - parameter decideRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: DecideResponse
+     */
+    open class func capabilitiesDecide(decideRequest: DecideRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> DecideResponse {
+        return try await capabilitiesDecideWithRequestBuilder(decideRequest: decideRequest, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
+     - POST /v1/decide
+     - ChatPanel's `decide` signature (docs/capability-endpoints.md §4.2): `state` is the text judged, `questions` are keyed by identifier — a `choice` picks one of its `options`, a `score` places the state on `options` read as an ordered rubric, a `noul` is yes/no. Served BY PROXY through the adapter the config names: the `opendecision` container started under Settings › Runtime (TypeSafe's `/v1/systemone` shape, loopback-only), or a server `capabilities.decide` names (a Jev endpoint with a token, another gateway). `calibrated` in the response says whether `p` may be read as a probability — an NLI concentration (OpenDecision) is not one. Errors as `/v1/rerank`. 
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter decideRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<DecideResponse> 
+     */
+    open class func capabilitiesDecideWithRequestBuilder(decideRequest: DecideRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<DecideResponse> {
+        let localVariablePath = "/v1/decide"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: decideRequest, codableHelper: apiConfiguration.codableHelper)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            "Content-Type": "application/json",
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<DecideResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
      Find entities in text — the model's own labels, with offsets and scores.
      
      - parameter detectRequest: (body)  
@@ -85,5 +125,45 @@ open class CapabilitiesAPI {
         let localVariableRequestBuilder: RequestBuilder<CapabilitiesDocument>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
+     Order documents by relevance to a query — a cross-encoder, no language model.
+     
+     - parameter rerankRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RerankResponse
+     */
+    open class func capabilitiesRerank(rerankRequest: RerankRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> RerankResponse {
+        return try await capabilitiesRerankWithRequestBuilder(rerankRequest: rerankRequest, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     Order documents by relevance to a query — a cross-encoder, no language model.
+     - POST /v1/rerank
+     - The Cohere / Jina rerank shape, served BY PROXY: the gateway forwards to the reranker it is pointed at — the `reranker` container started under Settings › Runtime (Text Embeddings Inference with `BAAI/bge-reranker-v2-m3`, loopback-only), or the server `capabilities.rerank` names — through the adapter that speaks its wire, and validates the answer against the contract before it leaves (a wrong shape is 502 `bad_shape`, never a bad order). `budgetMs` is refused (503 `over_budget`) from the gateway's own latency record before dialling. 404 `no_provider` until a provider is configured; 503 `provider_unavailable` when it does not answer. `GET /v1/capabilities` lists it only while configured. 
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter rerankRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<RerankResponse> 
+     */
+    open class func capabilitiesRerankWithRequestBuilder(rerankRequest: RerankRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<RerankResponse> {
+        let localVariablePath = "/v1/rerank"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: rerankRequest, codableHelper: apiConfiguration.codableHelper)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            "Content-Type": "application/json",
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<RerankResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 }

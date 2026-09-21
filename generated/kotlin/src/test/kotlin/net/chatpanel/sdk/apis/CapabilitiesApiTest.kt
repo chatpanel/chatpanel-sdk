@@ -28,14 +28,26 @@ import io.kotlintest.specs.ShouldSpec
 
 import net.chatpanel.sdk.apis.CapabilitiesApi
 import net.chatpanel.sdk.models.CapabilitiesDocument
+import net.chatpanel.sdk.models.DecideRequest
+import net.chatpanel.sdk.models.DecideResponse
 import net.chatpanel.sdk.models.DetectRequest
 import net.chatpanel.sdk.models.DetectResponse
 import net.chatpanel.sdk.models.ErrorResponse
+import net.chatpanel.sdk.models.RerankRequest
+import net.chatpanel.sdk.models.RerankResponse
 
 class CapabilitiesApiTest : ShouldSpec() {
     init {
         // uncomment below to create an instance of CapabilitiesApi
         //val apiInstance = CapabilitiesApi()
+
+        // to test capabilitiesDecide
+        should("test capabilitiesDecide") {
+            // uncomment below to test capabilitiesDecide
+            //val decideRequest : DecideRequest =  // DecideRequest | 
+            //val result : DecideResponse = apiInstance.capabilitiesDecide(decideRequest)
+            //result shouldBe ("TODO")
+        }
 
         // to test capabilitiesDetect
         should("test capabilitiesDetect") {
@@ -49,6 +61,14 @@ class CapabilitiesApiTest : ShouldSpec() {
         should("test capabilitiesList") {
             // uncomment below to test capabilitiesList
             //val result : CapabilitiesDocument = apiInstance.capabilitiesList()
+            //result shouldBe ("TODO")
+        }
+
+        // to test capabilitiesRerank
+        should("test capabilitiesRerank") {
+            // uncomment below to test capabilitiesRerank
+            //val rerankRequest : RerankRequest =  // RerankRequest | 
+            //val result : RerankResponse = apiInstance.capabilitiesRerank(rerankRequest)
             //result shouldBe ("TODO")
         }
 

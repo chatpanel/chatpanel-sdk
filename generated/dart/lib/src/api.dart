@@ -13,6 +13,7 @@ import 'package:chatpanel/src/api/agents_api.dart';
 import 'package:chatpanel/src/api/capabilities_api.dart';
 import 'package:chatpanel/src/api/chat_api.dart';
 import 'package:chatpanel/src/api/engines_api.dart';
+import 'package:chatpanel/src/api/events_api.dart';
 import 'package:chatpanel/src/api/gateway_api.dart';
 import 'package:chatpanel/src/api/history_api.dart';
 import 'package:chatpanel/src/api/memory_api.dart';
@@ -21,6 +22,7 @@ import 'package:chatpanel/src/api/prefs_api.dart';
 import 'package:chatpanel/src/api/projects_api.dart';
 import 'package:chatpanel/src/api/redaction_api.dart';
 import 'package:chatpanel/src/api/retrieval_api.dart';
+import 'package:chatpanel/src/api/runtime_api.dart';
 import 'package:chatpanel/src/api/skills_api.dart';
 import 'package:chatpanel/src/api/teams_api.dart';
 
@@ -142,6 +144,12 @@ class Chatpanel {
     return EnginesApi(dio, serializers);
   }
 
+  /// Get EventsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  EventsApi getEventsApi() {
+    return EventsApi(dio, serializers);
+  }
+
   /// Get GatewayApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   GatewayApi getGatewayApi() {
@@ -188,6 +196,12 @@ class Chatpanel {
   /// by doing that all interceptors will not be executed
   RetrievalApi getRetrievalApi() {
     return RetrievalApi(dio, serializers);
+  }
+
+  /// Get RuntimeApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  RuntimeApi getRuntimeApi() {
+    return RuntimeApi(dio, serializers);
   }
 
   /// Get SkillsApi instance, base route and serializer can be overridden by a given but be careful,

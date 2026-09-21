@@ -108,7 +108,7 @@ namespace YourProject
 
 ## Api Information
 - appName: ChatPanel Gateway API
-- appVersion: 0.15.0
+- appVersion: 0.22.0
 - appDescription: The ChatPanel gateway runs on the user&#39;s machine (loopback only, port 4320 by default). It redacts personal data before a model sees it, routes model traffic, and holds the user&#39;s searchable history, durable memory, shared preferences and the team/project run boards.  **It only answers on loopback.** A client on another host cannot reach it; an SDK refuses a non-loopback base URL unless the integrator opts in and uses TLS.  **Two trust levels.** The &#x60;/v1&#x60; data plane is open to any local process — that is the product. Writes that change what every client sees (remember, forget, ingest) and anything admin-shaped require the per-install token the gateway writes to &#x60;~/.chatpanel/gateway-token&#x60; (mode 0600), or a copy obtained by pairing (&#x60;POST /pair&#x60; with a one-time code from &#x60;chatpanel-gateway pair&#x60;). &#x60;POST /whoami&#x60; says which trust you have.  **Errors** are &#x60;{ error: { message, type } }&#x60; (or &#x60;{ error: \&quot;text\&quot; }&#x60; on the oldest routes) with the HTTP status. &#x60;type&#x60; is a stable machine word: &#x60;not_found&#x60;, &#x60;invalid_request&#x60;, &#x60;unknown_endpoint&#x60;, &#x60;unavailable&#x60;, &#x60;bridge_unreachable&#x60;, &#x60;no_bridge&#x60;, &#x60;redact_error&#x60;, &#x60;search_error&#x60;, &#x60;memory_error&#x60;, &#x60;team_error&#x60;, &#x60;ingest_error&#x60;, &#x60;prefs_error&#x60;. 
 
 ## Build

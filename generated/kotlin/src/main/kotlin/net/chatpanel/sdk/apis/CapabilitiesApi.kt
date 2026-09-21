@@ -28,9 +28,13 @@ import okhttp3.Call
 import okhttp3.HttpUrl
 
 import net.chatpanel.sdk.models.CapabilitiesDocument
+import net.chatpanel.sdk.models.DecideRequest
+import net.chatpanel.sdk.models.DecideResponse
 import net.chatpanel.sdk.models.DetectRequest
 import net.chatpanel.sdk.models.DetectResponse
 import net.chatpanel.sdk.models.ErrorResponse
+import net.chatpanel.sdk.models.RerankRequest
+import net.chatpanel.sdk.models.RerankResponse
 
 import com.squareup.moshi.Json
 
@@ -54,6 +58,80 @@ open class CapabilitiesApi(basePath: kotlin.String = defaultBasePath, client: Ca
         val defaultBasePath: String by lazy {
             System.getProperties().getProperty(ApiClient.BASE_URL_KEY, "http://127.0.0.1:4320")
         }
+    }
+
+    /**
+     * POST /v1/decide
+     * Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
+     * ChatPanel&#39;s &#x60;decide&#x60; signature (docs/capability-endpoints.md §4.2): &#x60;state&#x60; is the text judged, &#x60;questions&#x60; are keyed by identifier — a &#x60;choice&#x60; picks one of its &#x60;options&#x60;, a &#x60;score&#x60; places the state on &#x60;options&#x60; read as an ordered rubric, a &#x60;noul&#x60; is yes/no. Served BY PROXY through the adapter the config names: the &#x60;opendecision&#x60; container started under Settings › Runtime (TypeSafe&#39;s &#x60;/v1/systemone&#x60; shape, loopback-only), or a server &#x60;capabilities.decide&#x60; names (a Jev endpoint with a token, another gateway). &#x60;calibrated&#x60; in the response says whether &#x60;p&#x60; may be read as a probability — an NLI concentration (OpenDecision) is not one. Errors as &#x60;/v1/rerank&#x60;. 
+     * @param decideRequest 
+     * @return DecideResponse
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun capabilitiesDecide(decideRequest: DecideRequest) : DecideResponse {
+        val localVarResponse = capabilitiesDecideWithHttpInfo(decideRequest = decideRequest)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as DecideResponse
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * POST /v1/decide
+     * Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
+     * ChatPanel&#39;s &#x60;decide&#x60; signature (docs/capability-endpoints.md §4.2): &#x60;state&#x60; is the text judged, &#x60;questions&#x60; are keyed by identifier — a &#x60;choice&#x60; picks one of its &#x60;options&#x60;, a &#x60;score&#x60; places the state on &#x60;options&#x60; read as an ordered rubric, a &#x60;noul&#x60; is yes/no. Served BY PROXY through the adapter the config names: the &#x60;opendecision&#x60; container started under Settings › Runtime (TypeSafe&#39;s &#x60;/v1/systemone&#x60; shape, loopback-only), or a server &#x60;capabilities.decide&#x60; names (a Jev endpoint with a token, another gateway). &#x60;calibrated&#x60; in the response says whether &#x60;p&#x60; may be read as a probability — an NLI concentration (OpenDecision) is not one. Errors as &#x60;/v1/rerank&#x60;. 
+     * @param decideRequest 
+     * @return ApiResponse<DecideResponse?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun capabilitiesDecideWithHttpInfo(decideRequest: DecideRequest) : ApiResponse<DecideResponse?> {
+        val localVariableConfig = capabilitiesDecideRequestConfig(decideRequest = decideRequest)
+
+        return request<DecideRequest, DecideResponse>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation capabilitiesDecide
+     *
+     * @param decideRequest 
+     * @return RequestConfig
+     */
+    fun capabilitiesDecideRequestConfig(decideRequest: DecideRequest) : RequestConfig<DecideRequest> {
+        val localVariableBody = decideRequest
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/v1/decide",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
     }
 
     /**
@@ -193,6 +271,80 @@ open class CapabilitiesApi(basePath: kotlin.String = defaultBasePath, client: Ca
         return RequestConfig(
             method = RequestMethod.GET,
             path = "/v1/capabilities",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * POST /v1/rerank
+     * Order documents by relevance to a query — a cross-encoder, no language model.
+     * The Cohere / Jina rerank shape, served BY PROXY: the gateway forwards to the reranker it is pointed at — the &#x60;reranker&#x60; container started under Settings › Runtime (Text Embeddings Inference with &#x60;BAAI/bge-reranker-v2-m3&#x60;, loopback-only), or the server &#x60;capabilities.rerank&#x60; names — through the adapter that speaks its wire, and validates the answer against the contract before it leaves (a wrong shape is 502 &#x60;bad_shape&#x60;, never a bad order). &#x60;budgetMs&#x60; is refused (503 &#x60;over_budget&#x60;) from the gateway&#39;s own latency record before dialling. 404 &#x60;no_provider&#x60; until a provider is configured; 503 &#x60;provider_unavailable&#x60; when it does not answer. &#x60;GET /v1/capabilities&#x60; lists it only while configured. 
+     * @param rerankRequest 
+     * @return RerankResponse
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun capabilitiesRerank(rerankRequest: RerankRequest) : RerankResponse {
+        val localVarResponse = capabilitiesRerankWithHttpInfo(rerankRequest = rerankRequest)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as RerankResponse
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * POST /v1/rerank
+     * Order documents by relevance to a query — a cross-encoder, no language model.
+     * The Cohere / Jina rerank shape, served BY PROXY: the gateway forwards to the reranker it is pointed at — the &#x60;reranker&#x60; container started under Settings › Runtime (Text Embeddings Inference with &#x60;BAAI/bge-reranker-v2-m3&#x60;, loopback-only), or the server &#x60;capabilities.rerank&#x60; names — through the adapter that speaks its wire, and validates the answer against the contract before it leaves (a wrong shape is 502 &#x60;bad_shape&#x60;, never a bad order). &#x60;budgetMs&#x60; is refused (503 &#x60;over_budget&#x60;) from the gateway&#39;s own latency record before dialling. 404 &#x60;no_provider&#x60; until a provider is configured; 503 &#x60;provider_unavailable&#x60; when it does not answer. &#x60;GET /v1/capabilities&#x60; lists it only while configured. 
+     * @param rerankRequest 
+     * @return ApiResponse<RerankResponse?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun capabilitiesRerankWithHttpInfo(rerankRequest: RerankRequest) : ApiResponse<RerankResponse?> {
+        val localVariableConfig = capabilitiesRerankRequestConfig(rerankRequest = rerankRequest)
+
+        return request<RerankRequest, RerankResponse>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation capabilitiesRerank
+     *
+     * @param rerankRequest 
+     * @return RequestConfig
+     */
+    fun capabilitiesRerankRequestConfig(rerankRequest: RerankRequest) : RequestConfig<RerankRequest> {
+        val localVariableBody = rerankRequest
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/v1/rerank",
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,

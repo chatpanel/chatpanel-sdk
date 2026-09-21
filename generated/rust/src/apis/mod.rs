@@ -115,6 +115,7 @@ pub mod agents_api;
 pub mod capabilities_api;
 pub mod chat_api;
 pub mod engines_api;
+pub mod events_api;
 pub mod gateway_api;
 pub mod history_api;
 pub mod memory_api;
@@ -123,6 +124,7 @@ pub mod prefs_api;
 pub mod projects_api;
 pub mod redaction_api;
 pub mod retrieval_api;
+pub mod runtime_api;
 pub mod skills_api;
 pub mod teams_api;
 

@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.22.0
+  version: 0.24.0
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -90,6 +90,8 @@ tags:
     description: Web retrieval — search through the provider the user chose, and a page as LLM-ready Markdown, cited where it landed, with its sections (docs/web-retrieval.md).
   - name: runtime
     description: What runs processes for the user and how — the process sandbox (through the bridge), the container engine on this machine, and the services the gateway runs for the user (docs/sandboxing.md S1).
+  - name: events
+    description: The durable event log, merged across every client and served as one CloudEvents 1.0 stream — metadata only (refs and counts, never content), ordered by `(host, seq)` and `causes`, never by clock (docs/event-stream-sync.md E1).
 
 paths:
   # ------------------------------------------------------------------ gateway
@@ -425,6 +427,91 @@ paths:
             text/event-stream:
               schema: { type: string }
               x-chatpanel-frame: { $ref: '#/components/schemas/HistoryStreamEvent' }
+        '501': { $ref: '#/components/responses/Error' }
+  # ------------------------------------------------------------------ events
+  /v1/events:
+    post:
+      operationId: events.push
+      tags: [events]
+      summary: Push a batch of this client's durable log as CloudEvents; each event is appended once, each refusal is named.
+      description: >-
+        Idempotent on event id, so a retry is free. A `seq` that moves backwards for a host under a new id is a
+        corrupt writer and is refused by itself; the rest of the batch lands. Push what lies above your entry in
+        `cursor` (the gateway's highest `seq` per host) and stop re-sending what `rejected` names. At most 2000
+        events per batch. A gateway without SQLite answers 501.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.24.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PushEventsRequest' }
+      responses:
+        '200':
+          description: What the batch did, and the cursor afterwards.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PushEventsResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '413': { $ref: '#/components/responses/Error' }
+        '501': { $ref: '#/components/responses/Error' }
+    get:
+      operationId: events.since
+      tags: [events]
+      summary: The merged log above a cursor — host by host in `seq` order, as CloudEvents, paged.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.24.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      parameters:
+        - { name: cursor, in: query, schema: { type: string }, description: "JSON `{ host: seq }` — the highest seq per host you already hold. Absent means everything." }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 1000, default: 1000 } }
+        - { name: host, in: query, schema: { type: string }, description: "One host's slice only." }
+      responses:
+        '200':
+          description: A page; re-ask with the returned `cursor` while `more` is true.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventsPage' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '501': { $ref: '#/components/responses/Error' }
+  /v1/events/cursor:
+    get:
+      operationId: events.cursor
+      tags: [events]
+      summary: The gateway's highest `seq` per host — what a client asks for before it pushes.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.24.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      responses:
+        '200':
+          description: The cursor and the log's size.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventsCursor' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '501': { $ref: '#/components/responses/Error' }
+  /v1/events/stream:
+    get:
+      operationId: events.stream
+      tags: [events]
+      summary: Tail the merged log — `hello` once, then a `cloudevent` frame per appended event; with `cursor`, the backlog above it first.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.24.0'
+      x-chatpanel-stream: sse
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      parameters:
+        - { name: cursor, in: query, schema: { type: string }, description: "JSON `{ host: seq }`; when present the events above it are replayed before live frames." }
+      responses:
+        '200':
+          description: '`event: hello` `{ cursor, count, version }`, then `event: cloudevent` with one CloudEvents 1.0 JSON object as data; a comment ping every 25 s. A reader appends by id, so a duplicate on the wire is harmless.'
+          content:
+            text/event-stream:
+              schema: { type: string }
+              x-chatpanel-frame: { $ref: '#/components/schemas/EventsStreamEvent' }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '501': { $ref: '#/components/responses/Error' }
   /v1/history/ingest:
     post:
@@ -2384,6 +2471,75 @@ components:
         next: { type: string, description: "The cursor for the next page — pass it as `cursor`; absent on the last page." }
         size: { type: integer }
         newest: { type: integer, format: int64 }
+    CloudEvent:
+      type: object
+      description: >-
+        One durable event in the CloudEvents 1.0 envelope. `seq`, `host`, `chatpanelv` are ChatPanel's extension
+        attributes (the per-host order, the producer, the log schema version); `causes` is the comma-joined ids
+        this event follows; `data` is the payload — refs and counts, never content.
+      required: [specversion, id, source, type, time, seq, host, chatpanelv]
+      additionalProperties: true
+      properties:
+        specversion: { type: string, enum: ['1.0'] }
+        id: { type: string }
+        source: { type: string, description: "`urn:chatpanel:host:<host>`" }
+        type: { type: string, description: "`net.chatpanel.<family>.<kind>`" }
+        time: { type: string, format: date-time }
+        datacontenttype: { type: string }
+        seq: { type: integer, minimum: 0 }
+        host: { type: string }
+        causes: { type: string }
+        chatpanelv: { type: integer }
+        data: { $ref: '#/components/schemas/AnyObject' }
+    EventsCursorMap:
+      type: object
+      description: "`{ host: seq }` — the highest seq held per host."
+      additionalProperties: { type: integer, minimum: 0 }
+    PushEventsRequest:
+      type: object
+      required: [events]
+      properties:
+        events: { type: array, maxItems: 2000, items: { $ref: '#/components/schemas/CloudEvent' } }
+    PushEventsResponse:
+      type: object
+      required: [ok, appended, duplicates, rejected, cursor]
+      properties:
+        ok: { type: boolean }
+        appended: { type: integer }
+        duplicates: { type: integer, description: "Events already held — a retry's share." }
+        rejected:
+          type: array
+          items:
+            type: object
+            required: [code, message]
+            properties:
+              id: { type: [string, 'null'] }
+              code: { type: string, description: "`CLOUDEVENT` (envelope), `SEQ` (moved backwards), or event.js's `SHAPE` / `TYPE` / `PAYLOAD` / `VERSION`." }
+              message: { type: string }
+        cursor: { $ref: '#/components/schemas/EventsCursorMap' }
+    EventsCursor:
+      type: object
+      required: [ok, cursor]
+      properties:
+        ok: { type: boolean }
+        cursor: { $ref: '#/components/schemas/EventsCursorMap' }
+        count: { type: integer }
+    EventsPage:
+      type: object
+      required: [ok, events, cursor, more]
+      properties:
+        ok: { type: boolean }
+        events: { type: array, items: { $ref: '#/components/schemas/CloudEvent' } }
+        cursor: { $ref: '#/components/schemas/EventsCursorMap', description: "Pass back as `cursor` for the next page." }
+        more: { type: boolean }
+    EventsStreamEvent:
+      type: object
+      required: [event]
+      properties:
+        event: { type: string, enum: [hello, cloudevent], description: The SSE event name. }
+        cursor: { $ref: '#/components/schemas/EventsCursorMap' }
+        count: { type: integer }
+        version: { type: string }
     PutRecordsRequest:
       type: object
       properties:

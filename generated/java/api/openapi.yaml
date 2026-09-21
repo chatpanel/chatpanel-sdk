@@ -24,7 +24,7 @@ info:
   license:
     name: Apache-2.0
   title: ChatPanel Gateway API
-  version: 0.15.0
+  version: 0.22.0
 servers:
 - description: The local gateway. Loopback only.
   url: http://127.0.0.1:4320
@@ -63,6 +63,14 @@ tags:
 - description: "Web retrieval — search through the provider the user chose, and a\
     \ page as LLM-ready Markdown, cited where it landed, with its sections (docs/web-retrieval.md)."
   name: retrieval
+- description: "What runs processes for the user and how — the process sandbox (through\
+    \ the bridge), the container engine on this machine, and the services the gateway\
+    \ runs for the user (docs/sandboxing.md S1)."
+  name: runtime
+- description: "The durable event log, merged across every client and served as one\
+    \ CloudEvents 1.0 stream — metadata only (refs and counts, never content), ordered\
+    \ by `(host, seq)` and `causes`, never by clock (docs/event-stream-sync.md E1)."
+  name: events
 paths:
   /health:
     get:
@@ -574,6 +582,169 @@ paths:
       - history
       x-chatpanel-auth: open
       x-chatpanel-since: 0.11.0
+      x-chatpanel-stream: sse
+      x-accepts:
+      - application/json
+      - text/event-stream
+  /v1/events:
+    get:
+      operationId: events.since
+      parameters:
+      - description: "JSON `{ host: seq }` — the highest seq per host you already\
+          \ hold. Absent means everything."
+        explode: true
+        in: query
+        name: cursor
+        required: false
+        schema:
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 1000
+          maximum: 1000
+          minimum: 1
+          type: integer
+        style: form
+      - description: One host's slice only.
+        explode: true
+        in: query
+        name: host
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventsPage"
+          description: A page; re-ask with the returned `cursor` while `more` is true.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "The merged log above a cursor — host by host in `seq` order, as CloudEvents,\
+        \ paged."
+      tags:
+      - events
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.24.0
+      x-accepts:
+      - application/json
+    post:
+      description: "Idempotent on event id, so a retry is free. A `seq` that moves\
+        \ backwards for a host under a new id is a corrupt writer and is refused by\
+        \ itself; the rest of the batch lands. Push what lies above your entry in\
+        \ `cursor` (the gateway's highest `seq` per host) and stop re-sending what\
+        \ `rejected` names. At most 2000 events per batch. A gateway without SQLite\
+        \ answers 501."
+      operationId: events.push
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushEventsRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushEventsResponse"
+          description: "What the batch did, and the cursor afterwards."
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/Error"
+        "501":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "Push a batch of this client's durable log as CloudEvents; each event\
+        \ is appended once, each refusal is named."
+      tags:
+      - events
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.24.0
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/events/cursor:
+    get:
+      operationId: events.cursor
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventsCursor"
+          description: The cursor and the log's size.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: The gateway's highest `seq` per host — what a client asks for before
+        it pushes.
+      tags:
+      - events
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.24.0
+      x-accepts:
+      - application/json
+  /v1/events/stream:
+    get:
+      operationId: events.stream
+      parameters:
+      - description: "JSON `{ host: seq }`; when present the events above it are replayed\
+          \ before live frames."
+        explode: true
+        in: query
+        name: cursor
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              x-chatpanel-frame:
+                $ref: "#/components/schemas/EventsStreamEvent"
+          description: "`event: hello` `{ cursor, count, version }`, then `event:\
+            \ cloudevent` with one CloudEvents 1.0 JSON object as data; a comment\
+            \ ping every 25 s. A reader appends by id, so a duplicate on the wire\
+            \ is harmless."
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "Tail the merged log — `hello` once, then a `cloudevent` frame per\
+        \ appended event; with `cursor`, the backlog above it first."
+      tags:
+      - events
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.24.0
       x-chatpanel-stream: sse
       x-accepts:
       - application/json
@@ -1609,6 +1780,149 @@ paths:
       x-chatpanel-since: 0.13.0
       x-accepts:
       - application/json
+  /v1/runtime:
+    get:
+      description: |
+        One document for Settings › Runtime. `sandbox` is the bridge's own (`/health.sandbox`:
+        enabled, mode `open` | `allowlist` | `none`, the runtime found, the reason when none,
+        the global `extras`, whether a process can get a session of its own, and `refused` —
+        the last hosts any process was refused, names only). `processes` lists every local
+        MCP server running for the user with its sandbox record and the hosts it was refused,
+        and the warm agent processes. `engines` says which container engine exists (`podman`
+        first, `docker`) and whether it can run a container now; when none does, `install`
+        carries the command for this platform — shown to the person, never run by the gateway.
+        `services` is the catalogue: `searxng` with its state (`no-engine` | `engine-stopped`
+        | `absent` | `stopped` | `running`), its loopback URL and whether it answers.
+      operationId: runtime.status
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeDocument"
+          description: The runtime document.
+      summary: "The runtime — the process sandbox, what is running now, the container\
+        \ engine, the services."
+      tags:
+      - runtime
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.19.0
+      x-accepts:
+      - application/json
+  /v1/runtime/engines/{name}:
+    post:
+      description: |
+        `{ action: 'start' }`. Podman on macOS and Windows runs containers in a machine: made
+        on first start (`podman machine init`), then started. Linux Podman is rootless and
+        needs nothing. Docker is not started by the gateway — the response says so.
+      operationId: runtime.engine
+      parameters:
+      - explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          enum:
+          - podman
+          - docker
+          maxLength: 16
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/runtime_engine_request"
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeActionResult"
+          description: Started
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeActionResult"
+          description: Could not start; `install` when the engine is not installed.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: Start the container engine (Podman — creates and starts its machine
+        where one is needed).
+      tags:
+      - runtime
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.19.0
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/runtime/services/{id}:
+    post:
+      description: |
+        `{ action: 'start' | 'stop' }`. `start` brings the engine up if it is not, runs the
+        service's container from its kit (SearXNG: `127.0.0.1:8888`, JSON on, the limiter off,
+        a random secret, capabilities dropped; `reranker` on 8889 and `opendecision` on 8890
+        with the shared model cache mounted, gateway 0.20+) — the first start pulls the image
+        — waits for it to answer, and sets the config that points the gateway at it
+        (`search.searxng.url`; `capabilities.rerank` / `capabilities.decide`, so `/v1/rerank`
+        and `/v1/decide` are served and listed). `stop` stops the container and clears what it
+        set. `{ action: 'model', model }` (gateway 0.22+) picks the model a capability
+        container runs — an id from its catalogue (`GET /v1/runtime` `services.<id>.models`)
+        or a Hugging Face `owner/name` — gated by the container ENGINE's memory (a model it
+        cannot hold is refused with the command that raises the ceiling); the container is
+        re-created with the pick and restarted when it ran.
+      operationId: runtime.service
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          enum:
+          - searxng
+          - reranker
+          - opendecision
+          maxLength: 32
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/runtime_service_request"
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeActionResult"
+          description: Done; `url` and `answering` on a start.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeActionResult"
+          description: Could not; `install` when there is no engine.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "Start or stop a catalogue service, or pick a capability container's\
+        \ model — each runs loopback-only and the gateway points at it."
+      tags:
+      - runtime
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.19.0
+      x-content-type: application/json
+      x-accepts:
+      - application/json
   /v1/detect:
     post:
       description: |
@@ -1650,6 +1964,124 @@ paths:
       x-chatpanel-auth: open
       x-chatpanel-since: 0.13.0
       x-chatpanel-scope: "the request text, in this process"
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/rerank:
+    post:
+      description: |
+        The Cohere / Jina rerank shape, served BY PROXY: the gateway forwards to the reranker
+        it is pointed at — the `reranker` container started under Settings › Runtime (Text
+        Embeddings Inference with `BAAI/bge-reranker-v2-m3`, loopback-only), or the server
+        `capabilities.rerank` names — through the adapter that speaks its wire, and validates
+        the answer against the contract before it leaves (a wrong shape is 502 `bad_shape`,
+        never a bad order). `budgetMs` is refused (503 `over_budget`) from the gateway's own
+        latency record before dialling. 404 `no_provider` until a provider is configured;
+        503 `provider_unavailable` when it does not answer. `GET /v1/capabilities` lists it
+        only while configured.
+      operationId: capabilities.rerank
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RerankRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RerankResponse"
+          description: "The documents' indexes, best first."
+        "400":
+          $ref: "#/components/responses/Error"
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "No reranker is configured (`no_provider`), or the model asked\
+            \ for is not the one served (`model_not_found`)."
+        "502":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: The provider answered but not in the contract's shape (`bad_shape`)
+            or with an error (`provider_error`).
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "The provider did not answer (`provider_unavailable`) or the\
+            \ budget cannot be met (`over_budget`, with `predictedMs` and `budgetMs`)."
+      summary: "Order documents by relevance to a query — a cross-encoder, no language\
+        \ model."
+      tags:
+      - capabilities
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.20.0
+      x-chatpanel-scope: "the query and the documents, to the configured reranker"
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/decide:
+    post:
+      description: |
+        ChatPanel's `decide` signature (docs/capability-endpoints.md §4.2): `state` is the text
+        judged, `questions` are keyed by identifier — a `choice` picks one of its `options`, a
+        `score` places the state on `options` read as an ordered rubric, a `noul` is yes/no.
+        Served BY PROXY through the adapter the config names: the `opendecision` container
+        started under Settings › Runtime (TypeSafe's `/v1/systemone` shape, loopback-only), or
+        a server `capabilities.decide` names (a Jev endpoint with a token, another gateway).
+        `calibrated` in the response says whether `p` may be read as a probability — an NLI
+        concentration (OpenDecision) is not one. Errors as `/v1/rerank`.
+      operationId: capabilities.decide
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DecideRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecideResponse"
+          description: An answer per question.
+        "400":
+          $ref: "#/components/responses/Error"
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "No decision model is configured (`no_provider`), or the model\
+            \ asked for is not the one served (`model_not_found`)."
+        "502":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: The provider answered but not in the contract's shape (`bad_shape`)
+            or with an error (`provider_error`).
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: The provider did not answer (`provider_unavailable`) or the
+            budget cannot be met (`over_budget`).
+      summary: "Typed decisions over a text — a choice, a score or a yes/no, each\
+        \ with a probability."
+      tags:
+      - capabilities
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.20.0
+      x-chatpanel-scope: "the state text and the questions, to the configured decision\
+        \ model"
       x-content-type: application/json
       x-accepts:
       - application/json
@@ -2709,6 +3141,117 @@ components:
       - choices
       - id
       - object
+    RuntimeDocument:
+      description: The runtime — Settings › Runtime's one document (docs/sandboxing.md
+        S1).
+      example:
+        sandbox: ""
+        processes:
+          all:
+          - null
+          - null
+          localMcp:
+          - null
+          - null
+          warm:
+            key: ""
+        containers:
+        - null
+        - null
+        refused:
+        - null
+        - null
+        bridge:
+          ok: true
+          version: version
+        engines: ""
+        services: ""
+      properties:
+        sandbox:
+          allOf:
+          - $ref: "#/components/schemas/AnyObject"
+          description: "the bridge's /health.sandbox: enabled, mode, runtime, reason?,\
+            \ extras, ownSessions, refused[] (names only), provisioned? (Windows)"
+        processes:
+          $ref: "#/components/schemas/RuntimeDocument_processes"
+        containers:
+          description: "every container the engine has, running or not: name, image,\
+            \ state, status, ports[], ours (a chatpanel- name), engine (0.19.1)"
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+        refused:
+          description: "{ id, engine, host, at } newest first"
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+        bridge:
+          $ref: "#/components/schemas/RuntimeDocument_bridge"
+        engines:
+          allOf:
+          - $ref: "#/components/schemas/AnyObject"
+          description: "podman/docker: { installed, version?, running?, machine? };\
+            \ preferred; install? { command, url, note }"
+        services:
+          allOf:
+          - $ref: "#/components/schemas/AnyObject"
+          description: "Per catalogue service (searxng · reranker · opendecision):\
+            \ { id, label, image, container, port, blurb, provides, engine, state,\
+            \ url, configured, answering } — a capability container also { model,\
+            \ default, models: [{ id, label, lang, tier, approxMB, ramMB, licence,\
+            \ recommended, installed, note, unavailable?, ramNote? }], machine: {\
+            \ engineRamMB } } (gateway 0.22+)."
+    RuntimeActionResult:
+      example:
+        ok: true
+        error: error
+        already: true
+        url: url
+        answering: true
+        install:
+          key: ""
+        provides:
+        - provides
+        - provides
+        model: model
+        restarted: true
+        note: note
+      properties:
+        ok:
+          type: boolean
+        error:
+          type: string
+        already:
+          type: boolean
+        url:
+          type: string
+        answering:
+          type: boolean
+        install:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+        provides:
+          description: The capabilities the service now stands behind (gateway 0.20+).
+          items:
+            type: string
+          type: array
+          default: null
+        model:
+          description: "The model the container runs, on a start or a model pick (gateway\
+            \ 0.22+)."
+          type: string
+        restarted:
+          description: A model pick re-created a running container.
+          type: boolean
+        note:
+          description: A model pick that fits but is tight for the engine's memory.
+          type: string
+      required:
+      - ok
     CapabilitiesDocument:
       example:
         capabilities:
@@ -2981,6 +3524,240 @@ components:
           type: object
       required:
       - entities
+      - model
+      - ms
+    RerankRequest:
+      example:
+        query: query
+        documents:
+        - documents
+        - documents
+        - documents
+        - documents
+        - documents
+        top_n: 1
+        model: model
+        budgetMs: 0.6027456183070403
+      properties:
+        query:
+          minLength: 1
+          type: string
+        documents:
+          items:
+            type: string
+          maxItems: 1000
+          minItems: 1
+          type: array
+          default: null
+        top_n:
+          description: Return only the best this many.
+          minimum: 1
+          type: integer
+        model:
+          description: The model this provider serves; 404 otherwise.
+          type: string
+        budgetMs:
+          description: Refused before dialling if the gateway's record predicts it
+            cannot be met.
+          minimum: 0
+          type: number
+      required:
+      - documents
+      - query
+    RerankResult:
+      example:
+        index: 0
+        relevance_score: 6.027456183070403
+      properties:
+        index:
+          description: Into the request's documents.
+          minimum: 0
+          type: integer
+        relevance_score:
+          type: number
+      required:
+      - index
+      - relevance_score
+    RerankResponse:
+      example:
+        results:
+        - index: 0
+          relevance_score: 6.027456183070403
+        - index: 0
+          relevance_score: 6.027456183070403
+        model: model
+        ms: 1.4658129805029452
+      properties:
+        results:
+          description: "Distinct indexes, best first; at most top_n."
+          items:
+            $ref: "#/components/schemas/RerankResult"
+          type: array
+          default: null
+        model:
+          type: string
+        ms:
+          type: number
+      required:
+      - model
+      - ms
+      - results
+    DecideOption:
+      properties:
+        value:
+          type: string
+        describe:
+          description: What the option means — travels to the model as its criterion.
+          type: string
+      required:
+      - value
+    DecideQuestion:
+      example:
+        type: choice
+        instructions: instructions
+        options:
+        - DecideQuestion_options_inner
+        - DecideQuestion_options_inner
+        - DecideQuestion_options_inner
+        - DecideQuestion_options_inner
+        - DecideQuestion_options_inner
+      properties:
+        type:
+          enum:
+          - choice
+          - score
+          - noul
+          type: string
+        instructions:
+          minLength: 1
+          type: string
+        options:
+          description: "choice: the values to pick from; score: the rubric, in order.\
+            \ A noul has none."
+          items:
+            $ref: "#/components/schemas/DecideQuestion_options_inner"
+          maxItems: 255
+          minItems: 2
+          type: array
+          default: null
+      required:
+      - instructions
+      - type
+    DecideRequest:
+      example:
+        state: state
+        questions:
+          key:
+            type: choice
+            instructions: instructions
+            options:
+            - DecideQuestion_options_inner
+            - DecideQuestion_options_inner
+            - DecideQuestion_options_inner
+            - DecideQuestion_options_inner
+            - DecideQuestion_options_inner
+        model: model
+        budgetMs: 0.08008281904610115
+      properties:
+        state:
+          description: The text judged.
+          minLength: 1
+          type: string
+        questions:
+          additionalProperties:
+            $ref: "#/components/schemas/DecideQuestion"
+          description: "Keyed by identifier ([A-Za-z_][A-Za-z0-9_]*)."
+          minProperties: 1
+          type: object
+        model:
+          description: The model this provider serves; 404 otherwise.
+          type: string
+        budgetMs:
+          minimum: 0
+          type: number
+      required:
+      - questions
+      - state
+    DecideAnswerOption:
+      example:
+        value: ""
+        p: 0.6027456183070403
+      properties:
+        value:
+          description: "A string (choice, score rubric entry) or a boolean (noul)."
+        p:
+          maximum: 1
+          minimum: 0
+          type: number
+      required:
+      - p
+      - value
+    DecideAnswer:
+      example:
+        value: ""
+        p: 0.08008281904610115
+        options:
+        - value: ""
+          p: 0.6027456183070403
+        - value: ""
+          p: 0.6027456183070403
+        confidence: 0.14658129805029452
+      properties:
+        value:
+          description: "choice: the option picked; score: a number on the rubric;\
+            \ noul: a boolean."
+        p:
+          description: The probability of `value` — read it as one only when the response
+            says `calibrated`.
+          maximum: 1
+          minimum: 0
+          type: number
+        options:
+          description: The whole distribution.
+          items:
+            $ref: "#/components/schemas/DecideAnswerOption"
+          type: array
+          default: null
+        confidence:
+          description: "The provider's own confidence, when it reports one."
+          maximum: 1
+          minimum: 0
+          type: number
+      required:
+      - options
+      - p
+      - value
+    DecideResponse:
+      example:
+        answers:
+          key:
+            value: ""
+            p: 0.08008281904610115
+            options:
+            - value: ""
+              p: 0.6027456183070403
+            - value: ""
+              p: 0.6027456183070403
+            confidence: 0.14658129805029452
+        model: model
+        ms: 5.962133916683182
+        calibrated: true
+      properties:
+        answers:
+          additionalProperties:
+            $ref: "#/components/schemas/DecideAnswer"
+          description: "One per question asked, under the same key."
+          type: object
+        model:
+          type: string
+        ms:
+          type: number
+        calibrated:
+          description: Whether `p` is a calibrated probability. false for a zero-shot
+            NLI concentration.
+          type: boolean
+      required:
+      - answers
       - model
       - ms
     WebSearchRequest:
@@ -3749,6 +4526,272 @@ components:
       required:
       - ok
       - records
+    CloudEvent:
+      additionalProperties: true
+      description: "One durable event in the CloudEvents 1.0 envelope. `seq`, `host`,\
+        \ `chatpanelv` are ChatPanel's extension attributes (the per-host order, the\
+        \ producer, the log schema version); `causes` is the comma-joined ids this\
+        \ event follows; `data` is the payload — refs and counts, never content."
+      example:
+        specversion: "1.0"
+        id: id
+        source: source
+        type: type
+        time: 2000-01-23T04:56:07.000+00:00
+        datacontenttype: datacontenttype
+        seq: 0
+        host: host
+        causes: causes
+        chatpanelv: 6
+        data:
+          key: ""
+      properties:
+        specversion:
+          enum:
+          - "1.0"
+          type: string
+        id:
+          type: string
+        source:
+          description: '`urn:chatpanel:host:<host>`'
+          type: string
+        type:
+          description: '`net.chatpanel.<family>.<kind>`'
+          type: string
+        time:
+          format: date-time
+          type: string
+        datacontenttype:
+          type: string
+        seq:
+          minimum: 0
+          type: integer
+        host:
+          type: string
+        causes:
+          type: string
+        chatpanelv:
+          type: integer
+        data:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+      required:
+      - chatpanelv
+      - host
+      - id
+      - seq
+      - source
+      - specversion
+      - time
+      - type
+    EventsCursorMap:
+      additionalProperties:
+        minimum: 0
+        type: integer
+      description: "`{ host: seq }` — the highest seq held per host."
+      type: object
+    PushEventsRequest:
+      example:
+        events:
+        - specversion: "1.0"
+          id: id
+          source: source
+          type: type
+          time: 2000-01-23T04:56:07.000+00:00
+          datacontenttype: datacontenttype
+          seq: 0
+          host: host
+          causes: causes
+          chatpanelv: 6
+          data:
+            key: ""
+        - specversion: "1.0"
+          id: id
+          source: source
+          type: type
+          time: 2000-01-23T04:56:07.000+00:00
+          datacontenttype: datacontenttype
+          seq: 0
+          host: host
+          causes: causes
+          chatpanelv: 6
+          data:
+            key: ""
+        - specversion: "1.0"
+          id: id
+          source: source
+          type: type
+          time: 2000-01-23T04:56:07.000+00:00
+          datacontenttype: datacontenttype
+          seq: 0
+          host: host
+          causes: causes
+          chatpanelv: 6
+          data:
+            key: ""
+        - specversion: "1.0"
+          id: id
+          source: source
+          type: type
+          time: 2000-01-23T04:56:07.000+00:00
+          datacontenttype: datacontenttype
+          seq: 0
+          host: host
+          causes: causes
+          chatpanelv: 6
+          data:
+            key: ""
+        - specversion: "1.0"
+          id: id
+          source: source
+          type: type
+          time: 2000-01-23T04:56:07.000+00:00
+          datacontenttype: datacontenttype
+          seq: 0
+          host: host
+          causes: causes
+          chatpanelv: 6
+          data:
+            key: ""
+      properties:
+        events:
+          items:
+            $ref: "#/components/schemas/CloudEvent"
+          maxItems: 2000
+          type: array
+          default: null
+      required:
+      - events
+    PushEventsResponse:
+      example:
+        ok: true
+        appended: 0
+        duplicates: 6
+        rejected:
+        - id: id
+          code: code
+          message: message
+        - id: id
+          code: code
+          message: message
+        cursor:
+          key: 0
+      properties:
+        ok:
+          type: boolean
+        appended:
+          type: integer
+        duplicates:
+          description: Events already held — a retry's share.
+          type: integer
+        rejected:
+          items:
+            $ref: "#/components/schemas/PushEventsResponse_rejected_inner"
+          type: array
+          default: null
+        cursor:
+          additionalProperties:
+            minimum: 0
+            type: integer
+          description: "`{ host: seq }` — the highest seq held per host."
+          type: object
+      required:
+      - appended
+      - cursor
+      - duplicates
+      - ok
+      - rejected
+    EventsCursor:
+      example:
+        ok: true
+        cursor:
+          key: 0
+        count: 6
+      properties:
+        ok:
+          type: boolean
+        cursor:
+          additionalProperties:
+            minimum: 0
+            type: integer
+          description: "`{ host: seq }` — the highest seq held per host."
+          type: object
+        count:
+          type: integer
+      required:
+      - cursor
+      - ok
+    EventsPage:
+      example:
+        ok: true
+        events:
+        - specversion: "1.0"
+          id: id
+          source: source
+          type: type
+          time: 2000-01-23T04:56:07.000+00:00
+          datacontenttype: datacontenttype
+          seq: 0
+          host: host
+          causes: causes
+          chatpanelv: 6
+          data:
+            key: ""
+        - specversion: "1.0"
+          id: id
+          source: source
+          type: type
+          time: 2000-01-23T04:56:07.000+00:00
+          datacontenttype: datacontenttype
+          seq: 0
+          host: host
+          causes: causes
+          chatpanelv: 6
+          data:
+            key: ""
+        cursor: ""
+        more: true
+      properties:
+        ok:
+          type: boolean
+        events:
+          items:
+            $ref: "#/components/schemas/CloudEvent"
+          type: array
+          default: null
+        cursor:
+          allOf:
+          - $ref: "#/components/schemas/EventsCursorMap"
+          description: Pass back as `cursor` for the next page.
+        more:
+          type: boolean
+      required:
+      - cursor
+      - events
+      - more
+      - ok
+    EventsStreamEvent:
+      properties:
+        event:
+          description: The SSE event name.
+          enum:
+          - hello
+          - cloudevent
+          type: string
+        cursor:
+          additionalProperties:
+            minimum: 0
+            type: integer
+          description: "`{ host: seq }` — the highest seq held per host."
+          type: object
+        count:
+          type: integer
+        version:
+          type: string
+      required:
+      - event
     PutRecordsRequest:
       example:
         host: host
@@ -4777,6 +5820,25 @@ components:
           type: object
       required:
       - score
+    runtime_engine_request:
+      properties:
+        action:
+          default: start
+          enum:
+          - start
+          type: string
+    runtime_service_request:
+      properties:
+        action:
+          default: start
+          enum:
+          - start
+          - stop
+          - model
+          type: string
+        model:
+          description: "With `action: model` — a catalogue id or a Hugging Face owner/name."
+          type: string
     retrieval_searchAlias_200_response_data_inner:
       example:
         url: url
@@ -4949,6 +6011,47 @@ components:
         finish_reason:
           nullable: true
           type: string
+    RuntimeDocument_processes:
+      example:
+        all:
+        - null
+        - null
+        localMcp:
+        - null
+        - null
+        warm:
+          key: ""
+      properties:
+        all:
+          description: "every process running for the user — the bridge's (kind agent\
+            \ | warm | mcp | probe) and the gateway's own workers (kind worker): id,\
+            \ kind, engine, command (basename), label, pid, since, sandbox (the record),\
+            \ refused[] — never argv or env (0.19.1)"
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+        localMcp:
+          description: "id, command (basename), pid, since, sandbox (the record),\
+            \ refused[] — never argv or env"
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+        warm:
+          additionalProperties: true
+          description: A domain object whose shape is owned by `@chatpanel/events`;
+            the SDK carries it as-is.
+          type: object
+    RuntimeDocument_bridge:
+      example:
+        ok: true
+        version: version
+      properties:
+        ok:
+          type: boolean
+        version:
+          type: string
     CapabilitiesDocument_server:
       example:
         name: name
@@ -4965,6 +6068,10 @@ components:
       required:
       - name
       - version
+    DecideQuestion_options_inner:
+      oneOf:
+      - type: string
+      - $ref: "#/components/schemas/DecideOption"
     HistoryStatus_lossless:
       example:
         records: 5
@@ -4976,6 +6083,24 @@ components:
         newest:
           format: int64
           type: integer
+    PushEventsResponse_rejected_inner:
+      example:
+        id: id
+        code: code
+        message: message
+      properties:
+        id:
+          nullable: true
+          type: string
+        code:
+          description: "`CLOUDEVENT` (envelope), `SEQ` (moved backwards), or event.js's\
+            \ `SHAPE` / `TYPE` / `PAYLOAD` / `VERSION`."
+          type: string
+        message:
+          type: string
+      required:
+      - code
+      - message
     IngestRequest_upserts_inner:
       additionalProperties: true
       example:

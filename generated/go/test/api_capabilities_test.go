@@ -22,6 +22,18 @@ func Test_chatpanel_CapabilitiesAPIService(t *testing.T) {
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
 
+	t.Run("Test CapabilitiesAPIService CapabilitiesDecide", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		resp, httpRes, err := apiClient.CapabilitiesAPI.CapabilitiesDecide(context.Background()).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
 	t.Run("Test CapabilitiesAPIService CapabilitiesDetect", func(t *testing.T) {
 
 		t.Skip("skip test")  // remove to run test
@@ -39,6 +51,18 @@ func Test_chatpanel_CapabilitiesAPIService(t *testing.T) {
 		t.Skip("skip test")  // remove to run test
 
 		resp, httpRes, err := apiClient.CapabilitiesAPI.CapabilitiesList(context.Background()).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
+	t.Run("Test CapabilitiesAPIService CapabilitiesRerank", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		resp, httpRes, err := apiClient.CapabilitiesAPI.CapabilitiesRerank(context.Background()).Execute()
 
 		require.Nil(t, err)
 		require.NotNil(t, resp)

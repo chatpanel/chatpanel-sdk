@@ -4,9 +4,41 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**capabilities_decide**](CapabilitiesApi.md#capabilities_decide) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
 [**capabilities_detect**](CapabilitiesApi.md#capabilities_detect) | **POST** /v1/detect | Find entities in text — the model's own labels, with offsets and scores.
 [**capabilities_list**](CapabilitiesApi.md#capabilities_list) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state.
+[**capabilities_rerank**](CapabilitiesApi.md#capabilities_rerank) | **POST** /v1/rerank | Order documents by relevance to a query — a cross-encoder, no language model.
 
+
+
+## capabilities_decide
+
+> models::DecideResponse capabilities_decide(decide_request)
+Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
+
+ChatPanel's `decide` signature (docs/capability-endpoints.md §4.2): `state` is the text judged, `questions` are keyed by identifier — a `choice` picks one of its `options`, a `score` places the state on `options` read as an ordered rubric, a `noul` is yes/no. Served BY PROXY through the adapter the config names: the `opendecision` container started under Settings › Runtime (TypeSafe's `/v1/systemone` shape, loopback-only), or a server `capabilities.decide` names (a Jev endpoint with a token, another gateway). `calibrated` in the response says whether `p` may be read as a probability — an NLI concentration (OpenDecision) is not one. Errors as `/v1/rerank`. 
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**decide_request** | [**DecideRequest**](DecideRequest.md) |  | [required] |
+
+### Return type
+
+[**models::DecideResponse**](DecideResponse.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 
 ## capabilities_detect
@@ -61,6 +93,36 @@ This endpoint does not need any parameter.
 ### HTTP request headers
 
 - **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## capabilities_rerank
+
+> models::RerankResponse capabilities_rerank(rerank_request)
+Order documents by relevance to a query — a cross-encoder, no language model.
+
+The Cohere / Jina rerank shape, served BY PROXY: the gateway forwards to the reranker it is pointed at — the `reranker` container started under Settings › Runtime (Text Embeddings Inference with `BAAI/bge-reranker-v2-m3`, loopback-only), or the server `capabilities.rerank` names — through the adapter that speaks its wire, and validates the answer against the contract before it leaves (a wrong shape is 502 `bad_shape`, never a bad order). `budgetMs` is refused (503 `over_budget`) from the gateway's own latency record before dialling. 404 `no_provider` until a provider is configured; 503 `provider_unavailable` when it does not answer. `GET /v1/capabilities` lists it only while configured. 
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**rerank_request** | [**RerankRequest**](RerankRequest.md) |  | [required] |
+
+### Return type
+
+[**models::RerankResponse**](RerankResponse.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

@@ -581,6 +581,69 @@ export interface RecordsPage {
   [key: string]: unknown;
 }
 
+/** One durable event in the CloudEvents 1.0 envelope. `seq`, `host`, `chatpanelv` are ChatPanel's extension attributes (the per-host order, the producer, the log schema version); `causes` is the comma-joined ids this event follows; `data` is the payload — refs and counts, never content. */
+export interface CloudEvent {
+  specversion: "1.0";
+  id: string;
+  /** `urn:chatpanel:host:<host>` */
+  source: string;
+  /** `net.chatpanel.<family>.<kind>` */
+  type: string;
+  time: string;
+  datacontenttype?: string;
+  seq: number;
+  host: string;
+  causes?: string;
+  chatpanelv: number;
+  data?: AnyObject;
+  [key: string]: unknown;
+}
+
+/** `{ host: seq }` — the highest seq held per host. */
+export interface EventsCursorMap {
+  [key: string]: number;
+}
+
+export interface PushEventsRequest {
+  events: Array<CloudEvent>;
+}
+
+export interface PushEventsResponse {
+  ok: boolean;
+  appended: number;
+  /** Events already held — a retry's share. */
+  duplicates: number;
+  rejected: Array<{
+    id?: string | null;
+    /** `CLOUDEVENT` (envelope), `SEQ` (moved backwards), or event.js's `SHAPE` / `TYPE` / `PAYLOAD` / `VERSION`. */
+    code: string;
+    message: string;
+  }>;
+  cursor: EventsCursorMap;
+}
+
+export interface EventsCursor {
+  ok: boolean;
+  cursor: EventsCursorMap;
+  count?: number;
+}
+
+export interface EventsPage {
+  ok: boolean;
+  events: Array<CloudEvent>;
+  /** Pass back as `cursor` for the next page. */
+  cursor: EventsCursorMap;
+  more: boolean;
+}
+
+export interface EventsStreamEvent {
+  /** The SSE event name. */
+  event: "hello" | "cloudevent";
+  cursor?: EventsCursorMap;
+  count?: number;
+  version?: string;
+}
+
 export interface PutRecordsRequest {
   /** Who is pushing — recorded on every record. */
   host?: string;

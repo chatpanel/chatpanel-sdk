@@ -461,6 +461,61 @@ class RecordsPage(TypedDict, total=False):
     newest: NotRequired[int]
 
 
+class CloudEvent(TypedDict, total=False):
+    """One durable event in the CloudEvents 1.0 envelope. `seq`, `host`, `chatpanelv` are ChatPanel's extension attributes (the per-host order, the producer, the log schema version); `causes` is the comma-joined ids this event follows; `data` is the payload — refs and counts, never content."""
+    specversion: Literal["1.0"]
+    id: str
+    source: str  # `urn:chatpanel:host:<host>`
+    type: str  # `net.chatpanel.<family>.<kind>`
+    time: str
+    datacontenttype: NotRequired[str]
+    seq: int
+    host: str
+    causes: NotRequired[str]
+    chatpanelv: int
+    data: NotRequired["AnyObject"]
+
+
+EventsCursorMap = Dict[str, int]
+"""`{ host: seq }` — the highest seq held per host."""
+
+class PushEventsRequest(TypedDict, total=False):
+    """PushEventsRequest"""
+    events: List["CloudEvent"]
+
+
+class PushEventsResponse(TypedDict, total=False):
+    """PushEventsResponse"""
+    ok: bool
+    appended: int
+    duplicates: int  # Events already held — a retry's share.
+    rejected: List[Dict[str, Any]]
+    cursor: "EventsCursorMap"
+
+
+class EventsCursor(TypedDict, total=False):
+    """EventsCursor"""
+    ok: bool
+    cursor: "EventsCursorMap"
+    count: NotRequired[int]
+
+
+class EventsPage(TypedDict, total=False):
+    """EventsPage"""
+    ok: bool
+    events: List["CloudEvent"]
+    cursor: "EventsCursorMap"  # Pass back as `cursor` for the next page.
+    more: bool
+
+
+class EventsStreamEvent(TypedDict, total=False):
+    """EventsStreamEvent"""
+    event: Literal["hello", "cloudevent"]  # The SSE event name.
+    cursor: NotRequired["EventsCursorMap"]
+    count: NotRequired[int]
+    version: NotRequired[str]
+
+
 class PutRecordsRequest(TypedDict, total=False):
     """PutRecordsRequest"""
     host: NotRequired[str]  # Who is pushing — recorded on every record.

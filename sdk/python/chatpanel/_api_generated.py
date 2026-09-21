@@ -22,6 +22,10 @@ OPERATIONS: Dict[str, Operation] = {
     "history.records": Operation(id="history.records", method="GET", path="/v1/history/records", auth="open", since="0.10.0", stream=None, path_params=(), query_params=("since", "cursor", "limit", "kind",)),
     "history.putRecords": Operation(id="history.putRecords", method="PUT", path="/v1/history/records", auth="token", since="0.10.0", stream=None, path_params=(), query_params=()),
     "history.stream": Operation(id="history.stream", method="GET", path="/v1/history/stream", auth="open", since="0.11.0", stream="sse", path_params=(), query_params=()),
+    "events.since": Operation(id="events.since", method="GET", path="/v1/events", auth="token", since="0.24.0", stream=None, path_params=(), query_params=("cursor", "limit", "host",)),
+    "events.push": Operation(id="events.push", method="POST", path="/v1/events", auth="token", since="0.24.0", stream=None, path_params=(), query_params=()),
+    "events.cursor": Operation(id="events.cursor", method="GET", path="/v1/events/cursor", auth="token", since="0.24.0", stream=None, path_params=(), query_params=()),
+    "events.stream": Operation(id="events.stream", method="GET", path="/v1/events/stream", auth="token", since="0.24.0", stream="sse", path_params=(), query_params=("cursor",)),
     "history.ingest": Operation(id="history.ingest", method="POST", path="/v1/history/ingest", auth="token", since=None, stream=None, path_params=(), query_params=()),
     "memory.list": Operation(id="memory.list", method="GET", path="/v1/memory/list", auth="open", since=None, stream=None, path_params=(), query_params=()),
     "memory.recall": Operation(id="memory.recall", method="POST", path="/v1/memory/recall", auth="open", since=None, stream=None, path_params=(), query_params=()),
@@ -189,6 +193,29 @@ class HistoryApi:
     def ingest(self, body: "T.IngestRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
         """Push flattened (lossy) records into the warm index. — Requires the gateway token."""
         return self._rt.request(OPERATIONS["history.ingest"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+
+class EventsApi:
+    """The durable event log, merged across every client and served as one CloudEvents 1.0 stream — metadata only (refs and counts, never content), ordered by `(host, seq)` and `causes`, never by clock (docs/event-stream-sync.md E1)."""
+
+    def __init__(self, rt: Runtime) -> None:
+        self._rt = rt
+
+    def since(self, query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.EventsPage":
+        """The merged log above a cursor — host by host in `seq` order, as CloudEvents, paged. — Requires the gateway token. Gateway 0.24.0+."""
+        return self._rt.request(OPERATIONS["events.since"], path={}, query=query, headers=headers, body=None, timeout=timeout)
+
+    def push(self, body: "T.PushEventsRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.PushEventsResponse":
+        """Push a batch of this client's durable log as CloudEvents; each event is appended once, each refusal is named. Idempotent on event id, so a retry is free. A `seq` that moves backwards for a host under a new id is a corrupt writer and is refused by itself; the rest of the batch lands. Push what lies above your entry in `cursor` (the gateway's highest `seq` per host) and stop re-sending what `rejected` names. At most 2000 events per batch. A gateway without SQLite answers 501. — Requires the gateway token. Gateway 0.24.0+."""
+        return self._rt.request(OPERATIONS["events.push"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def cursor(self, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.EventsCursor":
+        """The gateway's highest `seq` per host — what a client asks for before it pushes. — Requires the gateway token. Gateway 0.24.0+."""
+        return self._rt.request(OPERATIONS["events.cursor"], path={}, query=None, headers=headers, body=None, timeout=timeout)
+
+    def stream(self, query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Iterator[SseFrame["T.EventsStreamEvent"]]:
+        """Tail the merged log — `hello` once, then a `cloudevent` frame per appended event; with `cursor`, the backlog above it first. — Requires the gateway token. Gateway 0.24.0+."""
+        return self._rt.stream(OPERATIONS["events.stream"], path={}, query=query, headers=headers, timeout=timeout)
 
 
 class MemoryApi:
@@ -486,6 +513,7 @@ class Api:
         self.chat = ChatApi(rt)
         self.redaction = RedactionApi(rt)
         self.history = HistoryApi(rt)
+        self.events = EventsApi(rt)
         self.memory = MemoryApi(rt)
         self.prefs = PrefsApi(rt)
         self.teams = TeamsApi(rt)

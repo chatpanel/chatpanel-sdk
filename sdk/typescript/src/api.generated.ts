@@ -22,6 +22,10 @@ export const OPERATIONS = {
   "history.records": { id: "history.records", method: "GET", path: "/v1/history/records", auth: "open", since: "0.10.0", stream: null, pathParams: [], queryParams: ["since","cursor","limit","kind"] },
   "history.putRecords": { id: "history.putRecords", method: "PUT", path: "/v1/history/records", auth: "token", since: "0.10.0", stream: null, pathParams: [], queryParams: [] },
   "history.stream": { id: "history.stream", method: "GET", path: "/v1/history/stream", auth: "open", since: "0.11.0", stream: "sse", pathParams: [], queryParams: [] },
+  "events.since": { id: "events.since", method: "GET", path: "/v1/events", auth: "token", since: "0.24.0", stream: null, pathParams: [], queryParams: ["cursor","limit","host"] },
+  "events.push": { id: "events.push", method: "POST", path: "/v1/events", auth: "token", since: "0.24.0", stream: null, pathParams: [], queryParams: [] },
+  "events.cursor": { id: "events.cursor", method: "GET", path: "/v1/events/cursor", auth: "token", since: "0.24.0", stream: null, pathParams: [], queryParams: [] },
+  "events.stream": { id: "events.stream", method: "GET", path: "/v1/events/stream", auth: "token", since: "0.24.0", stream: "sse", pathParams: [], queryParams: ["cursor"] },
   "history.ingest": { id: "history.ingest", method: "POST", path: "/v1/history/ingest", auth: "token", since: null, stream: null, pathParams: [], queryParams: [] },
   "memory.list": { id: "memory.list", method: "GET", path: "/v1/memory/list", auth: "open", since: null, stream: null, pathParams: [], queryParams: [] },
   "memory.recall": { id: "memory.recall", method: "POST", path: "/v1/memory/recall", auth: "open", since: null, stream: null, pathParams: [], queryParams: [] },
@@ -198,6 +202,28 @@ export class HistoryApi {
     size: number;
   }> {
     return this.rt.request(OPERATIONS["history.ingest"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+}
+
+/** The durable event log, merged across every client and served as one CloudEvents 1.0 stream — metadata only (refs and counts, never content), ordered by `(host, seq)` and `causes`, never by clock (docs/event-stream-sync.md E1). */
+export class EventsApi {
+  private readonly rt: Runtime;
+  constructor(rt: Runtime) { this.rt = rt; }
+  /** The merged log above a cursor — host by host in `seq` order, as CloudEvents, paged. — Requires the gateway token. Gateway 0.24.0+. */
+  since(query?: { cursor?: string; limit?: number; host?: string }, opts?: RequestOptions): Promise<T.EventsPage> {
+    return this.rt.request(OPERATIONS["events.since"], { path: {  }, query: query, headers: opts?.headers, body: undefined, opts });
+  }
+  /** Push a batch of this client's durable log as CloudEvents; each event is appended once, each refusal is named. Idempotent on event id, so a retry is free. A `seq` that moves backwards for a host under a new id is a corrupt writer and is refused by itself; the rest of the batch lands. Push what lies above your entry in `cursor` (the gateway's highest `seq` per host) and stop re-sending what `rejected` names. At most 2000 events per batch. A gateway without SQLite answers 501. — Requires the gateway token. Gateway 0.24.0+. */
+  push(body: T.PushEventsRequest, opts?: RequestOptions): Promise<T.PushEventsResponse> {
+    return this.rt.request(OPERATIONS["events.push"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** The gateway's highest `seq` per host — what a client asks for before it pushes. — Requires the gateway token. Gateway 0.24.0+. */
+  cursor(opts?: RequestOptions): Promise<T.EventsCursor> {
+    return this.rt.request(OPERATIONS["events.cursor"], { path: {  }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+  /** Tail the merged log — `hello` once, then a `cloudevent` frame per appended event; with `cursor`, the backlog above it first. — Requires the gateway token. Gateway 0.24.0+. */
+  stream(query?: { cursor?: string }, opts?: RequestOptions): AsyncIterable<SseFrame<T.EventsStreamEvent>> {
+    return this.rt.stream<T.EventsStreamEvent>(OPERATIONS["events.stream"], { path: {  }, query: query, headers: opts?.headers, opts });
   }
 }
 
@@ -640,6 +666,7 @@ export function buildApi(rt: Runtime) {
     chat: new ChatApi(rt),
     redaction: new RedactionApi(rt),
     history: new HistoryApi(rt),
+    events: new EventsApi(rt),
     memory: new MemoryApi(rt),
     prefs: new PrefsApi(rt),
     teams: new TeamsApi(rt),

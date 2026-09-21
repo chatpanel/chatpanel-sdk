@@ -97,12 +97,18 @@ Class | Method | HTTP request | Description
 *AgentsApi* | [**agentsRate**](docs/Api/AgentsApi.md#agentsrate) | **POST** /v1/agents/{agentId}/scorecard | A person rates the agent&#39;s work on a run, task or job.
 *AgentsApi* | [**agentsScorecard**](docs/Api/AgentsApi.md#agentsscorecard) | **GET** /v1/agents/{agentId}/scorecard | One agent&#39;s attested scorecard.
 *AgentsApi* | [**agentsScorecards**](docs/Api/AgentsApi.md#agentsscorecards) | **GET** /v1/agents/scorecards | Every agent&#39;s scorecard.
+*CapabilitiesApi* | [**capabilitiesDecide**](docs/Api/CapabilitiesApi.md#capabilitiesdecide) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
 *CapabilitiesApi* | [**capabilitiesDetect**](docs/Api/CapabilitiesApi.md#capabilitiesdetect) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores.
 *CapabilitiesApi* | [**capabilitiesList**](docs/Api/CapabilitiesApi.md#capabilitieslist) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state.
+*CapabilitiesApi* | [**capabilitiesRerank**](docs/Api/CapabilitiesApi.md#capabilitiesrerank) | **POST** /v1/rerank | Order documents by relevance to a query — a cross-encoder, no language model.
 *ChatApi* | [**chatCompletions**](docs/Api/ChatApi.md#chatcompletions) | **POST** /v1/chat/completions | One chat turn through the gateway (OpenAI-compatible).
 *EnginesApi* | [**enginesAppendEntry**](docs/Api/EnginesApi.md#enginesappendentry) | **POST** /v1/engines/{engineKey}/entries | Append a ledger entry for an engine.
 *EnginesApi* | [**enginesCard**](docs/Api/EnginesApi.md#enginescard) | **GET** /v1/engines/{engineKey}/card | One engine&#39;s card, optionally with entries.
 *EnginesApi* | [**enginesList**](docs/Api/EnginesApi.md#engineslist) | **GET** /v1/engines | Every engine&#39;s card.
+*EventsApi* | [**eventsCursor**](docs/Api/EventsApi.md#eventscursor) | **GET** /v1/events/cursor | The gateway&#39;s highest &#x60;seq&#x60; per host — what a client asks for before it pushes.
+*EventsApi* | [**eventsPush**](docs/Api/EventsApi.md#eventspush) | **POST** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named.
+*EventsApi* | [**eventsSince**](docs/Api/EventsApi.md#eventssince) | **GET** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged.
+*EventsApi* | [**eventsStream**](docs/Api/EventsApi.md#eventsstream) | **GET** /v1/events/stream | Tail the merged log — &#x60;hello&#x60; once, then a &#x60;cloudevent&#x60; frame per appended event; with &#x60;cursor&#x60;, the backlog above it first.
 *GatewayApi* | [**gatewayAudit**](docs/Api/GatewayApi.md#gatewayaudit) | **GET** /audit | The egress audit — which hosts this gateway has contacted and which its config allows.
 *GatewayApi* | [**gatewayHealth**](docs/Api/GatewayApi.md#gatewayhealth) | **GET** /health | Liveness, version and capabilities.
 *GatewayApi* | [**gatewayPair**](docs/Api/GatewayApi.md#gatewaypair) | **POST** /pair | Exchange a pairing code for the gateway token.
@@ -145,6 +151,9 @@ Class | Method | HTTP request | Description
 *RetrievalApi* | [**retrievalReadAlias**](docs/Api/RetrievalApi.md#retrievalreadalias) | **GET** /v1/read/{url} | The r.jina.ai-shaped alias — &#x60;GET /v1/read/https://…&#x60; — for clients that already speak it.
 *RetrievalApi* | [**retrievalSearch**](docs/Api/RetrievalApi.md#retrievalsearch) | **POST** /v1/search | Search the web through the provider this gateway is configured with; optionally read the top results in the same request.
 *RetrievalApi* | [**retrievalSearchAlias**](docs/Api/RetrievalApi.md#retrievalsearchalias) | **GET** /v1/search/{q} | The s.jina.ai-shaped alias — &#x60;GET /v1/search/&lt;query&gt;&#x60; — the top results WITH their content.
+*RuntimeApi* | [**runtimeEngine**](docs/Api/RuntimeApi.md#runtimeengine) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed).
+*RuntimeApi* | [**runtimeService**](docs/Api/RuntimeApi.md#runtimeservice) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it.
+*RuntimeApi* | [**runtimeStatus**](docs/Api/RuntimeApi.md#runtimestatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
 *SkillsApi* | [**skillsGet**](docs/Api/SkillsApi.md#skillsget) | **GET** /skills/{skillId} | One skill, with its prompt.
 *SkillsApi* | [**skillsList**](docs/Api/SkillsApi.md#skillslist) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
 *TeamsApi* | [**teamsAnswer**](docs/Api/TeamsApi.md#teamsanswer) | **POST** /v1/teams/runs/{runId}/answer | A person answers an ask on the board.
@@ -179,6 +188,14 @@ Class | Method | HTTP request | Description
 - [ChatContentPart](docs/Model/ChatContentPart.md)
 - [ChatMessage](docs/Model/ChatMessage.md)
 - [ChatMessageContent](docs/Model/ChatMessageContent.md)
+- [CloudEvent](docs/Model/CloudEvent.md)
+- [DecideAnswer](docs/Model/DecideAnswer.md)
+- [DecideAnswerOption](docs/Model/DecideAnswerOption.md)
+- [DecideOption](docs/Model/DecideOption.md)
+- [DecideQuestion](docs/Model/DecideQuestion.md)
+- [DecideQuestionOptionsInner](docs/Model/DecideQuestionOptionsInner.md)
+- [DecideRequest](docs/Model/DecideRequest.md)
+- [DecideResponse](docs/Model/DecideResponse.md)
 - [DetectRequest](docs/Model/DetectRequest.md)
 - [DetectResponse](docs/Model/DetectResponse.md)
 - [DetectedEntity](docs/Model/DetectedEntity.md)
@@ -186,6 +203,9 @@ Class | Method | HTTP request | Description
 - [ErrorResponse](docs/Model/ErrorResponse.md)
 - [ErrorResponseError](docs/Model/ErrorResponseError.md)
 - [ErrorResponseErrorOneOf](docs/Model/ErrorResponseErrorOneOf.md)
+- [EventsCursor](docs/Model/EventsCursor.md)
+- [EventsPage](docs/Model/EventsPage.md)
+- [EventsStreamEvent](docs/Model/EventsStreamEvent.md)
 - [ExtractRequest](docs/Model/ExtractRequest.md)
 - [ExtractResponse](docs/Model/ExtractResponse.md)
 - [GatewayPairRequest](docs/Model/GatewayPairRequest.md)
@@ -227,6 +247,9 @@ Class | Method | HTTP request | Description
 - [ProjectsPatchJobRequest](docs/Model/ProjectsPatchJobRequest.md)
 - [ProjectsPostJobRequest](docs/Model/ProjectsPostJobRequest.md)
 - [ProjectsRecruitRequest](docs/Model/ProjectsRecruitRequest.md)
+- [PushEventsRequest](docs/Model/PushEventsRequest.md)
+- [PushEventsResponse](docs/Model/PushEventsResponse.md)
+- [PushEventsResponseRejectedInner](docs/Model/PushEventsResponseRejectedInner.md)
 - [PutRecordsRequest](docs/Model/PutRecordsRequest.md)
 - [PutRecordsResponse](docs/Model/PutRecordsResponse.md)
 - [ReadRequest](docs/Model/ReadRequest.md)
@@ -241,10 +264,19 @@ Class | Method | HTTP request | Description
 - [RedactionPreviewRequest](docs/Model/RedactionPreviewRequest.md)
 - [RememberRequest](docs/Model/RememberRequest.md)
 - [RememberResponse](docs/Model/RememberResponse.md)
+- [RerankRequest](docs/Model/RerankRequest.md)
+- [RerankResponse](docs/Model/RerankResponse.md)
+- [RerankResult](docs/Model/RerankResult.md)
 - [RetrievalReadAlias200Response](docs/Model/RetrievalReadAlias200Response.md)
 - [RetrievalSearchAlias200Response](docs/Model/RetrievalSearchAlias200Response.md)
 - [RetrievalSearchAlias200ResponseDataInner](docs/Model/RetrievalSearchAlias200ResponseDataInner.md)
 - [RunEvent](docs/Model/RunEvent.md)
+- [RuntimeActionResult](docs/Model/RuntimeActionResult.md)
+- [RuntimeDocument](docs/Model/RuntimeDocument.md)
+- [RuntimeDocumentBridge](docs/Model/RuntimeDocumentBridge.md)
+- [RuntimeDocumentProcesses](docs/Model/RuntimeDocumentProcesses.md)
+- [RuntimeEngineRequest](docs/Model/RuntimeEngineRequest.md)
+- [RuntimeServiceRequest](docs/Model/RuntimeServiceRequest.md)
 - [SearchFilters](docs/Model/SearchFilters.md)
 - [SearchHit](docs/Model/SearchHit.md)
 - [SearchRequest](docs/Model/SearchRequest.md)
@@ -300,6 +332,6 @@ vendor/bin/phpunit
 
 This PHP package is automatically generated by the [OpenAPI Generator](https://openapi-generator.tech) project:
 
-- API version: `0.15.0`
+- API version: `0.22.0`
     - Generator version: `7.25.0`
 - Build package: `org.openapitools.codegen.languages.PhpClientCodegen`
