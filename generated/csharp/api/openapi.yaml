@@ -2815,6 +2815,7 @@ components:
         configured: true
         reason: reason
         tools: true
+        reach: device
       properties:
         id:
           type: string
@@ -2852,6 +2853,18 @@ components:
         tools:
           description: False when the agent cannot take per-turn tools.
           type: boolean
+        reach:
+          description: "0.40.0+ — where the model runs, which is what a privacy ceiling\
+            \ reads: `device` on this machine, `trusted` on the private network, `any`\
+            \ a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI\
+            \ is `any`; OpenCode over Ollama is `device`), never where the CLI process\
+            \ runs. Every row is served on the gateway's loopback address, so the\
+            \ address says nothing — read this field."
+          enum:
+          - device
+          - trusted
+          - any
+          type: string
       required:
       - id
       - object
@@ -2872,6 +2885,7 @@ components:
           configured: true
           reason: reason
           tools: true
+          reach: device
         - id: id
           object: model
           owned_by: owned_by
@@ -2885,6 +2899,7 @@ components:
           configured: true
           reason: reason
           tools: true
+          reach: device
       properties:
         object:
           enum:

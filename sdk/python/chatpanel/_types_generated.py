@@ -65,6 +65,7 @@ class Model(TypedDict, total=False):
     configured: NotRequired[bool]  # 0.6.66+ — false when a turn is known to fail for something the user can fix.
     reason: NotRequired[str]
     tools: NotRequired[bool]  # False when the agent cannot take per-turn tools.
+    reach: NotRequired[Literal["device", "trusted", "any"]]  # 0.40.0+ — where the model runs, which is what a privacy ceiling reads: `device` on this machine, `trusted` on the private network, `any` a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is `any`; OpenCode over Ollama is `device`), never where the CLI process runs. Every row is served on the gateway's loopback address, so the address says nothing — read this field.
 
 
 class ModelList(TypedDict, total=False):

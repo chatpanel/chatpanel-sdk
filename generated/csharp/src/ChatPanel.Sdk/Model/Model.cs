@@ -44,8 +44,9 @@ namespace ChatPanel.Sdk.Model
         /// <param name="configured">0.6.66+ — false when a turn is known to fail for something the user can fix.</param>
         /// <param name="reason">reason</param>
         /// <param name="tools">False when the agent cannot take per-turn tools.</param>
+        /// <param name="reach">0.40.0+ — where the model runs, which is what a privacy ceiling reads: &#x60;device&#x60; on this machine, &#x60;trusted&#x60; on the private network, &#x60;any&#x60; a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is &#x60;any&#x60;; OpenCode over Ollama is &#x60;device&#x60;), never where the CLI process runs. Every row is served on the gateway&#39;s loopback address, so the address says nothing — read this field.</param>
         [JsonConstructor]
-        public Model(string id, ObjectEnum @object, Option<string?> ownedBy = default, Option<string?> provider = default, Option<ProviderTypeEnum?> providerType = default, Option<string?> api = default, Option<List<string>?> endpoints = default, Option<bool?> available = default, Option<bool?> configured = default, Option<string?> reason = default, Option<bool?> tools = default)
+        public Model(string id, ObjectEnum @object, Option<string?> ownedBy = default, Option<string?> provider = default, Option<ProviderTypeEnum?> providerType = default, Option<string?> api = default, Option<List<string>?> endpoints = default, Option<bool?> available = default, Option<bool?> configured = default, Option<string?> reason = default, Option<bool?> tools = default, Option<ReachEnum?> reach = default)
         {
             Id = id;
             Object = @object;
@@ -58,6 +59,7 @@ namespace ChatPanel.Sdk.Model
             ConfiguredOption = configured;
             ReasonOption = reason;
             ToolsOption = tools;
+            ReachOption = reach;
             OnCreated();
         }
 
@@ -217,6 +219,101 @@ namespace ChatPanel.Sdk.Model
         public ProviderTypeEnum? ProviderType { get { return this.ProviderTypeOption.Value; } set { this.ProviderTypeOption = new(value); } }
 
         /// <summary>
+        /// 0.40.0+ — where the model runs, which is what a privacy ceiling reads: &#x60;device&#x60; on this machine, &#x60;trusted&#x60; on the private network, &#x60;any&#x60; a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is &#x60;any&#x60;; OpenCode over Ollama is &#x60;device&#x60;), never where the CLI process runs. Every row is served on the gateway&#39;s loopback address, so the address says nothing — read this field.
+        /// </summary>
+        /// <value>0.40.0+ — where the model runs, which is what a privacy ceiling reads: &#x60;device&#x60; on this machine, &#x60;trusted&#x60; on the private network, &#x60;any&#x60; a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is &#x60;any&#x60;; OpenCode over Ollama is &#x60;device&#x60;), never where the CLI process runs. Every row is served on the gateway&#39;s loopback address, so the address says nothing — read this field.</value>
+        public enum ReachEnum
+        {
+            /// <summary>
+            /// Enum Device for value: device
+            /// </summary>
+            Device = 1,
+
+            /// <summary>
+            /// Enum Trusted for value: trusted
+            /// </summary>
+            Trusted = 2,
+
+            /// <summary>
+            /// Enum Any for value: any
+            /// </summary>
+            Any = 3
+        }
+
+        /// <summary>
+        /// Returns a <see cref="ReachEnum"/>
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public static ReachEnum ReachEnumFromString(string value)
+        {
+            if (value.Equals("device"))
+                return ReachEnum.Device;
+
+            if (value.Equals("trusted"))
+                return ReachEnum.Trusted;
+
+            if (value.Equals("any"))
+                return ReachEnum.Any;
+
+            throw new NotImplementedException($"Could not convert value to type ReachEnum: '{value}'");
+        }
+
+        /// <summary>
+        /// Returns a <see cref="ReachEnum"/>
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static ReachEnum? ReachEnumFromStringOrDefault(string value)
+        {
+            if (value.Equals("device"))
+                return ReachEnum.Device;
+
+            if (value.Equals("trusted"))
+                return ReachEnum.Trusted;
+
+            if (value.Equals("any"))
+                return ReachEnum.Any;
+
+            return null;
+        }
+
+        /// <summary>
+        /// Converts the <see cref="ReachEnum"/> to the json value
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public static string ReachEnumToJsonValue(ReachEnum? value)
+        {
+            if (value == ReachEnum.Device)
+                return "device";
+
+            if (value == ReachEnum.Trusted)
+                return "trusted";
+
+            if (value == ReachEnum.Any)
+                return "any";
+
+            throw new NotImplementedException($"Value could not be handled: '{value}'");
+        }
+
+        /// <summary>
+        /// Used to track the state of Reach
+        /// </summary>
+        [JsonIgnore]
+        [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
+        public Option<ReachEnum?> ReachOption { get; private set; }
+
+        /// <summary>
+        /// 0.40.0+ — where the model runs, which is what a privacy ceiling reads: &#x60;device&#x60; on this machine, &#x60;trusted&#x60; on the private network, &#x60;any&#x60; a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is &#x60;any&#x60;; OpenCode over Ollama is &#x60;device&#x60;), never where the CLI process runs. Every row is served on the gateway&#39;s loopback address, so the address says nothing — read this field.
+        /// </summary>
+        /// <value>0.40.0+ — where the model runs, which is what a privacy ceiling reads: &#x60;device&#x60; on this machine, &#x60;trusted&#x60; on the private network, &#x60;any&#x60; a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is &#x60;any&#x60;; OpenCode over Ollama is &#x60;device&#x60;), never where the CLI process runs. Every row is served on the gateway&#39;s loopback address, so the address says nothing — read this field.</value>
+        [JsonPropertyName("reach")]
+        public ReachEnum? Reach { get { return this.ReachOption.Value; } set { this.ReachOption = new(value); } }
+
+        /// <summary>
         /// Gets or Sets Id
         /// </summary>
         [JsonPropertyName("id")]
@@ -354,6 +451,7 @@ namespace ChatPanel.Sdk.Model
             sb.Append("  Configured: ").Append(Configured).Append("\n");
             sb.Append("  Reason: ").Append(Reason).Append("\n");
             sb.Append("  Tools: ").Append(Tools).Append("\n");
+            sb.Append("  Reach: ").Append(Reach).Append("\n");
             sb.Append("  AdditionalProperties: ").Append(AdditionalProperties).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
@@ -413,6 +511,7 @@ namespace ChatPanel.Sdk.Model
             Option<bool?> configured = default;
             Option<string?> reason = default;
             Option<bool?> tools = default;
+            Option<Model.ReachEnum?> reach = default;
 
             while (utf8JsonReader.Read())
             {
@@ -476,6 +575,16 @@ namespace ChatPanel.Sdk.Model
                         case "tools":
                             tools = new Option<bool?>(utf8JsonReader.TokenType == JsonTokenType.Null ? (bool?)null : utf8JsonReader.GetBoolean());
                             break;
+                        case "reach":
+                            string? reachRawValue = utf8JsonReader.GetString();
+                            if (reachRawValue != null)
+                            {
+                                Model.ReachEnum? reachValue = Model.ReachEnumFromStringOrDefault(reachRawValue);
+                                if (reachValue == null)
+                                    throw new JsonException();
+                                reach = new Option<Model.ReachEnum?>(reachValue);
+                            }
+                            break;
                         default:
                             break;
                     }
@@ -521,7 +630,10 @@ namespace ChatPanel.Sdk.Model
             if (tools.IsSet && tools.Value == null)
                 throw new ArgumentNullException(nameof(tools), "Property is not nullable for class Model.");
 
-            return new Model(id.Value!, varObject.Value!.Value!, ownedBy, provider, providerType, api, endpoints, available, configured, reason, tools);
+            if (reach.IsSet && reach.Value == null)
+                throw new ArgumentNullException(nameof(reach), "Property is not nullable for class Model.");
+
+            return new Model(id.Value!, varObject.Value!.Value!, ownedBy, provider, providerType, api, endpoints, available, configured, reason, tools, reach);
         }
 
         /// <summary>
@@ -597,6 +709,9 @@ namespace ChatPanel.Sdk.Model
 
             if (model.ToolsOption.IsSet)
                 writer.WriteBoolean("tools", model.ToolsOption.Value!.Value);
+
+            var reachRawValue = Model.ReachEnumToJsonValue(model.ReachOption.Value!.Value);
+            writer.WriteString("reach", reachRawValue);
         }
     }
 }

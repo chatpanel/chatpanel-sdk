@@ -151,5 +151,14 @@ namespace ChatPanel.Sdk.Test.Model
         {
             // TODO unit test for the property 'Tools'
         }
+
+        /// <summary>
+        /// Test the property 'Reach'
+        /// </summary>
+        [Fact]
+        public void ReachTest()
+        {
+            // TODO unit test for the property 'Reach'
+        }
     }
 }

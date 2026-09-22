@@ -15,6 +15,7 @@ Name | Type | Description | Notes
 **Configured** | Pointer to **bool** | 0.6.66+ — false when a turn is known to fail for something the user can fix. | [optional] 
 **Reason** | Pointer to **string** |  | [optional] 
 **Tools** | Pointer to **bool** | False when the agent cannot take per-turn tools. | [optional] 
+**Reach** | Pointer to **string** | 0.40.0+ — where the model runs, which is what a privacy ceiling reads: &#x60;device&#x60; on this machine, &#x60;trusted&#x60; on the private network, &#x60;any&#x60; a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is &#x60;any&#x60;; OpenCode over Ollama is &#x60;device&#x60;), never where the CLI process runs. Every row is served on the gateway&#39;s loopback address, so the address says nothing — read this field. | [optional] 
 
 ## Methods
 
@@ -299,6 +300,31 @@ SetTools sets Tools field to given value.
 `func (o *Model) HasTools() bool`
 
 HasTools returns a boolean if a field has been set.
+
+### GetReach
+
+`func (o *Model) GetReach() string`
+
+GetReach returns the Reach field if non-nil, zero value otherwise.
+
+### GetReachOk
+
+`func (o *Model) GetReachOk() (*string, bool)`
+
+GetReachOk returns a tuple with the Reach field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetReach
+
+`func (o *Model) SetReach(v string)`
+
+SetReach sets Reach field to given value.
+
+### HasReach
+
+`func (o *Model) HasReach() bool`
+
+HasReach returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

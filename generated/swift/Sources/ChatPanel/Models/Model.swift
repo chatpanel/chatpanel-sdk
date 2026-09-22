@@ -17,6 +17,11 @@ public struct Model: Sendable, Codable, Hashable {
         case openai = "openai"
         case anthropic = "anthropic"
     }
+    public enum Reach: String, Sendable, Codable, CaseIterable {
+        case device = "device"
+        case trusted = "trusted"
+        case any = "any"
+    }
     public var id: String
     public var object: Object
     public var ownedBy: String?
@@ -32,8 +37,10 @@ public struct Model: Sendable, Codable, Hashable {
     public var reason: String?
     /** False when the agent cannot take per-turn tools. */
     public var tools: Bool?
+    /** 0.40.0+ — where the model runs, which is what a privacy ceiling reads: `device` on this machine, `trusted` on the private network, `any` a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is `any`; OpenCode over Ollama is `device`), never where the CLI process runs. Every row is served on the gateway's loopback address, so the address says nothing — read this field. */
+    public var reach: Reach?
 
-    public init(id: String, object: Object, ownedBy: String? = nil, provider: String? = nil, providerType: ProviderType? = nil, api: String? = nil, endpoints: [String]? = nil, available: Bool? = nil, configured: Bool? = nil, reason: String? = nil, tools: Bool? = nil) {
+    public init(id: String, object: Object, ownedBy: String? = nil, provider: String? = nil, providerType: ProviderType? = nil, api: String? = nil, endpoints: [String]? = nil, available: Bool? = nil, configured: Bool? = nil, reason: String? = nil, tools: Bool? = nil, reach: Reach? = nil) {
         self.id = id
         self.object = object
         self.ownedBy = ownedBy
@@ -45,6 +52,7 @@ public struct Model: Sendable, Codable, Hashable {
         self.configured = configured
         self.reason = reason
         self.tools = tools
+        self.reach = reach
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -59,6 +67,7 @@ public struct Model: Sendable, Codable, Hashable {
         case configured
         case reason
         case tools
+        case reach
     }
 
     public var additionalProperties: [String: JSONValue] = [:]
@@ -91,6 +100,7 @@ public struct Model: Sendable, Codable, Hashable {
         try container.encodeIfPresent(configured, forKey: .configured)
         try container.encodeIfPresent(reason, forKey: .reason)
         try container.encodeIfPresent(tools, forKey: .tools)
+        try container.encodeIfPresent(reach, forKey: .reach)
         var additionalPropertiesContainer = encoder.container(keyedBy: String.self)
         try additionalPropertiesContainer.encodeMap(additionalProperties)
     }
@@ -111,6 +121,7 @@ public struct Model: Sendable, Codable, Hashable {
         configured = try container.decodeIfPresent(Bool.self, forKey: .configured)
         reason = try container.decodeIfPresent(String.self, forKey: .reason)
         tools = try container.decodeIfPresent(Bool.self, forKey: .tools)
+        reach = try container.decodeIfPresent(Reach.self, forKey: .reach)
         var nonAdditionalPropertyKeys = Set<String>()
         nonAdditionalPropertyKeys.insert("id")
         nonAdditionalPropertyKeys.insert("object")
@@ -123,6 +134,7 @@ public struct Model: Sendable, Codable, Hashable {
         nonAdditionalPropertyKeys.insert("configured")
         nonAdditionalPropertyKeys.insert("reason")
         nonAdditionalPropertyKeys.insert("tools")
+        nonAdditionalPropertyKeys.insert("reach")
         let additionalPropertiesContainer = try decoder.container(keyedBy: String.self)
         additionalProperties = try additionalPropertiesContainer.decodeMap(JSONValue.self, excludedKeys: nonAdditionalPropertyKeys)
     }

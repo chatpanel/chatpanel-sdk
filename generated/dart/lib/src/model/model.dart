@@ -24,6 +24,7 @@ part 'model.g.dart';
 /// * [configured] - 0.6.66+ — false when a turn is known to fail for something the user can fix.
 /// * [reason] 
 /// * [tools] - False when the agent cannot take per-turn tools.
+/// * [reach] - 0.40.0+ — where the model runs, which is what a privacy ceiling reads: `device` on this machine, `trusted` on the private network, `any` a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is `any`; OpenCode over Ollama is `device`), never where the CLI process runs. Every row is served on the gateway's loopback address, so the address says nothing — read this field.
 @BuiltValue()
 abstract class Model implements Built<Model, ModelBuilder> {
   @BuiltValueField(wireName: r'id')
@@ -64,6 +65,11 @@ abstract class Model implements Built<Model, ModelBuilder> {
   /// False when the agent cannot take per-turn tools.
   @BuiltValueField(wireName: r'tools')
   bool? get tools;
+
+  /// 0.40.0+ — where the model runs, which is what a privacy ceiling reads: `device` on this machine, `trusted` on the private network, `any` a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is `any`; OpenCode over Ollama is `device`), never where the CLI process runs. Every row is served on the gateway's loopback address, so the address says nothing — read this field.
+  @BuiltValueField(wireName: r'reach')
+  ModelReachEnum? get reach;
+  // enum reachEnum {  device,  trusted,  any,  };
 
   Model._();
 
@@ -159,6 +165,13 @@ class _$ModelSerializer implements PrimitiveSerializer<Model> {
       yield serializers.serialize(
         object.tools,
         specifiedType: const FullType(bool),
+      );
+    }
+    if (object.reach != null) {
+      yield r'reach';
+      yield serializers.serialize(
+        object.reach,
+        specifiedType: const FullType(ModelReachEnum),
       );
     }
   }
@@ -270,6 +283,14 @@ class _$ModelSerializer implements PrimitiveSerializer<Model> {
           if (valueDes == null) continue;
           result.tools = valueDes;
           break;
+        case r'reach':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(ModelReachEnum),
+          ) as ModelReachEnum?;
+          if (valueDes == null) continue;
+          result.reach = valueDes;
+          break;
         default:
           unhandled.add(key);
           unhandled.add(value);
@@ -329,5 +350,23 @@ class ModelProviderTypeEnum extends EnumClass {
 
   static BuiltSet<ModelProviderTypeEnum> get values => _$modelProviderTypeEnumValues;
   static ModelProviderTypeEnum valueOf(String name) => _$modelProviderTypeEnumValueOf(name);
+}
+
+/// 0.40.0+ — where the model runs, which is what a privacy ceiling reads: `device` on this machine, `trusted` on the private network, `any` a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is `any`; OpenCode over Ollama is `device`), never where the CLI process runs. Every row is served on the gateway's loopback address, so the address says nothing — read this field.
+class ModelReachEnum extends EnumClass {
+
+  @BuiltValueEnumConst(wireName: r'device')
+  static const ModelReachEnum device = _$modelReachEnum_device;
+  @BuiltValueEnumConst(wireName: r'trusted')
+  static const ModelReachEnum trusted = _$modelReachEnum_trusted;
+  @BuiltValueEnumConst(wireName: r'any')
+  static const ModelReachEnum any = _$modelReachEnum_any;
+
+  static Serializer<ModelReachEnum> get serializer => _$modelReachEnumSerializer;
+
+  const ModelReachEnum._(String name): super(name);
+
+  static BuiltSet<ModelReachEnum> get values => _$modelReachEnumValues;
+  static ModelReachEnum valueOf(String name) => _$modelReachEnumValueOf(name);
 }
 

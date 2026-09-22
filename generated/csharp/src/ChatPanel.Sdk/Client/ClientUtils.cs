@@ -164,6 +164,8 @@ namespace ChatPanel.Sdk.Client
                 return Model.ObjectEnumToJsonValue(modelObjectEnum);
             if (obj is Model.ProviderTypeEnum modelProviderTypeEnum)
                 return Model.ProviderTypeEnumToJsonValue(modelProviderTypeEnum);
+            if (obj is Model.ReachEnum modelReachEnum)
+                return Model.ReachEnumToJsonValue(modelReachEnum);
             if (obj is ModelList.ObjectEnum modelListObjectEnum)
                 return ModelList.ObjectEnumToJsonValue(modelListObjectEnum);
             if (obj is PrefsEvent.TypeEnum prefsEventTypeEnum)

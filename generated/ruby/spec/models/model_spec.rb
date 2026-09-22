@@ -101,4 +101,14 @@ describe ChatPanel::Model do
     end
   end
 
+  describe 'test attribute "reach"' do
+    it 'should work' do
+      # assertion here. ref: https://rspec.info/features/3-12/rspec-expectations/built-in-matchers/
+      # validator = Petstore::EnumTest::EnumAttributeValidator.new('String', ["device", "trusted", "any"])
+      # validator.allowable_values.each do |value|
+      #   expect { instance.reach = value }.not_to raise_error
+      # end
+    end
+  end
+
 end

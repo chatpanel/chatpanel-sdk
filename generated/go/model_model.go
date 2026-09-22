@@ -35,6 +35,8 @@ type Model struct {
 	Reason *string `json:"reason,omitempty"`
 	// False when the agent cannot take per-turn tools.
 	Tools *bool `json:"tools,omitempty"`
+	// 0.40.0+ — where the model runs, which is what a privacy ceiling reads: `device` on this machine, `trusted` on the private network, `any` a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is `any`; OpenCode over Ollama is `device`), never where the CLI process runs. Every row is served on the gateway's loopback address, so the address says nothing — read this field.
+	Reach *string `json:"reach,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -395,6 +397,38 @@ func (o *Model) SetTools(v bool) {
 	o.Tools = &v
 }
 
+// GetReach returns the Reach field value if set, zero value otherwise.
+func (o *Model) GetReach() string {
+	if o == nil || IsNil(o.Reach) {
+		var ret string
+		return ret
+	}
+	return *o.Reach
+}
+
+// GetReachOk returns a tuple with the Reach field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *Model) GetReachOk() (*string, bool) {
+	if o == nil || IsNil(o.Reach) {
+		return nil, false
+	}
+	return o.Reach, true
+}
+
+// HasReach returns a boolean if a field has been set.
+func (o *Model) HasReach() bool {
+	if o != nil && !IsNil(o.Reach) {
+		return true
+	}
+
+	return false
+}
+
+// SetReach gets a reference to the given string and assigns it to the Reach field.
+func (o *Model) SetReach(v string) {
+	o.Reach = &v
+}
+
 func (o Model) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -433,6 +467,9 @@ func (o Model) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Tools) {
 		toSerialize["tools"] = o.Tools
+	}
+	if !IsNil(o.Reach) {
+		toSerialize["reach"] = o.Reach
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -489,6 +526,7 @@ func (o *Model) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "configured")
 		delete(additionalProperties, "reason")
 		delete(additionalProperties, "tools")
+		delete(additionalProperties, "reach")
 		o.AdditionalProperties = additionalProperties
 	}
 

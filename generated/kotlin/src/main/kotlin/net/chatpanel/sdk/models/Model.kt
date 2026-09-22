@@ -41,6 +41,7 @@ import com.squareup.moshi.JsonClass
  * @param configured 0.6.66+ — false when a turn is known to fail for something the user can fix.
  * @param reason 
  * @param tools False when the agent cannot take per-turn tools.
+ * @param reach 0.40.0+ — where the model runs, which is what a privacy ceiling reads: `device` on this machine, `trusted` on the private network, `any` a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is `any`; OpenCode over Ollama is `device`), never where the CLI process runs. Every row is served on the gateway's loopback address, so the address says nothing — read this field.
  */
 
 
@@ -81,7 +82,11 @@ data class Model (
 
     /* False when the agent cannot take per-turn tools. */
     @Json(name = "tools")
-    val tools: kotlin.Boolean? = null
+    val tools: kotlin.Boolean? = null,
+
+    /* 0.40.0+ — where the model runs, which is what a privacy ceiling reads: `device` on this machine, `trusted` on the private network, `any` a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is `any`; OpenCode over Ollama is `device`), never where the CLI process runs. Every row is served on the gateway's loopback address, so the address says nothing — read this field. */
+    @Json(name = "reach")
+    val reach: Model.Reach? = null
 
 ) : kotlin.collections.HashMap<String, kotlin.Any>() {
 
@@ -104,6 +109,17 @@ data class Model (
         @Json(name = "agent") agent("agent"),
         @Json(name = "openai") openai("openai"),
         @Json(name = "anthropic") anthropic("anthropic");
+    }
+    /**
+     * 0.40.0+ — where the model runs, which is what a privacy ceiling reads: `device` on this machine, `trusted` on the private network, `any` a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is `any`; OpenCode over Ollama is `device`), never where the CLI process runs. Every row is served on the gateway's loopback address, so the address says nothing — read this field.
+     *
+     * Values: device,trusted,any
+     */
+    @JsonClass(generateAdapter = false)
+    enum class Reach(val value: kotlin.String) {
+        @Json(name = "device") device("device"),
+        @Json(name = "trusted") trusted("trusted"),
+        @Json(name = "any") any("any");
     }
 
 }

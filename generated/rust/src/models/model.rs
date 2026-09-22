@@ -39,6 +39,9 @@ pub struct Model {
     /// False when the agent cannot take per-turn tools.
     #[serde(rename = "tools", skip_serializing_if = "Option::is_none")]
     pub tools: Option<bool>,
+    /// 0.40.0+ — where the model runs, which is what a privacy ceiling reads: `device` on this machine, `trusted` on the private network, `any` a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is `any`; OpenCode over Ollama is `device`), never where the CLI process runs. Every row is served on the gateway's loopback address, so the address says nothing — read this field.
+    #[serde(rename = "reach", skip_serializing_if = "Option::is_none")]
+    pub reach: Option<Reach>,
 }
 
 impl Model {
@@ -55,6 +58,7 @@ impl Model {
             configured: None,
             reason: None,
             tools: None,
+            reach: None,
         }
     }
 }
@@ -84,6 +88,22 @@ pub enum ProviderType {
 impl Default for ProviderType {
     fn default() -> ProviderType {
         Self::Agent
+    }
+}
+/// 0.40.0+ — where the model runs, which is what a privacy ceiling reads: `device` on this machine, `trusted` on the private network, `any` a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is `any`; OpenCode over Ollama is `device`), never where the CLI process runs. Every row is served on the gateway's loopback address, so the address says nothing — read this field.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum Reach {
+    #[serde(rename = "device")]
+    Device,
+    #[serde(rename = "trusted")]
+    Trusted,
+    #[serde(rename = "any")]
+    Any,
+}
+
+impl Default for Reach {
+    fn default() -> Reach {
+        Self::Device
     }
 }
 

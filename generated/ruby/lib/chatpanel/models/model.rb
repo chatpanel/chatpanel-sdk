@@ -41,6 +41,9 @@ module ChatPanel
     # False when the agent cannot take per-turn tools.
     attr_accessor :tools
 
+    # 0.40.0+ — where the model runs, which is what a privacy ceiling reads: `device` on this machine, `trusted` on the private network, `any` a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is `any`; OpenCode over Ollama is `device`), never where the CLI process runs. Every row is served on the gateway's loopback address, so the address says nothing — read this field.
+    attr_accessor :reach
+
     class EnumAttributeValidator
       attr_reader :datatype
       attr_reader :allowable_values
@@ -76,7 +79,8 @@ module ChatPanel
         :'available' => :'available',
         :'configured' => :'configured',
         :'reason' => :'reason',
-        :'tools' => :'tools'
+        :'tools' => :'tools',
+        :'reach' => :'reach'
       }
     end
 
@@ -103,7 +107,8 @@ module ChatPanel
         :'available' => :'Boolean',
         :'configured' => :'Boolean',
         :'reason' => :'String',
-        :'tools' => :'Boolean'
+        :'tools' => :'Boolean',
+        :'reach' => :'String'
       }
     end
 
@@ -178,6 +183,10 @@ module ChatPanel
       if attributes.key?(:'tools')
         self.tools = attributes[:'tools']
       end
+
+      if attributes.key?(:'reach')
+        self.reach = attributes[:'reach']
+      end
     end
 
     # Show invalid properties with the reasons. Usually used together with valid?
@@ -206,6 +215,8 @@ module ChatPanel
       return false unless object_validator.valid?(@object)
       provider_type_validator = EnumAttributeValidator.new('String', ["agent", "openai", "anthropic"])
       return false unless provider_type_validator.valid?(@provider_type)
+      reach_validator = EnumAttributeValidator.new('String', ["device", "trusted", "any"])
+      return false unless reach_validator.valid?(@reach)
       true
     end
 
@@ -239,6 +250,16 @@ module ChatPanel
       @provider_type = provider_type
     end
 
+    # Custom attribute writer method checking allowed values (enum).
+    # @param [Object] reach Object to be assigned
+    def reach=(reach)
+      validator = EnumAttributeValidator.new('String', ["device", "trusted", "any"])
+      unless validator.valid?(reach)
+        fail ArgumentError, "invalid value for \"reach\", must be one of #{validator.allowable_values}."
+      end
+      @reach = reach
+    end
+
     # Checks equality by comparing each attribute.
     # @param [Object] Object to be compared
     def ==(o)
@@ -254,7 +275,8 @@ module ChatPanel
           available == o.available &&
           configured == o.configured &&
           reason == o.reason &&
-          tools == o.tools
+          tools == o.tools &&
+          reach == o.reach
     end
 
     # @see the `==` method
@@ -266,7 +288,7 @@ module ChatPanel
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [id, object, owned_by, provider, provider_type, api, endpoints, available, configured, reason, tools].hash
+      [id, object, owned_by, provider, provider_type, api, endpoints, available, configured, reason, tools, reach].hash
     end
 
     # Builds the object from hash

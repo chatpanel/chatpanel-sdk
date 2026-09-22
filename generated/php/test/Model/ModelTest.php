@@ -177,4 +177,13 @@ class ModelTest extends TestCase
         // TODO: implement
         self::markTestIncomplete('Not implemented');
     }
+
+    /**
+     * Test attribute "reach"
+     */
+    public function testPropertyReach()
+    {
+        // TODO: implement
+        self::markTestIncomplete('Not implemented');
+    }
 }

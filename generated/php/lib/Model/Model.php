@@ -67,7 +67,8 @@ class Model implements ModelInterface, ArrayAccess, \JsonSerializable
         'available' => 'bool',
         'configured' => 'bool',
         'reason' => 'string',
-        'tools' => 'bool'
+        'tools' => 'bool',
+        'reach' => 'string'
     ];
 
     /**
@@ -88,7 +89,8 @@ class Model implements ModelInterface, ArrayAccess, \JsonSerializable
         'available' => null,
         'configured' => null,
         'reason' => null,
-        'tools' => null
+        'tools' => null,
+        'reach' => null
     ];
 
     /**
@@ -107,7 +109,8 @@ class Model implements ModelInterface, ArrayAccess, \JsonSerializable
         'available' => false,
         'configured' => false,
         'reason' => false,
-        'tools' => false
+        'tools' => false,
+        'reach' => false
     ];
 
     /**
@@ -206,7 +209,8 @@ class Model implements ModelInterface, ArrayAccess, \JsonSerializable
         'available' => 'available',
         'configured' => 'configured',
         'reason' => 'reason',
-        'tools' => 'tools'
+        'tools' => 'tools',
+        'reach' => 'reach'
     ];
 
     /**
@@ -225,7 +229,8 @@ class Model implements ModelInterface, ArrayAccess, \JsonSerializable
         'available' => 'setAvailable',
         'configured' => 'setConfigured',
         'reason' => 'setReason',
-        'tools' => 'setTools'
+        'tools' => 'setTools',
+        'reach' => 'setReach'
     ];
 
     /**
@@ -244,7 +249,8 @@ class Model implements ModelInterface, ArrayAccess, \JsonSerializable
         'available' => 'getAvailable',
         'configured' => 'getConfigured',
         'reason' => 'getReason',
-        'tools' => 'getTools'
+        'tools' => 'getTools',
+        'reach' => 'getReach'
     ];
 
     /**
@@ -292,6 +298,9 @@ class Model implements ModelInterface, ArrayAccess, \JsonSerializable
     public const PROVIDER_TYPE_AGENT = 'agent';
     public const PROVIDER_TYPE_OPENAI = 'openai';
     public const PROVIDER_TYPE_ANTHROPIC = 'anthropic';
+    public const REACH_DEVICE = 'device';
+    public const REACH_TRUSTED = 'trusted';
+    public const REACH_ANY = 'any';
 
     /**
      * Gets allowable values of the enum
@@ -316,6 +325,20 @@ class Model implements ModelInterface, ArrayAccess, \JsonSerializable
             self::PROVIDER_TYPE_AGENT,
             self::PROVIDER_TYPE_OPENAI,
             self::PROVIDER_TYPE_ANTHROPIC,
+        ];
+    }
+
+    /**
+     * Gets allowable values of the enum
+     *
+     * @return string[]
+     */
+    public function getReachAllowableValues()
+    {
+        return [
+            self::REACH_DEVICE,
+            self::REACH_TRUSTED,
+            self::REACH_ANY,
         ];
     }
 
@@ -345,6 +368,7 @@ class Model implements ModelInterface, ArrayAccess, \JsonSerializable
         $this->setIfExists('configured', $data ?? [], null);
         $this->setIfExists('reason', $data ?? [], null);
         $this->setIfExists('tools', $data ?? [], null);
+        $this->setIfExists('reach', $data ?? [], null);
     }
 
     /**
@@ -394,6 +418,15 @@ class Model implements ModelInterface, ArrayAccess, \JsonSerializable
             $invalidProperties[] = sprintf(
                 "invalid value '%s' for 'provider_type', must be one of '%s'",
                 $this->container['provider_type'],
+                implode("', '", $allowedValues)
+            );
+        }
+
+        $allowedValues = $this->getReachAllowableValues();
+        if (!is_null($this->container['reach']) && !in_array($this->container['reach'], $allowedValues, true)) {
+            $invalidProperties[] = sprintf(
+                "invalid value '%s' for 'reach', must be one of '%s'",
+                $this->container['reach'],
                 implode("', '", $allowedValues)
             );
         }
@@ -726,6 +759,43 @@ class Model implements ModelInterface, ArrayAccess, \JsonSerializable
             throw new \InvalidArgumentException('non-nullable tools cannot be null');
         }
         $this->container['tools'] = $tools;
+
+        return $this;
+    }
+
+    /**
+     * Gets reach
+     *
+     * @return string|null
+     */
+    public function getReach()
+    {
+        return $this->container['reach'];
+    }
+
+    /**
+     * Sets reach
+     *
+     * @param string|null $reach 0.40.0+ — where the model runs, which is what a privacy ceiling reads: `device` on this machine, `trusted` on the private network, `any` a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is `any`; OpenCode over Ollama is `device`), never where the CLI process runs. Every row is served on the gateway's loopback address, so the address says nothing — read this field.
+     *
+     * @return self
+     */
+    public function setReach($reach)
+    {
+        if (is_null($reach)) {
+            throw new \InvalidArgumentException('non-nullable reach cannot be null');
+        }
+        $allowedValues = $this->getReachAllowableValues();
+        if (!in_array($reach, $allowedValues, true)) {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    "Invalid value '%s' for 'reach', must be one of '%s'",
+                    $reach,
+                    implode("', '", $allowedValues)
+                )
+            );
+        }
+        $this->container['reach'] = $reach;
 
         return $this;
     }

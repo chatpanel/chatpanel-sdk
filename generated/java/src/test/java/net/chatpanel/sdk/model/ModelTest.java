@@ -127,4 +127,12 @@ class ModelTest {
         // TODO: test tools
     }
 
+    /**
+     * Test the property 'reach'
+     */
+    @Test
+    void reachTest() {
+        // TODO: test reach
+    }
+
 }

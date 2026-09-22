@@ -49,7 +49,8 @@ import net.chatpanel.sdk.ApiClient;
   Model.JSON_PROPERTY_AVAILABLE,
   Model.JSON_PROPERTY_CONFIGURED,
   Model.JSON_PROPERTY_REASON,
-  Model.JSON_PROPERTY_TOOLS
+  Model.JSON_PROPERTY_TOOLS,
+  Model.JSON_PROPERTY_REACH
 })
 @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.25.0")
 public class Model {
@@ -166,6 +167,47 @@ public class Model {
   public static final String JSON_PROPERTY_TOOLS = "tools";
   @jakarta.annotation.Nullable
   private Boolean tools;
+
+  /**
+   * 0.40.0+ — where the model runs, which is what a privacy ceiling reads: &#x60;device&#x60; on this machine, &#x60;trusted&#x60; on the private network, &#x60;any&#x60; a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is &#x60;any&#x60;; OpenCode over Ollama is &#x60;device&#x60;), never where the CLI process runs. Every row is served on the gateway&#39;s loopback address, so the address says nothing — read this field.
+   */
+  public enum ReachEnum {
+    DEVICE(String.valueOf("device")),
+    
+    TRUSTED(String.valueOf("trusted")),
+    
+    ANY(String.valueOf("any"));
+
+    private String value;
+
+    ReachEnum(String value) {
+      this.value = value;
+    }
+
+    @JsonValue
+    public String getValue() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return String.valueOf(value);
+    }
+
+    @JsonCreator
+    public static ReachEnum fromValue(String value) {
+      for (ReachEnum b : ReachEnum.values()) {
+        if (b.value.equals(value)) {
+          return b;
+        }
+      }
+      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+    }
+  }
+
+  public static final String JSON_PROPERTY_REACH = "reach";
+  @jakarta.annotation.Nullable
+  private ReachEnum reach;
 
   public Model() { 
   }
@@ -441,6 +483,30 @@ public class Model {
     this.tools = tools;
   }
 
+
+  public Model reach(@jakarta.annotation.Nullable ReachEnum reach) {
+    this.reach = reach;
+    return this;
+  }
+
+  /**
+   * 0.40.0+ — where the model runs, which is what a privacy ceiling reads: &#x60;device&#x60; on this machine, &#x60;trusted&#x60; on the private network, &#x60;any&#x60; a cloud. For a coding agent it is where its MODEL is (Codex → OpenAI is &#x60;any&#x60;; OpenCode over Ollama is &#x60;device&#x60;), never where the CLI process runs. Every row is served on the gateway&#39;s loopback address, so the address says nothing — read this field.
+   * @return reach
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_REACH, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public ReachEnum getReach() {
+    return reach;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_REACH, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setReach(@jakarta.annotation.Nullable ReachEnum reach) {
+    this.reach = reach;
+  }
+
   /**
    * A container for additional, undeclared properties.
    * This is a holder for any undeclared properties as specified with
@@ -507,13 +573,14 @@ public class Model {
         Objects.equals(this.available, model.available) &&
         Objects.equals(this.configured, model.configured) &&
         Objects.equals(this.reason, model.reason) &&
-        Objects.equals(this.tools, model.tools)&&
+        Objects.equals(this.tools, model.tools) &&
+        Objects.equals(this.reach, model.reach)&&
         Objects.equals(this.additionalProperties, model.additionalProperties);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, _object, ownedBy, provider, providerType, api, endpoints, available, configured, reason, tools, additionalProperties);
+    return Objects.hash(id, _object, ownedBy, provider, providerType, api, endpoints, available, configured, reason, tools, reach, additionalProperties);
   }
 
   @Override
@@ -531,6 +598,7 @@ public class Model {
     sb.append("    configured: ").append(toIndentedString(configured)).append("\n");
     sb.append("    reason: ").append(toIndentedString(reason)).append("\n");
     sb.append("    tools: ").append(toIndentedString(tools)).append("\n");
+    sb.append("    reach: ").append(toIndentedString(reach)).append("\n");
     sb.append("    additionalProperties: ").append(toIndentedString(additionalProperties)).append("\n");
     sb.append("}");
     return sb.toString();
@@ -633,6 +701,11 @@ public class Model {
     // add `tools` to the URL query string
     if (getTools() != null) {
       joiner.add(String.format(java.util.Locale.ROOT, "%stools%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getTools()))));
+    }
+
+    // add `reach` to the URL query string
+    if (getReach() != null) {
+      joiner.add(String.format(java.util.Locale.ROOT, "%sreach%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getReach()))));
     }
 
     return joiner.toString();
