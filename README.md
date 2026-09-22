@@ -45,7 +45,7 @@ for text in cp.chat.text({"model": "codex", "messages": [{"role": "user", "conte
     print(text, end="", flush=True)
 ```
 
-The gateway must be running on the same machine (`npm i -g @chatpanel/gateway && chatpanel-gateway`,
+The gateway must be running on the same machine (`npm i -g @chatpanel/gateway --ignore-scripts && chatpanel-gateway`,
 or the ChatPanel desktop app, which bundles it). Reads on the `/v1` data plane are open to any
 local process; writes that change what every client sees (remember, forget, ingest) need the
 per-install token — `fromEnvironment()` finds it, a browser client `pair()`s for it.
