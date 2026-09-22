@@ -43,12 +43,13 @@ const NOT_IN_SDK = {
   '/tts': 'read-aloud — a later surface with /v1/audio/speech',
   '/tts/models': 'model manager',
   '/tts/voices': 'voice cloning — a later surface',
-  '/v1/audio/speech': 'read-aloud — a later surface',
   '/v1/engines/{engineKey}/card|entries': 'covered as two spec paths',
 };
 
 const spec = loadSpec();
-const specPaths = new Set(listOperations(spec).map((o) => o.path));
+// Every path the spec documents — including the `x-chatpanel-sdk: manual` ones the generator
+// skips (a multipart upload, a binary download): the contract is about the surface, not the client.
+const specPaths = new Set(Object.keys(spec.paths || {}));
 // A spec path with `{x}` → a matcher for the concrete paths the gateway's comments/regexes name.
 const specMatches = (p) => [...specPaths].some((sp) => new RegExp(`^${sp.replace(/\{[^}]+\}/g, '[^/]+')}$`).test(p));
 

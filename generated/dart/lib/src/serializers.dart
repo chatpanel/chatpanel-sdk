@@ -16,6 +16,7 @@ import 'package:chatpanel/src/model/date.dart';
 
 import 'package:chatpanel/src/model/agents_rate_request.dart';
 import 'package:chatpanel/src/model/agents_scorecards200_response.dart';
+import 'package:chatpanel/src/model/audio_speech_request.dart';
 import 'package:chatpanel/src/model/audit.dart';
 import 'package:chatpanel/src/model/capabilities_document.dart';
 import 'package:chatpanel/src/model/capabilities_document_server.dart';
@@ -51,6 +52,11 @@ import 'package:chatpanel/src/model/events_stats_stats.dart';
 import 'package:chatpanel/src/model/events_stream_event.dart';
 import 'package:chatpanel/src/model/extract_request.dart';
 import 'package:chatpanel/src/model/extract_response.dart';
+import 'package:chatpanel/src/model/fusion_list.dart';
+import 'package:chatpanel/src/model/fusion_list_fusions_inner.dart';
+import 'package:chatpanel/src/model/fusion_list_fusions_inner_members_inner.dart';
+import 'package:chatpanel/src/model/fusion_list_fusions_inner_members_inner_one_of.dart';
+import 'package:chatpanel/src/model/fusion_list_kinds_value.dart';
 import 'package:chatpanel/src/model/gateway_pair_request.dart';
 import 'package:chatpanel/src/model/health.dart';
 import 'package:chatpanel/src/model/history_get200_response.dart';
@@ -139,6 +145,8 @@ import 'package:chatpanel/src/model/teams_decide_request.dart';
 import 'package:chatpanel/src/model/teams_handoff_request.dart';
 import 'package:chatpanel/src/model/teams_list_runs200_response.dart';
 import 'package:chatpanel/src/model/teams_post_request.dart';
+import 'package:chatpanel/src/model/transcription.dart';
+import 'package:chatpanel/src/model/transcription_segments_inner.dart';
 import 'package:chatpanel/src/model/web_search_request.dart';
 import 'package:chatpanel/src/model/web_search_response.dart';
 import 'package:chatpanel/src/model/web_search_result.dart';
@@ -149,6 +157,7 @@ part 'serializers.g.dart';
 @SerializersFor([
   AgentsRateRequest,
   AgentsScorecards200Response,
+  AudioSpeechRequest,
   Audit,
   CapabilitiesDocument,
   CapabilitiesDocumentServer,
@@ -184,6 +193,11 @@ part 'serializers.g.dart';
   EventsStreamEvent,
   ExtractRequest,
   ExtractResponse,
+  FusionList,
+  FusionListFusionsInner,
+  FusionListFusionsInnerMembersInner,
+  FusionListFusionsInnerMembersInnerOneOf,
+  FusionListKindsValue,
   GatewayPairRequest,
   Health,
   HistoryGet200Response,
@@ -272,6 +286,8 @@ part 'serializers.g.dart';
   TeamsHandoffRequest,
   TeamsListRuns200Response,
   TeamsPostRequest,
+  Transcription,
+  TranscriptionSegmentsInner,
   WebSearchRequest,
   WebSearchResponse,
   WebSearchResult,
@@ -281,6 +297,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(RunEvent)]),
         () => ListBuilder<RunEvent>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(FusionListFusionsInner)]),
+        () => ListBuilder<FusionListFusionsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(Capability)]),
@@ -297,6 +317,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(Skill)]),
         () => ListBuilder<Skill>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(TranscriptionSegmentsInner)]),
+        () => ListBuilder<TranscriptionSegmentsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(TeamRun)]),
@@ -367,8 +391,16 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<ReadSection>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(FusionListFusionsInnerMembersInner)]),
+        () => ListBuilder<FusionListFusionsInnerMembersInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SearchHit)]),
         () => ListBuilder<SearchHit>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType(FusionListKindsValue)]),
+        () => MapBuilder<String, FusionListKindsValue>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(WebSearchResult)]),

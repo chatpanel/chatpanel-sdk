@@ -43,6 +43,10 @@ export function listOperations(spec) {
     for (const method of METHODS) {
       const op = item[method];
       if (!op) continue;
+      // `x-chatpanel-sdk: manual` — documented in the spec, checked by the contract, but not a
+      // generated method: a multipart upload (audio.transcribe) is one line of FormData in any
+      // language and a generator that only speaks JSON would produce a wrong client for it.
+      if (op['x-chatpanel-sdk'] === 'manual') continue;
       const own = (op.parameters || []).map((p) => deref(spec, p));
       const params = [...shared.filter((s) => !own.some((o) => o.name === s.name && o.in === s.in)), ...own];
       const body = op.requestBody ? deref(spec, op.requestBody)?.content?.['application/json']?.schema || null : null;

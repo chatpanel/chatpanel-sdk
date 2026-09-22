@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.25.0
+  version: 0.35.0
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -64,6 +64,10 @@ tags:
     description: Liveness, identity and pairing.
   - name: models
     description: What the gateway can route to.
+  - name: fusions
+    description: Several models as one — union, draft + target, fallback.
+  - name: audio
+    description: Speech in and out, OpenAI-shaped, over the gateway's own engines or its table's provider.
   - name: chat
     description: The OpenAI-compatible chat endpoint, redacted and routed by the gateway.
   - name: redaction
@@ -1846,6 +1850,103 @@ paths:
         '400': { $ref: '#/components/responses/Error' }
         '502': { $ref: '#/components/responses/Error' }
 
+  # ── audio ──────────────────────────────────────────────────────────────────────────────
+  /v1/audio/transcriptions:
+    post:
+      operationId: audio.transcribe
+      tags: [audio]
+      summary: Transcribe an audio file (OpenAI-compatible).
+      description: |
+        OpenAI's shape over the gateway's own transcriber — the in-process whisper, or the
+        provider its capability table names (a hosted API, a container the Runtime started).
+        A WAV is decoded by the gateway itself; mp3/m4a/webm/ogg/flac go through `ffmpeg` when it
+        is on the gateway's PATH, else 415 says so. Beyond OpenAI: `diarize=true` puts a
+        `speaker` on every segment of `verbose_json`. The live microphone keeps the session API
+        (`/stt/sessions`); this is for a file.
+      x-chatpanel-since: '0.34.0'
+      x-chatpanel-auth: open
+      x-chatpanel-sdk: manual
+      x-chatpanel-scope: the audio leaves the machine only when the table's STT provider is remote
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary, description: 'WAV (any rate, channels, 8/16/24/32-bit or float), or any format ffmpeg reads.' }
+                model: { type: string, description: 'Ignored — the gateway transcribes with what its table says; kept for OpenAI clients.' }
+                language: { type: string, description: 'ISO code; auto-detected when absent.' }
+                response_format: { type: string, enum: [json, text, verbose_json], default: json }
+                diarize: { type: string, enum: ['true', 'false'], description: 'A speaker per segment (verbose_json).' }
+      responses:
+        '200':
+          description: The transcript.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Transcription' }
+            text/plain:
+              schema: { type: string }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '415': { $ref: '#/components/responses/Error' }
+
+  /v1/audio/speech:
+    post:
+      operationId: audio.speech
+      tags: [audio]
+      summary: Text to speech (OpenAI-compatible) — a WAV back.
+      description: |
+        `{ input, voice?, speed?, response_format? }` → `audio/wav`, from the gateway's own
+        voice (Kokoro / VITS in-process) or the provider its table names (an ElevenLabs or
+        OpenAI voice — then the text leaves the machine, and the audit says so). Not redacted:
+        synthesis is for the person who wrote the text. `/tts` is the same handler with `text`.
+      x-chatpanel-since: '0.6.60'
+      x-chatpanel-auth: open
+      x-chatpanel-sdk: manual
+      x-chatpanel-scope: the text leaves the machine only when the table's TTS provider is remote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [input]
+              properties:
+                input: { type: string, maxLength: 20000 }
+                voice: { type: string, description: 'A local voice id, or the remote provider’s; the configured default when absent.' }
+                speed: { type: number, minimum: 0.5, maximum: 2, default: 1 }
+                response_format: { type: string, enum: [wav], default: wav, description: 'WAV is what the local engine makes.' }
+      responses:
+        '200':
+          description: The audio.
+          content:
+            audio/wav:
+              schema: { type: string, format: binary }
+        '400': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+
+  # ── fusions ────────────────────────────────────────────────────────────────────────────
+  /v1/fusions:
+    get:
+      operationId: fusions.list
+      tags: [fusions]
+      summary: Several models as one — the fusions this gateway has.
+      description: |
+        Derived from state (the entity detector's union once a companion is ready, an engine
+        drafting with a second model) and composed by the user (`POST /config { fusions }`, a
+        chat fallback in order). A chat turn names a fallback as `model: "fusion:<id>"` and is
+        routed to the first member that is up; `x-chatpanel-fusion` on the response says which.
+      x-chatpanel-since: '0.33.0'
+      x-chatpanel-auth: open
+      responses:
+        '200':
+          description: The kinds and the fusions, each described.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FusionList' }
+
 components:
   securitySchemes:
     gatewayToken:
@@ -2798,3 +2899,62 @@ components:
         description: { type: string }
         promptChars: { type: integer }
         prompt: { type: string, description: "Only on `GET /skills/{skillId}`." }
+
+    Transcription:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string }
+        task: { type: string, enum: [transcribe], description: verbose_json only }
+        language: { type: string, nullable: true, description: verbose_json only }
+        duration: { type: number, description: 'Seconds of audio; verbose_json only.' }
+        provider: { type: string, enum: [embedded, remote, container], description: 'Who transcribed; verbose_json only.' }
+        took_ms: { type: integer }
+        segments:
+          type: array
+          description: verbose_json only.
+          items:
+            type: object
+            required: [id, start, end, text]
+            properties:
+              id: { type: integer }
+              start: { type: number }
+              end: { type: number }
+              text: { type: string }
+              speaker: { type: string, description: 'With diarize=true.' }
+    FusionList:
+      type: object
+      required: [kinds, fusions]
+      properties:
+        kinds:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              id: { type: string }
+              label: { type: string }
+              gain: { type: string, enum: [recall, speed, reliability] }
+              what: { type: string }
+              for: { type: array, items: { type: string } }
+        fusions:
+          type: array
+          items:
+            type: object
+            required: [id, kind, capability, members]
+            properties:
+              id: { type: string }
+              kind: { type: string, enum: [union, draft, fallback] }
+              capability: { type: string }
+              label: { type: string }
+              members:
+                type: array
+                items:
+                  oneOf:
+                    - type: string
+                    - type: object
+                      required: [id]
+                      properties: { id: { type: string }, role: { type: string, enum: [target, draft] } }
+              derived: { type: boolean, description: 'Read from the gateway’s state, not composed.' }
+              source: { type: string, description: 'For a derived one: ner, or the runtime service.' }
+              running: { type: boolean }
+              describe: { type: string, description: 'The fusion in a sentence.' }

@@ -10,10 +10,12 @@ import 'package:chatpanel/src/auth/basic_auth.dart';
 import 'package:chatpanel/src/auth/bearer_auth.dart';
 import 'package:chatpanel/src/auth/oauth.dart';
 import 'package:chatpanel/src/api/agents_api.dart';
+import 'package:chatpanel/src/api/audio_api.dart';
 import 'package:chatpanel/src/api/capabilities_api.dart';
 import 'package:chatpanel/src/api/chat_api.dart';
 import 'package:chatpanel/src/api/engines_api.dart';
 import 'package:chatpanel/src/api/events_api.dart';
+import 'package:chatpanel/src/api/fusions_api.dart';
 import 'package:chatpanel/src/api/gateway_api.dart';
 import 'package:chatpanel/src/api/history_api.dart';
 import 'package:chatpanel/src/api/memory_api.dart';
@@ -126,6 +128,12 @@ class Chatpanel {
     return AgentsApi(dio, serializers);
   }
 
+  /// Get AudioApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AudioApi getAudioApi() {
+    return AudioApi(dio, serializers);
+  }
+
   /// Get CapabilitiesApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   CapabilitiesApi getCapabilitiesApi() {
@@ -148,6 +156,12 @@ class Chatpanel {
   /// by doing that all interceptors will not be executed
   EventsApi getEventsApi() {
     return EventsApi(dio, serializers);
+  }
+
+  /// Get FusionsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  FusionsApi getFusionsApi() {
+    return FusionsApi(dio, serializers);
   }
 
   /// Get GatewayApi instance, base route and serializer can be overridden by a given but be careful,

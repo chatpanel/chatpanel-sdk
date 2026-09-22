@@ -82,6 +82,7 @@ OPERATIONS: Dict[str, Operation] = {
     "engines.appendEntry": Operation(id="engines.appendEntry", method="POST", path="/v1/engines/{engineKey}/entries", auth="open", since="0.6.89", stream=None, path_params=("engineKey",), query_params=()),
     "skills.list": Operation(id="skills.list", method="GET", path="/skills", auth="open", since="0.6.64", stream=None, path_params=(), query_params=("workdir",)),
     "skills.get": Operation(id="skills.get", method="GET", path="/skills/{skillId}", auth="open", since="0.6.67", stream=None, path_params=("skillId",), query_params=("workdir",)),
+    "fusions.list": Operation(id="fusions.list", method="GET", path="/v1/fusions", auth="open", since="0.33.0", stream=None, path_params=(), query_params=()),
 }
 """Every operation in the contract, keyed by operationId — the route table the runtime executes."""
 
@@ -509,6 +510,17 @@ class SkillsApi:
         return self._rt.request(OPERATIONS["skills.get"], path={"skillId": skill_id}, query=query, headers=headers, body=None, timeout=timeout)
 
 
+class FusionsApi:
+    """Several models as one — union, draft + target, fallback."""
+
+    def __init__(self, rt: Runtime) -> None:
+        self._rt = rt
+
+    def list(self, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.FusionList":
+        """Several models as one — the fusions this gateway has. Derived from state (the entity detector's union once a companion is ready, an engine drafting with a second model) and composed by the user (`POST /config { fusions }`, a chat fallback in order). A chat turn names a fallback as `model: "fusion:<id>"` and is routed to the first member that is up; `x-chatpanel-fusion` on the response says which. — Gateway 0.33.0+."""
+        return self._rt.request(OPERATIONS["fusions.list"], path={}, query=None, headers=headers, body=None, timeout=timeout)
+
+
 class Api:
     """The namespaces a client exposes, built on one runtime."""
 
@@ -529,3 +541,4 @@ class Api:
         self.retrieval = RetrievalApi(rt)
         self.engines = EnginesApi(rt)
         self.skills = SkillsApi(rt)
+        self.fusions = FusionsApi(rt)

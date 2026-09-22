@@ -703,3 +703,20 @@ class Skill(TypedDict, total=False):
     prompt: NotRequired[str]  # Only on `GET /skills/{skillId}`.
 
 
+class Transcription(TypedDict, total=False):
+    """Transcription"""
+    text: str
+    task: NotRequired[Literal["transcribe"]]  # verbose_json only
+    language: NotRequired[str]  # verbose_json only
+    duration: NotRequired[float]  # Seconds of audio; verbose_json only.
+    provider: NotRequired[Literal["embedded", "remote", "container"]]  # Who transcribed; verbose_json only.
+    took_ms: NotRequired[int]
+    segments: NotRequired[List[Dict[str, Any]]]  # verbose_json only.
+
+
+class FusionList(TypedDict, total=False):
+    """FusionList"""
+    kinds: Dict[str, Dict[str, Any]]
+    fusions: List[Dict[str, Any]]
+
+

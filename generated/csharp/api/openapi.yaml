@@ -24,7 +24,7 @@ info:
   license:
     name: Apache-2.0
   title: ChatPanel Gateway API
-  version: 0.25.0
+  version: 0.35.0
 servers:
 - description: The local gateway. Loopback only.
   url: http://127.0.0.1:4320
@@ -36,6 +36,11 @@ tags:
   name: gateway
 - description: What the gateway can route to.
   name: models
+- description: "Several models as one — union, draft + target, fallback."
+  name: fusions
+- description: "Speech in and out, OpenAI-shaped, over the gateway's own engines or\
+    \ its table's provider."
+  name: audio
 - description: "The OpenAI-compatible chat endpoint, redacted and routed by the gateway."
   name: chat
 - description: Preview what the model would receive.
@@ -2468,6 +2473,100 @@ paths:
         pattern: "^[^/\\\\]+$"
         type: string
       style: simple
+  /v1/audio/transcriptions:
+    post:
+      description: |
+        OpenAI's shape over the gateway's own transcriber — the in-process whisper, or the
+        provider its capability table names (a hosted API, a container the Runtime started).
+        A WAV is decoded by the gateway itself; mp3/m4a/webm/ogg/flac go through `ffmpeg` when it
+        is on the gateway's PATH, else 415 says so. Beyond OpenAI: `diarize=true` puts a
+        `speaker` on every segment of `verbose_json`. The live microphone keeps the session API
+        (`/stt/sessions`); this is for a file.
+      operationId: audio.transcribe
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/audio_transcribe_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transcription"
+            text/plain:
+              schema:
+                type: string
+          description: The transcript.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "415":
+          $ref: "#/components/responses/Error"
+      summary: Transcribe an audio file (OpenAI-compatible).
+      tags:
+      - audio
+      x-chatpanel-since: 0.34.0
+      x-chatpanel-auth: open
+      x-chatpanel-sdk: manual
+      x-chatpanel-scope: the audio leaves the machine only when the table's STT provider
+        is remote
+  /v1/audio/speech:
+    post:
+      description: |
+        `{ input, voice?, speed?, response_format? }` → `audio/wav`, from the gateway's own
+        voice (Kokoro / VITS in-process) or the provider its table names (an ElevenLabs or
+        OpenAI voice — then the text leaves the machine, and the audit says so). Not redacted:
+        synthesis is for the person who wrote the text. `/tts` is the same handler with `text`.
+      operationId: audio.speech
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/audio_speech_request"
+        required: true
+      responses:
+        "200":
+          content:
+            audio/wav:
+              schema:
+                format: binary
+                type: string
+          description: The audio.
+        "400":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      summary: Text to speech (OpenAI-compatible) — a WAV back.
+      tags:
+      - audio
+      x-chatpanel-since: 0.6.60
+      x-chatpanel-auth: open
+      x-chatpanel-sdk: manual
+      x-chatpanel-scope: the text leaves the machine only when the table's TTS provider
+        is remote
+  /v1/fusions:
+    get:
+      description: |
+        Derived from state (the entity detector's union once a companion is ready, an engine
+        drafting with a second model) and composed by the user (`POST /config { fusions }`, a
+        chat fallback in order). A chat turn names a fallback as `model: "fusion:<id>"` and is
+        routed to the first member that is up; `x-chatpanel-fusion` on the response says which.
+      operationId: fusions.list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FusionList"
+          description: "The kinds and the fusions, each described."
+      summary: Several models as one — the fusions this gateway has.
+      tags:
+      - fusions
+      x-chatpanel-since: 0.33.0
+      x-chatpanel-auth: open
 components:
   parameters:
     RunId:
@@ -5314,6 +5413,104 @@ components:
           type: string
       required:
       - id
+    Transcription:
+      example:
+        text: text
+        task: transcribe
+        language: language
+        duration: 0.8008281904610115
+        provider: embedded
+        took_ms: 6
+        segments:
+        - id: 1
+          start: 5.962133916683182
+          end: 5.637376656633329
+          text: text
+          speaker: speaker
+        - id: 1
+          start: 5.962133916683182
+          end: 5.637376656633329
+          text: text
+          speaker: speaker
+      properties:
+        text:
+          type: string
+        task:
+          description: verbose_json only
+          enum:
+          - transcribe
+          type: string
+        language:
+          description: verbose_json only
+          type: string
+          nullable: true
+        duration:
+          description: Seconds of audio; verbose_json only.
+          type: number
+        provider:
+          description: Who transcribed; verbose_json only.
+          enum:
+          - embedded
+          - remote
+          - container
+          type: string
+        took_ms:
+          type: integer
+        segments:
+          description: verbose_json only.
+          items:
+            $ref: "#/components/schemas/Transcription_segments_inner"
+          type: array
+          default: null
+      required:
+      - text
+    FusionList:
+      example:
+        kinds:
+          key:
+            id: id
+            label: label
+            gain: recall
+            what: what
+            for:
+            - for
+            - for
+        fusions:
+        - id: id
+          kind: union
+          capability: capability
+          label: label
+          members:
+          - FusionList_fusions_inner_members_inner
+          - FusionList_fusions_inner_members_inner
+          derived: true
+          source: source
+          running: true
+          describe: describe
+        - id: id
+          kind: union
+          capability: capability
+          label: label
+          members:
+          - FusionList_fusions_inner_members_inner
+          - FusionList_fusions_inner_members_inner
+          derived: true
+          source: source
+          running: true
+          describe: describe
+      properties:
+        kinds:
+          additionalProperties:
+            $ref: "#/components/schemas/FusionList_kinds_value"
+          type: object
+        fusions:
+          items:
+            $ref: "#/components/schemas/FusionList_fusions_inner"
+          type: array
+          default: null
+      required:
+      - fusions
+      - kinds
     gateway_pair_request:
       properties:
         code:
@@ -5828,6 +6025,57 @@ components:
           nullable: true
       required:
       - skill
+    audio_transcribe_request:
+      properties:
+        file:
+          description: "WAV (any rate, channels, 8/16/24/32-bit or float), or any\
+            \ format ffmpeg reads."
+          format: binary
+          type: string
+        model:
+          description: Ignored — the gateway transcribes with what its table says;
+            kept for OpenAI clients.
+          type: string
+        language:
+          description: ISO code; auto-detected when absent.
+          type: string
+        response_format:
+          default: json
+          enum:
+          - json
+          - text
+          - verbose_json
+          type: string
+        diarize:
+          description: A speaker per segment (verbose_json).
+          enum:
+          - "true"
+          - "false"
+          type: string
+      required:
+      - file
+    audio_speech_request:
+      properties:
+        input:
+          maxLength: 20000
+          type: string
+        voice:
+          description: "A local voice id, or the remote provider’s; the configured\
+            \ default when absent."
+          type: string
+        speed:
+          default: 1
+          maximum: 2
+          minimum: 0.5
+          type: number
+        response_format:
+          default: wav
+          description: WAV is what the local engine makes.
+          enum:
+          - wav
+          type: string
+      required:
+      - input
     ErrorResponse_error_oneOf:
       properties:
         message:
@@ -6052,6 +6300,119 @@ components:
       required:
       - id
       - text
+    Transcription_segments_inner:
+      example:
+        id: 1
+        start: 5.962133916683182
+        end: 5.637376656633329
+        text: text
+        speaker: speaker
+      properties:
+        id:
+          type: integer
+        start:
+          type: number
+        end:
+          type: number
+        text:
+          type: string
+        speaker:
+          description: With diarize=true.
+          type: string
+      required:
+      - end
+      - id
+      - start
+      - text
+    FusionList_kinds_value:
+      example:
+        id: id
+        label: label
+        gain: recall
+        what: what
+        for:
+        - for
+        - for
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        gain:
+          enum:
+          - recall
+          - speed
+          - reliability
+          type: string
+        what:
+          type: string
+        for:
+          items:
+            type: string
+          type: array
+          default: null
+    FusionList_fusions_inner_members_inner_oneOf:
+      properties:
+        id:
+          type: string
+        role:
+          enum:
+          - target
+          - draft
+          type: string
+      required:
+      - id
+    FusionList_fusions_inner_members_inner:
+      oneOf:
+      - type: string
+      - $ref: "#/components/schemas/FusionList_fusions_inner_members_inner_oneOf"
+    FusionList_fusions_inner:
+      example:
+        id: id
+        kind: union
+        capability: capability
+        label: label
+        members:
+        - FusionList_fusions_inner_members_inner
+        - FusionList_fusions_inner_members_inner
+        derived: true
+        source: source
+        running: true
+        describe: describe
+      properties:
+        id:
+          type: string
+        kind:
+          enum:
+          - union
+          - draft
+          - fallback
+          type: string
+        capability:
+          type: string
+        label:
+          type: string
+        members:
+          items:
+            $ref: "#/components/schemas/FusionList_fusions_inner_members_inner"
+          type: array
+          default: null
+        derived:
+          description: "Read from the gateway’s state, not composed."
+          type: boolean
+        source:
+          description: "For a derived one: ner, or the runtime service."
+          type: string
+        running:
+          type: boolean
+        describe:
+          description: The fusion in a sentence.
+          type: string
+      required:
+      - capability
+      - id
+      - kind
+      - members
     inline_object:
       example:
         ok: true

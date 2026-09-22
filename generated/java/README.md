@@ -2,7 +2,7 @@
 
 ChatPanel Gateway API
 
-- API version: 0.25.0
+- API version: 0.35.0
 
 - Generator version: 7.25.0
 
@@ -60,7 +60,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>net.chatpanel</groupId>
   <artifactId>chatpanel-sdk</artifactId>
-  <version>0.25.0</version>
+  <version>0.35.0</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -70,7 +70,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "net.chatpanel:chatpanel-sdk:0.25.0"
+compile "net.chatpanel:chatpanel-sdk:0.35.0"
 ```
 
 ### Others
@@ -83,7 +83,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/chatpanel-sdk-0.25.0.jar`
+- `target/chatpanel-sdk-0.35.0.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -132,6 +132,10 @@ Class | Method | HTTP request | Description
 *AgentsApi* | [**agentsScorecardWithHttpInfo**](docs/AgentsApi.md#agentsScorecardWithHttpInfo) | **GET** /v1/agents/{agentId}/scorecard | One agent&#39;s attested scorecard.
 *AgentsApi* | [**agentsScorecards**](docs/AgentsApi.md#agentsScorecards) | **GET** /v1/agents/scorecards | Every agent&#39;s scorecard.
 *AgentsApi* | [**agentsScorecardsWithHttpInfo**](docs/AgentsApi.md#agentsScorecardsWithHttpInfo) | **GET** /v1/agents/scorecards | Every agent&#39;s scorecard.
+*AudioApi* | [**audioSpeech**](docs/AudioApi.md#audioSpeech) | **POST** /v1/audio/speech | Text to speech (OpenAI-compatible) — a WAV back.
+*AudioApi* | [**audioSpeechWithHttpInfo**](docs/AudioApi.md#audioSpeechWithHttpInfo) | **POST** /v1/audio/speech | Text to speech (OpenAI-compatible) — a WAV back.
+*AudioApi* | [**audioTranscribe**](docs/AudioApi.md#audioTranscribe) | **POST** /v1/audio/transcriptions | Transcribe an audio file (OpenAI-compatible).
+*AudioApi* | [**audioTranscribeWithHttpInfo**](docs/AudioApi.md#audioTranscribeWithHttpInfo) | **POST** /v1/audio/transcriptions | Transcribe an audio file (OpenAI-compatible).
 *CapabilitiesApi* | [**capabilitiesDecide**](docs/CapabilitiesApi.md#capabilitiesDecide) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
 *CapabilitiesApi* | [**capabilitiesDecideWithHttpInfo**](docs/CapabilitiesApi.md#capabilitiesDecideWithHttpInfo) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
 *CapabilitiesApi* | [**capabilitiesDetect**](docs/CapabilitiesApi.md#capabilitiesDetect) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores.
@@ -158,6 +162,8 @@ Class | Method | HTTP request | Description
 *EventsApi* | [**eventsStatsWithHttpInfo**](docs/EventsApi.md#eventsStatsWithHttpInfo) | **GET** /v1/events/stats | What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
 *EventsApi* | [**eventsStream**](docs/EventsApi.md#eventsStream) | **GET** /v1/events/stream | Tail the merged log — &#x60;hello&#x60; once, then a &#x60;cloudevent&#x60; frame per appended event; with &#x60;cursor&#x60;, the backlog above it first.
 *EventsApi* | [**eventsStreamWithHttpInfo**](docs/EventsApi.md#eventsStreamWithHttpInfo) | **GET** /v1/events/stream | Tail the merged log — &#x60;hello&#x60; once, then a &#x60;cloudevent&#x60; frame per appended event; with &#x60;cursor&#x60;, the backlog above it first.
+*FusionsApi* | [**fusionsList**](docs/FusionsApi.md#fusionsList) | **GET** /v1/fusions | Several models as one — the fusions this gateway has.
+*FusionsApi* | [**fusionsListWithHttpInfo**](docs/FusionsApi.md#fusionsListWithHttpInfo) | **GET** /v1/fusions | Several models as one — the fusions this gateway has.
 *GatewayApi* | [**gatewayAudit**](docs/GatewayApi.md#gatewayAudit) | **GET** /audit | The egress audit — which hosts this gateway has contacted and which its config allows.
 *GatewayApi* | [**gatewayAuditWithHttpInfo**](docs/GatewayApi.md#gatewayAuditWithHttpInfo) | **GET** /audit | The egress audit — which hosts this gateway has contacted and which its config allows.
 *GatewayApi* | [**gatewayHealth**](docs/GatewayApi.md#gatewayHealth) | **GET** /health | Liveness, version and capabilities.
@@ -286,6 +292,7 @@ Class | Method | HTTP request | Description
 
  - [AgentsRateRequest](docs/AgentsRateRequest.md)
  - [AgentsScorecards200Response](docs/AgentsScorecards200Response.md)
+ - [AudioSpeechRequest](docs/AudioSpeechRequest.md)
  - [Audit](docs/Audit.md)
  - [CapabilitiesDocument](docs/CapabilitiesDocument.md)
  - [CapabilitiesDocumentServer](docs/CapabilitiesDocumentServer.md)
@@ -321,6 +328,11 @@ Class | Method | HTTP request | Description
  - [EventsStreamEvent](docs/EventsStreamEvent.md)
  - [ExtractRequest](docs/ExtractRequest.md)
  - [ExtractResponse](docs/ExtractResponse.md)
+ - [FusionList](docs/FusionList.md)
+ - [FusionListFusionsInner](docs/FusionListFusionsInner.md)
+ - [FusionListFusionsInnerMembersInner](docs/FusionListFusionsInnerMembersInner.md)
+ - [FusionListFusionsInnerMembersInnerOneOf](docs/FusionListFusionsInnerMembersInnerOneOf.md)
+ - [FusionListKindsValue](docs/FusionListKindsValue.md)
  - [GatewayPairRequest](docs/GatewayPairRequest.md)
  - [Health](docs/Health.md)
  - [HistoryGet200Response](docs/HistoryGet200Response.md)
@@ -409,6 +421,8 @@ Class | Method | HTTP request | Description
  - [TeamsHandoffRequest](docs/TeamsHandoffRequest.md)
  - [TeamsListRuns200Response](docs/TeamsListRuns200Response.md)
  - [TeamsPostRequest](docs/TeamsPostRequest.md)
+ - [Transcription](docs/Transcription.md)
+ - [TranscriptionSegmentsInner](docs/TranscriptionSegmentsInner.md)
  - [WebSearchRequest](docs/WebSearchRequest.md)
  - [WebSearchResponse](docs/WebSearchResponse.md)
  - [WebSearchResult](docs/WebSearchResult.md)

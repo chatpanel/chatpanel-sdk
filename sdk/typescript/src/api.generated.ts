@@ -82,6 +82,7 @@ export const OPERATIONS = {
   "engines.appendEntry": { id: "engines.appendEntry", method: "POST", path: "/v1/engines/{engineKey}/entries", auth: "open", since: "0.6.89", stream: null, pathParams: ["engineKey"], queryParams: [] },
   "skills.list": { id: "skills.list", method: "GET", path: "/skills", auth: "open", since: "0.6.64", stream: null, pathParams: [], queryParams: ["workdir"] },
   "skills.get": { id: "skills.get", method: "GET", path: "/skills/{skillId}", auth: "open", since: "0.6.67", stream: null, pathParams: ["skillId"], queryParams: ["workdir"] },
+  "fusions.list": { id: "fusions.list", method: "GET", path: "/v1/fusions", auth: "open", since: "0.33.0", stream: null, pathParams: [], queryParams: [] },
 } as const satisfies Record<string, Operation>;
 
 export type OperationId = keyof typeof OPERATIONS;
@@ -663,6 +664,16 @@ export class SkillsApi {
   }
 }
 
+/** Several models as one — union, draft + target, fallback. */
+export class FusionsApi {
+  private readonly rt: Runtime;
+  constructor(rt: Runtime) { this.rt = rt; }
+  /** Several models as one — the fusions this gateway has. Derived from state (the entity detector's union once a companion is ready, an engine drafting with a second model) and composed by the user (`POST /config { fusions }`, a chat fallback in order). A chat turn names a fallback as `model: "fusion:<id>"` and is routed to the first member that is up; `x-chatpanel-fusion` on the response says which. — Gateway 0.33.0+. */
+  list(opts?: RequestOptions): Promise<T.FusionList> {
+    return this.rt.request(OPERATIONS["fusions.list"], { path: {  }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+}
+
 /** The namespaces a client exposes, built on one runtime. */
 export function buildApi(rt: Runtime) {
   return {
@@ -682,5 +693,6 @@ export function buildApi(rt: Runtime) {
     retrieval: new RetrievalApi(rt),
     engines: new EnginesApi(rt),
     skills: new SkillsApi(rt),
+    fusions: new FusionsApi(rt),
   };
 }

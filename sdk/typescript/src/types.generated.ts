@@ -873,3 +873,54 @@ export interface Skill {
   [key: string]: unknown;
 }
 
+export interface Transcription {
+  text: string;
+  /** verbose_json only */
+  task?: "transcribe";
+  /** verbose_json only */
+  language?: string;
+  /** Seconds of audio; verbose_json only. */
+  duration?: number;
+  /** Who transcribed; verbose_json only. */
+  provider?: "embedded" | "remote" | "container";
+  took_ms?: number;
+  /** verbose_json only. */
+  segments?: Array<{
+    id: number;
+    start: number;
+    end: number;
+    text: string;
+    /** With diarize=true. */
+    speaker?: string;
+  }>;
+}
+
+export interface FusionList {
+  kinds: {
+    [key: string]: {
+      id?: string;
+      label?: string;
+      gain?: "recall" | "speed" | "reliability";
+      what?: string;
+      for?: Array<string>;
+    };
+  };
+  fusions: Array<{
+    id: string;
+    kind: "union" | "draft" | "fallback";
+    capability: string;
+    label?: string;
+    members: Array<string | {
+      id: string;
+      role?: "target" | "draft";
+    }>;
+    /** Read from the gateway’s state, not composed. */
+    derived?: boolean;
+    /** For a derived one: ner, or the runtime service. */
+    source?: string;
+    running?: boolean;
+    /** The fusion in a sentence. */
+    describe?: string;
+  }>;
+}
+
