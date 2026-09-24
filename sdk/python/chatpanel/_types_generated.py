@@ -695,6 +695,59 @@ class Project(TypedDict, total=False):
     jobs: NotRequired[List["AnyObject"]]
 
 
+class QuarantinedSkill(TypedDict, total=False):
+    """QuarantinedSkill"""
+    id: NotRequired[str]
+    path: NotRequired[str]
+    source: NotRequired[str]
+    verdict: NotRequired[Literal["suspicious", "dangerous"]]
+
+
+class AgentDef(TypedDict, total=False):
+    """An agent definition, read from whichever tool's dialect wrote it."""
+    id: str
+    name: NotRequired[str]
+    purpose: NotRequired[str]
+    dialect: NotRequired[Literal["chatpanel", "claude", "codex", "a2a"]]
+    source: NotRequired[str]  # The folder it was read from: chatpanel, claude, codex, agents-dir, external.
+    label: NotRequired[str]
+    path: NotRequired[str]  # Relative to the root it was found in.
+    writable: NotRequired[bool]
+    engine: NotRequired[Dict[str, Any]]
+    grants: NotRequired[List[str]]
+    skills: NotRequired[List[str]]
+    promptChars: NotRequired[int]
+    prompt: NotRequired[str]  # Only on `GET /agent-defs/{agentId}`.
+    warnings: NotRequired[List[str]]  # What the dialect could not map — an unmapped tool is reported, never widened into a grant.
+    scanned: NotRequired[Dict[str, Any]]
+
+
+class AgentExportRequest(TypedDict, total=False):
+    """AgentExportRequest"""
+    agent: "AgentDef"
+    to: Literal["claude", "codex", "chatpanel"]  # The dialect to write.
+    overwrite: NotRequired[bool]  # Only ever after a plan reported `theirs` and a person agreed.
+
+
+class AgentExportPlan(TypedDict, total=False):
+    """AgentExportPlan"""
+    to: NotRequired[str]
+    label: NotRequired[str]
+    path: NotRequired[str]  # The exact file that would be written.
+    text: NotRequired[str]  # Its rendered contents.
+    exists: NotRequired[bool]
+    status: NotRequired[Literal["new", "ours", "theirs"]]  # `theirs` means ChatPanel did not write it, or it has been edited since.
+    fidelity: NotRequired["AgentFidelity"]
+
+
+class AgentFidelity(TypedDict, total=False):
+    """What survives a trip into a dialect, derived from what that dialect declares it can express."""
+    dialect: NotRequired[str]
+    lossless: NotRequired[bool]
+    carried: NotRequired[List[str]]
+    dropped: NotRequired[List[Dict[str, Any]]]
+
+
 class Skill(TypedDict, total=False):
     """Skill"""
     id: str

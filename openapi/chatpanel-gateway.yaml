@@ -1802,6 +1802,146 @@ paths:
         '400': { $ref: '#/components/responses/Error' }
 
   # ------------------------------------------------------------------ skills
+  /skills-quarantined:
+    get:
+      operationId: skills.quarantined
+      tags: [skills]
+      summary: Packages the admission scanner refused — what is on disk and deliberately not listed.
+      description: >-
+        A skill package is a prompt that will run with tools attached, so it is scanned before
+        it is admitted. One that fails is kept out of `GET /skills` entirely; this is the only
+        way to learn it exists, and why. The bridge has implemented it since packages could
+        arrive; nothing could reach it until 0.48.0.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.48.0'
+      parameters:
+        - { name: workdir, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: The refused packages.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [quarantined]
+                properties:
+                  quarantined: { type: array, items: { $ref: '#/components/schemas/QuarantinedSkill' } }
+        '502': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /agent-defs:
+    get:
+      operationId: agents.listDefs
+      tags: [agents]
+      summary: The agent definitions on this machine, from every tool that writes one.
+      description: >-
+        `.claude/agents/*.md`, `.codex/agents/*.toml`, `~/.chatpanel/agents/*.json` and the
+        project-local equivalents, each read in its own dialect and returned in one shape. No
+        prompts — `promptChars` only, for the same reason `GET /skills` omits them.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.48.0'
+      parameters:
+        - { name: workdir, in: query, schema: { type: string }, description: "Also read this project's own agent folders, ahead of the home ones." }
+        - { name: dir, in: query, schema: { type: string }, description: "An extra absolute folder to scan. Repeatable." }
+      responses:
+        '200':
+          description: The definitions.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [agents]
+                properties:
+                  agents: { type: array, items: { $ref: '#/components/schemas/AgentDef' } }
+                  quarantined: { type: array, items: { type: object, additionalProperties: true }, description: "Definitions the scanner refused." }
+                  problems: { type: array, items: { type: object, additionalProperties: true }, description: "Files that parsed as a definition and could not be made one." }
+        '502': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /agent-defs/{agentId}:
+    parameters:
+      - { name: agentId, in: path, required: true, schema: { type: string, maxLength: 200, pattern: '^[^/\\]+$' }, description: "One path segment; slashes and `..` are refused." }
+    get:
+      operationId: agents.getDef
+      tags: [agents]
+      summary: One agent definition, prompt included.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.48.0'
+      parameters:
+        - { name: workdir, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: The definition.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agent: { $ref: '#/components/schemas/AgentDef' }
+                  dialect: { type: string, enum: [chatpanel, claude, codex, a2a] }
+                  source: { type: string }
+                  path: { type: string }
+        '404': { $ref: '#/components/responses/Error' }
+        '502': { $ref: '#/components/responses/Error' }
+  /agent-defs/export-plan:
+    post:
+      operationId: agents.exportPlan
+      tags: [agents]
+      summary: What an export would write, and what the target cannot carry — without writing it.
+      description: >-
+        A separate call from the export itself, deliberately: "show me what you are about to do
+        to my Claude Code directory" is a question a person answers before saying yes, and a dry
+        run sharing a code path with the real thing is one edit away from not being dry.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.48.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AgentExportRequest' }
+      responses:
+        '200':
+          description: The plan.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AgentExportPlan' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '502': { $ref: '#/components/responses/Error' }
+  /agent-defs/export:
+    post:
+      operationId: agents.exportDef
+      tags: [agents]
+      summary: Write an agent definition into another tool's folder.
+      description: >-
+        Only from a named action. The file is backed up before it is touched, and one ChatPanel
+        did not write — or one edited since it did — is refused with `NOT_OURS` unless
+        `overwrite` is set. Which of those applies is what `export-plan` reports as `status`.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.48.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AgentExportRequest' }
+      responses:
+        '200':
+          description: Written.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  path: { type: string }
+                  to: { type: string }
+                  backedUp: { type: boolean }
+                  status: { type: string, enum: [new, ours, theirs] }
+                  fidelity: { $ref: '#/components/schemas/AgentFidelity' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '502': { $ref: '#/components/responses/Error' }
   /skills:
     get:
       operationId: skills.list
@@ -2889,6 +3029,71 @@ components:
         id: { type: string }
         status: { type: string }
         jobs: { type: array, items: { $ref: '#/components/schemas/AnyObject' } }
+
+    QuarantinedSkill:
+      type: object
+      additionalProperties: true
+      properties:
+        id: { type: string }
+        path: { type: string }
+        source: { type: string }
+        verdict: { type: string, enum: [suspicious, dangerous] }
+
+    AgentDef:
+      type: object
+      required: [id]
+      additionalProperties: true
+      description: An agent definition, read from whichever tool's dialect wrote it.
+      properties:
+        id: { type: string }
+        name: { type: string }
+        purpose: { type: string }
+        dialect: { type: string, enum: [chatpanel, claude, codex, a2a] }
+        source: { type: string, description: "The folder it was read from: chatpanel, claude, codex, agents-dir, external." }
+        label: { type: string }
+        path: { type: string, description: "Relative to the root it was found in." }
+        writable: { type: boolean }
+        engine: { type: object, additionalProperties: true }
+        grants: { type: array, items: { type: string } }
+        skills: { type: array, items: { type: string } }
+        promptChars: { type: integer }
+        prompt: { type: string, description: "Only on `GET /agent-defs/{agentId}`." }
+        warnings: { type: array, items: { type: string }, description: "What the dialect could not map — an unmapped tool is reported, never widened into a grant." }
+        scanned: { type: object, additionalProperties: true }
+
+    AgentExportRequest:
+      type: object
+      required: [agent, to]
+      properties:
+        agent: { $ref: '#/components/schemas/AgentDef' }
+        to: { type: string, enum: [claude, codex, chatpanel], description: "The dialect to write." }
+        overwrite: { type: boolean, default: false, description: "Only ever after a plan reported `theirs` and a person agreed." }
+
+    AgentExportPlan:
+      type: object
+      properties:
+        to: { type: string }
+        label: { type: string }
+        path: { type: string, description: "The exact file that would be written." }
+        text: { type: string, description: "Its rendered contents." }
+        exists: { type: boolean }
+        status: { type: string, enum: [new, ours, theirs], description: "`theirs` means ChatPanel did not write it, or it has been edited since." }
+        fidelity: { $ref: '#/components/schemas/AgentFidelity' }
+
+    AgentFidelity:
+      type: object
+      description: What survives a trip into a dialect, derived from what that dialect declares it can express.
+      properties:
+        dialect: { type: string }
+        lossless: { type: boolean }
+        carried: { type: array, items: { type: string } }
+        dropped:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              why: { type: string }
 
     Skill:
       type: object

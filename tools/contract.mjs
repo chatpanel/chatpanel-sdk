@@ -74,6 +74,7 @@ if (!existsSync(join(GATEWAY, 'src', 'server.js'))) {
     ['/v1/engines/{engineKey}/card', /\/v1\\\/engines\\\/\(\.\+\)\\\/\(card\|entries\)/.test(src)],
     ['/v1/engines/{engineKey}/entries', /\/v1\\\/engines\\\/\(\.\+\)\\\/\(card\|entries\)/.test(src)],
     ['/skills/{skillId}', /\^\\\/skills\\\/\[\^\/\]\+\$/.test(src)],
+    ['/agent-defs/{agentId}', /\^\\\/agent-defs\\\/\[\^\/\]\+\$/.test(src)],
     ['/stt/sessions/{id}', /stt\\\/sessions\\\//.test(src)],
     ['/v1/read/{url}', /\^\\\/v1\\\/read\\\/\./.test(src)],
     ['/v1/search/{q}', /\^\\\/v1\\\/search\\\/\./.test(src)],

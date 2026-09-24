@@ -865,6 +865,74 @@ export interface Project {
   [key: string]: unknown;
 }
 
+export interface QuarantinedSkill {
+  id?: string;
+  path?: string;
+  source?: string;
+  verdict?: "suspicious" | "dangerous";
+  [key: string]: unknown;
+}
+
+/** An agent definition, read from whichever tool's dialect wrote it. */
+export interface AgentDef {
+  id: string;
+  name?: string;
+  purpose?: string;
+  dialect?: "chatpanel" | "claude" | "codex" | "a2a";
+  /** The folder it was read from: chatpanel, claude, codex, agents-dir, external. */
+  source?: string;
+  label?: string;
+  /** Relative to the root it was found in. */
+  path?: string;
+  writable?: boolean;
+  engine?: {
+    [key: string]: unknown;
+  };
+  grants?: Array<string>;
+  skills?: Array<string>;
+  promptChars?: number;
+  /** Only on `GET /agent-defs/{agentId}`. */
+  prompt?: string;
+  /** What the dialect could not map — an unmapped tool is reported, never widened into a grant. */
+  warnings?: Array<string>;
+  scanned?: {
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+export interface AgentExportRequest {
+  agent: AgentDef;
+  /** The dialect to write. */
+  to: "claude" | "codex" | "chatpanel";
+  /** Only ever after a plan reported `theirs` and a person agreed. */
+  overwrite?: boolean;
+}
+
+export interface AgentExportPlan {
+  to?: string;
+  label?: string;
+  /** The exact file that would be written. */
+  path?: string;
+  /** Its rendered contents. */
+  text?: string;
+  exists?: boolean;
+  /** `theirs` means ChatPanel did not write it, or it has been edited since. */
+  status?: "new" | "ours" | "theirs";
+  fidelity?: AgentFidelity;
+}
+
+/** What survives a trip into a dialect, derived from what that dialect declares it can express. */
+export interface AgentFidelity {
+  dialect?: string;
+  lossless?: boolean;
+  carried?: Array<string>;
+  dropped?: Array<{
+    field?: string;
+    why?: string;
+  }>;
+}
+
 export interface Skill {
   id: string;
   name?: string;

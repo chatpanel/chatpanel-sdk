@@ -80,6 +80,11 @@ OPERATIONS: Dict[str, Operation] = {
     "engines.list": Operation(id="engines.list", method="GET", path="/v1/engines", auth="open", since="0.6.89", stream=None, path_params=(), query_params=("minCalls",)),
     "engines.card": Operation(id="engines.card", method="GET", path="/v1/engines/{engineKey}/card", auth="open", since="0.6.89", stream=None, path_params=("engineKey",), query_params=("entries", "minCalls",)),
     "engines.appendEntry": Operation(id="engines.appendEntry", method="POST", path="/v1/engines/{engineKey}/entries", auth="open", since="0.6.89", stream=None, path_params=("engineKey",), query_params=()),
+    "skills.quarantined": Operation(id="skills.quarantined", method="GET", path="/skills-quarantined", auth="open", since="0.48.0", stream=None, path_params=(), query_params=("workdir",)),
+    "agents.listDefs": Operation(id="agents.listDefs", method="GET", path="/agent-defs", auth="open", since="0.48.0", stream=None, path_params=(), query_params=("workdir", "dir",)),
+    "agents.getDef": Operation(id="agents.getDef", method="GET", path="/agent-defs/{agentId}", auth="open", since="0.48.0", stream=None, path_params=("agentId",), query_params=("workdir",)),
+    "agents.exportPlan": Operation(id="agents.exportPlan", method="POST", path="/agent-defs/export-plan", auth="token", since="0.48.0", stream=None, path_params=(), query_params=()),
+    "agents.exportDef": Operation(id="agents.exportDef", method="POST", path="/agent-defs/export", auth="token", since="0.48.0", stream=None, path_params=(), query_params=()),
     "skills.list": Operation(id="skills.list", method="GET", path="/skills", auth="open", since="0.6.64", stream=None, path_params=(), query_params=("workdir",)),
     "skills.get": Operation(id="skills.get", method="GET", path="/skills/{skillId}", auth="open", since="0.6.67", stream=None, path_params=("skillId",), query_params=("workdir",)),
     "fusions.list": Operation(id="fusions.list", method="GET", path="/v1/fusions", auth="open", since="0.33.0", stream=None, path_params=(), query_params=()),
@@ -406,6 +411,22 @@ class AgentsApi:
         """A person rates the agent's work on a run, task or job. — Gateway 0.6.87+."""
         return self._rt.request(OPERATIONS["agents.rate"], path={"agentId": agent_id}, query=query, headers=headers, body=body, timeout=timeout)
 
+    def list_defs(self, query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """The agent definitions on this machine, from every tool that writes one. `.claude/agents/*.md`, `.codex/agents/*.toml`, `~/.chatpanel/agents/*.json` and the project-local equivalents, each read in its own dialect and returned in one shape. No prompts — `promptChars` only, for the same reason `GET /skills` omits them. — Gateway 0.48.0+."""
+        return self._rt.request(OPERATIONS["agents.listDefs"], path={}, query=query, headers=headers, body=None, timeout=timeout)
+
+    def get_def(self, agent_id: str, query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """One agent definition, prompt included. — Gateway 0.48.0+."""
+        return self._rt.request(OPERATIONS["agents.getDef"], path={"agentId": agent_id}, query=query, headers=headers, body=None, timeout=timeout)
+
+    def export_plan(self, body: "T.AgentExportRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.AgentExportPlan":
+        """What an export would write, and what the target cannot carry — without writing it. A separate call from the export itself, deliberately: "show me what you are about to do to my Claude Code directory" is a question a person answers before saying yes, and a dry run sharing a code path with the real thing is one edit away from not being dry. — Requires the gateway token. Gateway 0.48.0+."""
+        return self._rt.request(OPERATIONS["agents.exportPlan"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def export_def(self, body: "T.AgentExportRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """Write an agent definition into another tool's folder. Only from a named action. The file is backed up before it is touched, and one ChatPanel did not write — or one edited since it did — is refused with `NOT_OURS` unless `overwrite` is set. Which of those applies is what `export-plan` reports as `status`. — Requires the gateway token. Gateway 0.48.0+."""
+        return self._rt.request(OPERATIONS["agents.exportDef"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
 
 class CapabilitiesApi:
     """The small non-generative models this gateway provides — discovery, and one standard signature per capability (docs/capability-endpoints.md)."""
@@ -500,6 +521,10 @@ class SkillsApi:
 
     def __init__(self, rt: Runtime) -> None:
         self._rt = rt
+
+    def quarantined(self, query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """Packages the admission scanner refused — what is on disk and deliberately not listed. A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of `GET /skills` entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0. — Gateway 0.48.0+."""
+        return self._rt.request(OPERATIONS["skills.quarantined"], path={}, query=query, headers=headers, body=None, timeout=timeout)
 
     def list(self, query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
         """The skills on this machine — with a prompt character count, not the prompt. — Gateway 0.6.64+."""

@@ -80,6 +80,11 @@ export const OPERATIONS = {
   "engines.list": { id: "engines.list", method: "GET", path: "/v1/engines", auth: "open", since: "0.6.89", stream: null, pathParams: [], queryParams: ["minCalls"] },
   "engines.card": { id: "engines.card", method: "GET", path: "/v1/engines/{engineKey}/card", auth: "open", since: "0.6.89", stream: null, pathParams: ["engineKey"], queryParams: ["entries","minCalls"] },
   "engines.appendEntry": { id: "engines.appendEntry", method: "POST", path: "/v1/engines/{engineKey}/entries", auth: "open", since: "0.6.89", stream: null, pathParams: ["engineKey"], queryParams: [] },
+  "skills.quarantined": { id: "skills.quarantined", method: "GET", path: "/skills-quarantined", auth: "open", since: "0.48.0", stream: null, pathParams: [], queryParams: ["workdir"] },
+  "agents.listDefs": { id: "agents.listDefs", method: "GET", path: "/agent-defs", auth: "open", since: "0.48.0", stream: null, pathParams: [], queryParams: ["workdir","dir"] },
+  "agents.getDef": { id: "agents.getDef", method: "GET", path: "/agent-defs/{agentId}", auth: "open", since: "0.48.0", stream: null, pathParams: ["agentId"], queryParams: ["workdir"] },
+  "agents.exportPlan": { id: "agents.exportPlan", method: "POST", path: "/agent-defs/export-plan", auth: "token", since: "0.48.0", stream: null, pathParams: [], queryParams: [] },
+  "agents.exportDef": { id: "agents.exportDef", method: "POST", path: "/agent-defs/export", auth: "token", since: "0.48.0", stream: null, pathParams: [], queryParams: [] },
   "skills.list": { id: "skills.list", method: "GET", path: "/skills", auth: "open", since: "0.6.64", stream: null, pathParams: [], queryParams: ["workdir"] },
   "skills.get": { id: "skills.get", method: "GET", path: "/skills/{skillId}", auth: "open", since: "0.6.67", stream: null, pathParams: ["skillId"], queryParams: ["workdir"] },
   "fusions.list": { id: "fusions.list", method: "GET", path: "/v1/fusions", auth: "open", since: "0.33.0", stream: null, pathParams: [], queryParams: [] },
@@ -537,6 +542,44 @@ export class AgentsApi {
   }, opts?: RequestOptions): Promise<T.AnyObject> {
     return this.rt.request(OPERATIONS["agents.rate"], { path: { agentId }, query: undefined, headers: opts?.headers, body: body, opts });
   }
+  /** The agent definitions on this machine, from every tool that writes one. `.claude/agents/*.md`, `.codex/agents/*.toml`, `~/.chatpanel/agents/*.json` and the project-local equivalents, each read in its own dialect and returned in one shape. No prompts — `promptChars` only, for the same reason `GET /skills` omits them. — Gateway 0.48.0+. */
+  listDefs(query?: { workdir?: string; dir?: string }, opts?: RequestOptions): Promise<{
+    agents: Array<T.AgentDef>;
+    /** Definitions the scanner refused. */
+    quarantined?: Array<{
+      [key: string]: unknown;
+    }>;
+    /** Files that parsed as a definition and could not be made one. */
+    problems?: Array<{
+      [key: string]: unknown;
+    }>;
+  }> {
+    return this.rt.request(OPERATIONS["agents.listDefs"], { path: {  }, query: query, headers: opts?.headers, body: undefined, opts });
+  }
+  /** One agent definition, prompt included. — Gateway 0.48.0+. */
+  getDef(agentId: string, query?: { workdir?: string }, opts?: RequestOptions): Promise<{
+    agent?: T.AgentDef;
+    dialect?: "chatpanel" | "claude" | "codex" | "a2a";
+    source?: string;
+    path?: string;
+  }> {
+    return this.rt.request(OPERATIONS["agents.getDef"], { path: { agentId }, query: query, headers: opts?.headers, body: undefined, opts });
+  }
+  /** What an export would write, and what the target cannot carry — without writing it. A separate call from the export itself, deliberately: "show me what you are about to do to my Claude Code directory" is a question a person answers before saying yes, and a dry run sharing a code path with the real thing is one edit away from not being dry. — Requires the gateway token. Gateway 0.48.0+. */
+  exportPlan(body: T.AgentExportRequest, opts?: RequestOptions): Promise<T.AgentExportPlan> {
+    return this.rt.request(OPERATIONS["agents.exportPlan"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** Write an agent definition into another tool's folder. Only from a named action. The file is backed up before it is touched, and one ChatPanel did not write — or one edited since it did — is refused with `NOT_OURS` unless `overwrite` is set. Which of those applies is what `export-plan` reports as `status`. — Requires the gateway token. Gateway 0.48.0+. */
+  exportDef(body: T.AgentExportRequest, opts?: RequestOptions): Promise<{
+    ok?: boolean;
+    path?: string;
+    to?: string;
+    backedUp?: boolean;
+    status?: "new" | "ours" | "theirs";
+    fidelity?: T.AgentFidelity;
+  }> {
+    return this.rt.request(OPERATIONS["agents.exportDef"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
 }
 
 /** The small non-generative models this gateway provides — discovery, and one standard signature per capability (docs/capability-endpoints.md). */
@@ -650,6 +693,12 @@ export class EnginesApi {
 export class SkillsApi {
   private readonly rt: Runtime;
   constructor(rt: Runtime) { this.rt = rt; }
+  /** Packages the admission scanner refused — what is on disk and deliberately not listed. A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of `GET /skills` entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0. — Gateway 0.48.0+. */
+  quarantined(query?: { workdir?: string }, opts?: RequestOptions): Promise<{
+    quarantined: Array<T.QuarantinedSkill>;
+  }> {
+    return this.rt.request(OPERATIONS["skills.quarantined"], { path: {  }, query: query, headers: opts?.headers, body: undefined, opts });
+  }
   /** The skills on this machine — with a prompt character count, not the prompt. — Gateway 0.6.64+. */
   list(query?: { workdir?: string }, opts?: RequestOptions): Promise<{
     skills: Array<T.Skill>;
