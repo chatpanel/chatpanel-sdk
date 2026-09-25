@@ -94,4 +94,16 @@ class SkillsApiTest extends TestCase
         // TODO: implement
         self::markTestIncomplete('Not implemented');
     }
+
+    /**
+     * Test case for skillsQuarantined
+     *
+     * Packages the admission scanner refused — what is on disk and deliberately not listed..
+     *
+     */
+    public function testSkillsQuarantined()
+    {
+        // TODO: implement
+        self::markTestIncomplete('Not implemented');
+    }
 }

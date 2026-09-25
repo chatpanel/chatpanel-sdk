@@ -21,6 +21,7 @@ import net.chatpanel.sdk.Pair;
 import net.chatpanel.sdk.model.ErrorResponse;
 import net.chatpanel.sdk.model.SkillsGet200Response;
 import net.chatpanel.sdk.model.SkillsList200Response;
+import net.chatpanel.sdk.model.SkillsQuarantined200Response;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -403,6 +404,134 @@ public class SkillsApi {
     HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
     String localVarPath = "/skills";
+
+    List<Pair> localVarQueryParams = new ArrayList<>();
+    StringJoiner localVarQueryStringJoiner = new StringJoiner("&");
+    String localVarQueryParameterBaseName;
+    localVarQueryParameterBaseName = "workdir";
+    localVarQueryParams.addAll(ApiClient.parameterToPairs("workdir", workdir));
+
+    if (!localVarQueryParams.isEmpty() || localVarQueryStringJoiner.length() != 0) {
+      StringJoiner queryJoiner = new StringJoiner("&");
+      localVarQueryParams.forEach(p -> queryJoiner.add(p.getName() + '=' + p.getValue()));
+      if (localVarQueryStringJoiner.length() != 0) {
+        queryJoiner.add(localVarQueryStringJoiner.toString());
+      }
+      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath + '?' + queryJoiner.toString()));
+    } else {
+      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+    }
+
+    localVarRequestBuilder.header("Accept", "application/json");
+
+    localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+    if (memberVarReadTimeout != null) {
+      localVarRequestBuilder.timeout(memberVarReadTimeout);
+    }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
+    if (memberVarInterceptor != null) {
+      memberVarInterceptor.accept(localVarRequestBuilder);
+    }
+    return localVarRequestBuilder;
+  }
+
+  /**
+   * Packages the admission scanner refused — what is on disk and deliberately not listed.
+   * A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of &#x60;GET /skills&#x60; entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+   * @param workdir  (optional)
+   * @return SkillsQuarantined200Response
+   * @throws ApiException if fails to make API call
+   */
+  public SkillsQuarantined200Response skillsQuarantined(@jakarta.annotation.Nullable String workdir) throws ApiException {
+    return skillsQuarantined(workdir, null);
+  }
+
+  /**
+   * Packages the admission scanner refused — what is on disk and deliberately not listed.
+   * A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of &#x60;GET /skills&#x60; entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+   * @param workdir  (optional)
+   * @param headers Optional headers to include in the request
+   * @return SkillsQuarantined200Response
+   * @throws ApiException if fails to make API call
+   */
+  public SkillsQuarantined200Response skillsQuarantined(@jakarta.annotation.Nullable String workdir, Map<String, String> headers) throws ApiException {
+    ApiResponse<SkillsQuarantined200Response> localVarResponse = skillsQuarantinedWithHttpInfo(workdir, headers);
+    return localVarResponse.getData();
+  }
+
+  /**
+   * Packages the admission scanner refused — what is on disk and deliberately not listed.
+   * A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of &#x60;GET /skills&#x60; entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+   * @param workdir  (optional)
+   * @return ApiResponse&lt;SkillsQuarantined200Response&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<SkillsQuarantined200Response> skillsQuarantinedWithHttpInfo(@jakarta.annotation.Nullable String workdir) throws ApiException {
+    return skillsQuarantinedWithHttpInfo(workdir, null);
+  }
+
+  /**
+   * Packages the admission scanner refused — what is on disk and deliberately not listed.
+   * A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of &#x60;GET /skills&#x60; entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+   * @param workdir  (optional)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;SkillsQuarantined200Response&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<SkillsQuarantined200Response> skillsQuarantinedWithHttpInfo(@jakarta.annotation.Nullable String workdir, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = skillsQuarantinedRequestBuilder(workdir, headers);
+    try {
+      HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
+          localVarRequestBuilder.build(),
+          HttpResponse.BodyHandlers.ofInputStream());
+      if (memberVarResponseInterceptor != null) {
+        memberVarResponseInterceptor.accept(localVarResponse);
+      }
+      InputStream localVarResponseBody = null;
+      try {
+        if (localVarResponse.statusCode()/ 100 != 2) {
+          throw getApiException("skillsQuarantined", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
+          return new ApiResponse<SkillsQuarantined200Response>(
+              localVarResponse.statusCode(),
+              localVarResponse.headers().map(),
+              null
+          );
+        }
+
+        
+        
+        String responseBody = new String(localVarResponseBody.readAllBytes());
+        SkillsQuarantined200Response responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<SkillsQuarantined200Response>() {});
+        
+
+        return new ApiResponse<SkillsQuarantined200Response>(
+            localVarResponse.statusCode(),
+            localVarResponse.headers().map(),
+            responseValue
+        );
+      } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
+      }
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(e);
+    }
+  }
+
+  private HttpRequest.Builder skillsQuarantinedRequestBuilder(@jakarta.annotation.Nullable String workdir, Map<String, String> headers) throws ApiException {
+
+    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+    String localVarPath = "/skills-quarantined";
 
     List<Pair> localVarQueryParams = new ArrayList<>();
     StringJoiner localVarQueryStringJoiner = new StringJoiner("&");

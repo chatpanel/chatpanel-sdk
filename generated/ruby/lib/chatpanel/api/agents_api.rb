@@ -19,6 +19,278 @@ module ChatPanel
     def initialize(api_client = ApiClient.default)
       @api_client = api_client
     end
+    # Write an agent definition into another tool's folder.
+    # Only from a named action. The file is backed up before it is touched, and one ChatPanel did not write — or one edited since it did — is refused with `NOT_OURS` unless `overwrite` is set. Which of those applies is what `export-plan` reports as `status`.
+    # @param agent_export_request [AgentExportRequest] 
+    # @param [Hash] opts the optional parameters
+    # @return [AgentsExportDef200Response]
+    def agents_export_def(agent_export_request, opts = {})
+      data, _status_code, _headers = agents_export_def_with_http_info(agent_export_request, opts)
+      data
+    end
+
+    # Write an agent definition into another tool&#39;s folder.
+    # Only from a named action. The file is backed up before it is touched, and one ChatPanel did not write — or one edited since it did — is refused with &#x60;NOT_OURS&#x60; unless &#x60;overwrite&#x60; is set. Which of those applies is what &#x60;export-plan&#x60; reports as &#x60;status&#x60;.
+    # @param agent_export_request [AgentExportRequest] 
+    # @param [Hash] opts the optional parameters
+    # @return [Array<(AgentsExportDef200Response, Integer, Hash)>] AgentsExportDef200Response data, response status code and response headers
+    def agents_export_def_with_http_info(agent_export_request, opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: AgentsApi.agents_export_def ...'
+      end
+      # verify the required parameter 'agent_export_request' is set
+      if @api_client.config.client_side_validation && agent_export_request.nil?
+        fail ArgumentError, "Missing the required parameter 'agent_export_request' when calling AgentsApi.agents_export_def"
+      end
+      # resource path
+      local_var_path = '/agent-defs/export'
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json']) unless header_params['Accept']
+      # HTTP header 'Content-Type'
+      content_type = @api_client.select_header_content_type(['application/json'])
+      if !content_type.nil?
+          header_params['Content-Type'] = content_type
+      end
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body] || @api_client.object_to_http_body(agent_export_request)
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'AgentsExportDef200Response'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['tokenHeader', 'gatewayToken']
+
+      new_options = opts.merge(
+        :operation => :"AgentsApi.agents_export_def",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:POST, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: AgentsApi#agents_export_def\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
+    # What an export would write, and what the target cannot carry — without writing it.
+    # A separate call from the export itself, deliberately: \"show me what you are about to do to my Claude Code directory\" is a question a person answers before saying yes, and a dry run sharing a code path with the real thing is one edit away from not being dry.
+    # @param agent_export_request [AgentExportRequest] 
+    # @param [Hash] opts the optional parameters
+    # @return [AgentExportPlan]
+    def agents_export_plan(agent_export_request, opts = {})
+      data, _status_code, _headers = agents_export_plan_with_http_info(agent_export_request, opts)
+      data
+    end
+
+    # What an export would write, and what the target cannot carry — without writing it.
+    # A separate call from the export itself, deliberately: \&quot;show me what you are about to do to my Claude Code directory\&quot; is a question a person answers before saying yes, and a dry run sharing a code path with the real thing is one edit away from not being dry.
+    # @param agent_export_request [AgentExportRequest] 
+    # @param [Hash] opts the optional parameters
+    # @return [Array<(AgentExportPlan, Integer, Hash)>] AgentExportPlan data, response status code and response headers
+    def agents_export_plan_with_http_info(agent_export_request, opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: AgentsApi.agents_export_plan ...'
+      end
+      # verify the required parameter 'agent_export_request' is set
+      if @api_client.config.client_side_validation && agent_export_request.nil?
+        fail ArgumentError, "Missing the required parameter 'agent_export_request' when calling AgentsApi.agents_export_plan"
+      end
+      # resource path
+      local_var_path = '/agent-defs/export-plan'
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json']) unless header_params['Accept']
+      # HTTP header 'Content-Type'
+      content_type = @api_client.select_header_content_type(['application/json'])
+      if !content_type.nil?
+          header_params['Content-Type'] = content_type
+      end
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body] || @api_client.object_to_http_body(agent_export_request)
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'AgentExportPlan'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['tokenHeader', 'gatewayToken']
+
+      new_options = opts.merge(
+        :operation => :"AgentsApi.agents_export_plan",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:POST, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: AgentsApi#agents_export_plan\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
+    # One agent definition, prompt included.
+    # @param agent_id [String] One path segment; slashes and &#x60;..&#x60; are refused.
+    # @param [Hash] opts the optional parameters
+    # @option opts [String] :workdir 
+    # @return [AgentsGetDef200Response]
+    def agents_get_def(agent_id, opts = {})
+      data, _status_code, _headers = agents_get_def_with_http_info(agent_id, opts)
+      data
+    end
+
+    # One agent definition, prompt included.
+    # @param agent_id [String] One path segment; slashes and &#x60;..&#x60; are refused.
+    # @param [Hash] opts the optional parameters
+    # @option opts [String] :workdir 
+    # @return [Array<(AgentsGetDef200Response, Integer, Hash)>] AgentsGetDef200Response data, response status code and response headers
+    def agents_get_def_with_http_info(agent_id, opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: AgentsApi.agents_get_def ...'
+      end
+      # verify the required parameter 'agent_id' is set
+      if @api_client.config.client_side_validation && agent_id.nil?
+        fail ArgumentError, "Missing the required parameter 'agent_id' when calling AgentsApi.agents_get_def"
+      end
+      if @api_client.config.client_side_validation && agent_id.to_s.length > 200
+        fail ArgumentError, 'invalid value for "agent_id" when calling AgentsApi.agents_get_def, the character length must be smaller than or equal to 200.'
+      end
+
+      pattern = Regexp.new(/^[^\/\\]+$/)
+      if @api_client.config.client_side_validation && agent_id !~ pattern
+        fail ArgumentError, "invalid value for 'agent_id' when calling AgentsApi.agents_get_def, must conform to the pattern #{pattern}."
+      end
+
+      # resource path
+      local_var_path = '/agent-defs/{agentId}'.sub('{agentId}', CGI.escape(agent_id.to_s))
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+      query_params[:'workdir'] = opts[:'workdir'] if !opts[:'workdir'].nil?
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json']) unless header_params['Accept']
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body]
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'AgentsGetDef200Response'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['gatewayToken']
+
+      new_options = opts.merge(
+        :operation => :"AgentsApi.agents_get_def",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: AgentsApi#agents_get_def\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
+    # The agent definitions on this machine, from every tool that writes one.
+    # `.claude/agents/*.md`, `.codex/agents/*.toml`, `~/.chatpanel/agents/*.json` and the project-local equivalents, each read in its own dialect and returned in one shape. No prompts — `promptChars` only, for the same reason `GET /skills` omits them.
+    # @param [Hash] opts the optional parameters
+    # @option opts [String] :workdir Also read this project&#39;s own agent folders, ahead of the home ones.
+    # @option opts [String] :dir An extra absolute folder to scan. Repeatable.
+    # @return [AgentsListDefs200Response]
+    def agents_list_defs(opts = {})
+      data, _status_code, _headers = agents_list_defs_with_http_info(opts)
+      data
+    end
+
+    # The agent definitions on this machine, from every tool that writes one.
+    # &#x60;.claude/agents/*.md&#x60;, &#x60;.codex/agents/*.toml&#x60;, &#x60;~/.chatpanel/agents/*.json&#x60; and the project-local equivalents, each read in its own dialect and returned in one shape. No prompts — &#x60;promptChars&#x60; only, for the same reason &#x60;GET /skills&#x60; omits them.
+    # @param [Hash] opts the optional parameters
+    # @option opts [String] :workdir Also read this project&#39;s own agent folders, ahead of the home ones.
+    # @option opts [String] :dir An extra absolute folder to scan. Repeatable.
+    # @return [Array<(AgentsListDefs200Response, Integer, Hash)>] AgentsListDefs200Response data, response status code and response headers
+    def agents_list_defs_with_http_info(opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: AgentsApi.agents_list_defs ...'
+      end
+      # resource path
+      local_var_path = '/agent-defs'
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+      query_params[:'workdir'] = opts[:'workdir'] if !opts[:'workdir'].nil?
+      query_params[:'dir'] = opts[:'dir'] if !opts[:'dir'].nil?
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json']) unless header_params['Accept']
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body]
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'AgentsListDefs200Response'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['gatewayToken']
+
+      new_options = opts.merge(
+        :operation => :"AgentsApi.agents_list_defs",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: AgentsApi#agents_list_defs\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
     # A person rates the agent's work on a run, task or job.
     # @param agent_id [String] 
     # @param agents_rate_request [AgentsRateRequest] 

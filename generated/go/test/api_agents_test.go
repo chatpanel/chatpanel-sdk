@@ -22,6 +22,56 @@ func Test_chatpanel_AgentsAPIService(t *testing.T) {
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
 
+	t.Run("Test AgentsAPIService AgentsExportDef", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		resp, httpRes, err := apiClient.AgentsAPI.AgentsExportDef(context.Background()).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
+	t.Run("Test AgentsAPIService AgentsExportPlan", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		resp, httpRes, err := apiClient.AgentsAPI.AgentsExportPlan(context.Background()).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
+	t.Run("Test AgentsAPIService AgentsGetDef", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		var agentId string
+
+		resp, httpRes, err := apiClient.AgentsAPI.AgentsGetDef(context.Background(), agentId).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
+	t.Run("Test AgentsAPIService AgentsListDefs", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		resp, httpRes, err := apiClient.AgentsAPI.AgentsListDefs(context.Background()).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
 	t.Run("Test AgentsAPIService AgentsRate", func(t *testing.T) {
 
 		t.Skip("skip test")  // remove to run test

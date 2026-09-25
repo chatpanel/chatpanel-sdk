@@ -55,4 +55,16 @@ describe 'SkillsApi' do
     end
   end
 
+  # unit tests for skills_quarantined
+  # Packages the admission scanner refused — what is on disk and deliberately not listed.
+  # A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of &#x60;GET /skills&#x60; entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+  # @param [Hash] opts the optional parameters
+  # @option opts [String] :workdir 
+  # @return [SkillsQuarantined200Response]
+  describe 'skills_quarantined test' do
+    it 'should work' do
+      # assertion here. ref: https://rspec.info/features/3-12/rspec-expectations/built-in-matchers/
+    end
+  end
+
 end

@@ -85,6 +85,29 @@ namespace ChatPanel.Sdk.Api
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns><see cref="Task"/>&lt;<see cref="ISkillsListApiResponse"/>?&gt;</returns>
         Task<ISkillsListApiResponse?> SkillsListOrDefaultAsync(Option<string> workdir = default, System.Threading.CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Packages the admission scanner refused — what is on disk and deliberately not listed.
+        /// </summary>
+        /// <remarks>
+        /// A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of &#x60;GET /skills&#x60; entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+        /// </remarks>
+        /// <exception cref="ApiException">Thrown when fails to make API call</exception>
+        /// <param name="workdir"> (optional)</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="ISkillsQuarantinedApiResponse"/>&gt;</returns>
+        Task<ISkillsQuarantinedApiResponse> SkillsQuarantinedAsync(Option<string> workdir = default, System.Threading.CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Packages the admission scanner refused — what is on disk and deliberately not listed.
+        /// </summary>
+        /// <remarks>
+        /// A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of &#x60;GET /skills&#x60; entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+        /// </remarks>
+        /// <param name="workdir"> (optional)</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="ISkillsQuarantinedApiResponse"/>?&gt;</returns>
+        Task<ISkillsQuarantinedApiResponse?> SkillsQuarantinedOrDefaultAsync(Option<string> workdir = default, System.Threading.CancellationToken cancellationToken = default);
     }
 
     /// <summary>
@@ -115,6 +138,30 @@ namespace ChatPanel.Sdk.Api
     /// The <see cref="ISkillsListApiResponse"/>
     /// </summary>
     public interface ISkillsListApiResponse : ChatPanel.Sdk.Client.IApiResponse, IOk<ChatPanel.Sdk.Model.SkillsList200Response?>, IBadGateway<ChatPanel.Sdk.Model.ErrorResponse?>, IServiceUnavailable<ChatPanel.Sdk.Model.ErrorResponse?>
+    {
+        /// <summary>
+        /// Returns true if the response is 200 Ok
+        /// </summary>
+        /// <returns></returns>
+        bool IsOk { get; }
+
+        /// <summary>
+        /// Returns true if the response is 502 BadGateway
+        /// </summary>
+        /// <returns></returns>
+        bool IsBadGateway { get; }
+
+        /// <summary>
+        /// Returns true if the response is 503 ServiceUnavailable
+        /// </summary>
+        /// <returns></returns>
+        bool IsServiceUnavailable { get; }
+    }
+
+    /// <summary>
+    /// The <see cref="ISkillsQuarantinedApiResponse"/>
+    /// </summary>
+    public interface ISkillsQuarantinedApiResponse : ChatPanel.Sdk.Client.IApiResponse, IOk<ChatPanel.Sdk.Model.SkillsQuarantined200Response?>, IBadGateway<ChatPanel.Sdk.Model.ErrorResponse?>, IServiceUnavailable<ChatPanel.Sdk.Model.ErrorResponse?>
     {
         /// <summary>
         /// Returns true if the response is 200 Ok
@@ -178,6 +225,26 @@ namespace ChatPanel.Sdk.Api
         internal void ExecuteOnErrorSkillsList(Exception exception)
         {
             OnErrorSkillsList?.Invoke(this, new ExceptionEventArgs(exception));
+        }
+
+        /// <summary>
+        /// The event raised after the server response
+        /// </summary>
+        public event EventHandler<ApiResponseEventArgs>? OnSkillsQuarantined;
+
+        /// <summary>
+        /// The event raised after an error querying the server
+        /// </summary>
+        public event EventHandler<ExceptionEventArgs>? OnErrorSkillsQuarantined;
+
+        internal void ExecuteOnSkillsQuarantined(SkillsApi.SkillsQuarantinedApiResponse apiResponse)
+        {
+            OnSkillsQuarantined?.Invoke(this, new ApiResponseEventArgs(apiResponse));
+        }
+
+        internal void ExecuteOnErrorSkillsQuarantined(Exception exception)
+        {
+            OnErrorSkillsQuarantined?.Invoke(this, new ExceptionEventArgs(exception));
         }
     }
 
@@ -855,6 +922,376 @@ namespace ChatPanel.Sdk.Api
             /// <param name="result"></param>
             /// <returns></returns>
             public bool TryOk([NotNullWhen(true)]out ChatPanel.Sdk.Model.SkillsList200Response? result)
+            {
+                result = null;
+
+                try
+                {
+                    result = Ok();
+                } catch (Exception e)
+                {
+                    OnDeserializationErrorDefaultImplementation(e, (HttpStatusCode)200);
+                }
+
+                return result != null;
+            }
+
+            /// <summary>
+            /// Returns true if the response is 502 BadGateway
+            /// </summary>
+            /// <returns></returns>
+            public bool IsBadGateway => 502 == (int)StatusCode;
+
+            /// <summary>
+            /// Deserializes the response if the response is 502 BadGateway
+            /// </summary>
+            /// <returns></returns>
+            public ChatPanel.Sdk.Model.ErrorResponse? BadGateway()
+            {
+                bool suppressDefault = false;
+                ChatPanel.Sdk.Model.ErrorResponse? result = null;
+                OnBadGateway(ref suppressDefault, ref result);
+                if (!suppressDefault)
+                    result = DefaultBadGateway();
+                return result;
+            }
+
+            private ChatPanel.Sdk.Model.ErrorResponse? DefaultBadGateway()
+            {
+                // NOTICE: Consider this AsModel template deprecated. Implement the appropriate partial method instead
+                return IsBadGateway
+                    ? System.Text.Json.JsonSerializer.Deserialize<ChatPanel.Sdk.Model.ErrorResponse>(RawContent, _jsonSerializerOptions)
+                    : null;
+            }
+
+            partial void OnBadGateway(ref bool suppressDefault, ref ChatPanel.Sdk.Model.ErrorResponse? result);
+
+            /// <summary>
+            /// Returns true if the response is 502 BadGateway and the deserialized response is not null
+            /// </summary>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public bool TryBadGateway([NotNullWhen(true)]out ChatPanel.Sdk.Model.ErrorResponse? result)
+            {
+                result = null;
+
+                try
+                {
+                    result = BadGateway();
+                } catch (Exception e)
+                {
+                    OnDeserializationErrorDefaultImplementation(e, (HttpStatusCode)502);
+                }
+
+                return result != null;
+            }
+
+            /// <summary>
+            /// Returns true if the response is 503 ServiceUnavailable
+            /// </summary>
+            /// <returns></returns>
+            public bool IsServiceUnavailable => 503 == (int)StatusCode;
+
+            /// <summary>
+            /// Deserializes the response if the response is 503 ServiceUnavailable
+            /// </summary>
+            /// <returns></returns>
+            public ChatPanel.Sdk.Model.ErrorResponse? ServiceUnavailable()
+            {
+                bool suppressDefault = false;
+                ChatPanel.Sdk.Model.ErrorResponse? result = null;
+                OnServiceUnavailable(ref suppressDefault, ref result);
+                if (!suppressDefault)
+                    result = DefaultServiceUnavailable();
+                return result;
+            }
+
+            private ChatPanel.Sdk.Model.ErrorResponse? DefaultServiceUnavailable()
+            {
+                // NOTICE: Consider this AsModel template deprecated. Implement the appropriate partial method instead
+                return IsServiceUnavailable
+                    ? System.Text.Json.JsonSerializer.Deserialize<ChatPanel.Sdk.Model.ErrorResponse>(RawContent, _jsonSerializerOptions)
+                    : null;
+            }
+
+            partial void OnServiceUnavailable(ref bool suppressDefault, ref ChatPanel.Sdk.Model.ErrorResponse? result);
+
+            /// <summary>
+            /// Returns true if the response is 503 ServiceUnavailable and the deserialized response is not null
+            /// </summary>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public bool TryServiceUnavailable([NotNullWhen(true)]out ChatPanel.Sdk.Model.ErrorResponse? result)
+            {
+                result = null;
+
+                try
+                {
+                    result = ServiceUnavailable();
+                } catch (Exception e)
+                {
+                    OnDeserializationErrorDefaultImplementation(e, (HttpStatusCode)503);
+                }
+
+                return result != null;
+            }
+
+            private void OnDeserializationErrorDefaultImplementation(Exception exception, HttpStatusCode httpStatusCode)
+            {
+                bool suppressDefaultLog = false;
+                OnDeserializationError(ref suppressDefaultLog, exception, httpStatusCode);
+                if (!suppressDefaultLog)
+                    Logger.LogError(RestLogEvents.ApiDeserializationFailed, exception, "An error occurred while deserializing the {code} response.", httpStatusCode);
+            }
+
+            partial void OnDeserializationError(ref bool suppressDefaultLog, Exception exception, HttpStatusCode httpStatusCode);
+        }
+
+        partial void FormatSkillsQuarantined(ref Option<string> workdir);
+
+        /// <summary>
+        /// Validates the request parameters
+        /// </summary>
+        /// <param name="workdir"></param>
+        /// <returns></returns>
+        private void ValidateSkillsQuarantined(Option<string> workdir)
+        {
+            if (workdir.IsSet && workdir.Value == null)
+                throw new ArgumentNullException(nameof(workdir));
+        }
+
+        /// <summary>
+        /// Processes the server response
+        /// </summary>
+        /// <param name="apiResponseLocalVar"></param>
+        /// <param name="workdir"></param>
+        private void AfterSkillsQuarantinedDefaultImplementation(ISkillsQuarantinedApiResponse apiResponseLocalVar, Option<string> workdir)
+        {
+            bool suppressDefaultLog = false;
+            AfterSkillsQuarantined(ref suppressDefaultLog, apiResponseLocalVar, workdir);
+            if (!suppressDefaultLog)
+                Logger.LogInformation(RestLogEvents.ApiRequestCompleted, "{0,-9} | {1} | {2}", (apiResponseLocalVar.DownloadedAt - apiResponseLocalVar.RequestedAt).TotalSeconds, apiResponseLocalVar.StatusCode, apiResponseLocalVar.Path);
+        }
+
+        /// <summary>
+        /// Processes the server response
+        /// </summary>
+        /// <param name="suppressDefaultLog"></param>
+        /// <param name="apiResponseLocalVar"></param>
+        /// <param name="workdir"></param>
+        partial void AfterSkillsQuarantined(ref bool suppressDefaultLog, ISkillsQuarantinedApiResponse apiResponseLocalVar, Option<string> workdir);
+
+        /// <summary>
+        /// Logs exceptions that occur while retrieving the server response
+        /// </summary>
+        /// <param name="exceptionLocalVar"></param>
+        /// <param name="pathFormatLocalVar"></param>
+        /// <param name="pathLocalVar"></param>
+        /// <param name="workdir"></param>
+        private void OnErrorSkillsQuarantinedDefaultImplementation(Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Option<string> workdir)
+        {
+            bool suppressDefaultLogLocalVar = false;
+            OnErrorSkillsQuarantined(ref suppressDefaultLogLocalVar, exceptionLocalVar, pathFormatLocalVar, pathLocalVar, workdir);
+            if (!suppressDefaultLogLocalVar)
+                Logger.LogError(RestLogEvents.ApiRequestFailed, exceptionLocalVar, "An error occurred while sending the request to the server.");
+        }
+
+        /// <summary>
+        /// A partial method that gives developers a way to provide customized exception handling
+        /// </summary>
+        /// <param name="suppressDefaultLogLocalVar"></param>
+        /// <param name="exceptionLocalVar"></param>
+        /// <param name="pathFormatLocalVar"></param>
+        /// <param name="pathLocalVar"></param>
+        /// <param name="workdir"></param>
+        partial void OnErrorSkillsQuarantined(ref bool suppressDefaultLogLocalVar, Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Option<string> workdir);
+
+        /// <summary>
+        /// Packages the admission scanner refused — what is on disk and deliberately not listed. A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of &#x60;GET /skills&#x60; entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+        /// </summary>
+        /// <param name="workdir"> (optional)</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="ISkillsQuarantinedApiResponse"/>&gt;</returns>
+        public async Task<ISkillsQuarantinedApiResponse?> SkillsQuarantinedOrDefaultAsync(Option<string> workdir = default, System.Threading.CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                return await SkillsQuarantinedAsync(workdir, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Packages the admission scanner refused — what is on disk and deliberately not listed. A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of &#x60;GET /skills&#x60; entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+        /// </summary>
+        /// <exception cref="ApiException">Thrown when fails to make API call</exception>
+        /// <param name="workdir"> (optional)</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="ISkillsQuarantinedApiResponse"/>&gt;</returns>
+        public async Task<ISkillsQuarantinedApiResponse> SkillsQuarantinedAsync(Option<string> workdir = default, System.Threading.CancellationToken cancellationToken = default)
+        {
+            UriBuilder uriBuilderLocalVar = new UriBuilder();
+
+            try
+            {
+                ValidateSkillsQuarantined(workdir);
+
+                FormatSkillsQuarantined(ref workdir);
+
+                using (HttpRequestMessage httpRequestMessageLocalVar = new HttpRequestMessage())
+                {
+                    uriBuilderLocalVar.Host = HttpClient.BaseAddress!.Host;
+                    uriBuilderLocalVar.Port = HttpClient.BaseAddress.Port;
+                    uriBuilderLocalVar.Scheme = HttpClient.BaseAddress.Scheme;
+                    uriBuilderLocalVar.Path = HttpClient.BaseAddress.AbsolutePath == "/"
+                        ? "/skills-quarantined"
+                        : string.Concat(HttpClient.BaseAddress.AbsolutePath.TrimEnd('/'), "/skills-quarantined");
+
+                    System.Collections.Specialized.NameValueCollection parseQueryStringLocalVar = System.Web.HttpUtility.ParseQueryString(string.Empty);
+
+                    if (workdir.IsSet)
+                        parseQueryStringLocalVar["workdir"] = ClientUtils.ParameterToString(workdir.Value);
+
+                    uriBuilderLocalVar.Query = parseQueryStringLocalVar.ToString();
+
+                    List<TokenBase> tokenBaseLocalVars = new List<TokenBase>();
+                    httpRequestMessageLocalVar.RequestUri = uriBuilderLocalVar.Uri;
+
+                    BearerToken bearerTokenLocalVar1 = (BearerToken) await BearerTokenProvider.GetAsync(cancellation: cancellationToken).ConfigureAwait(false);
+
+                    tokenBaseLocalVars.Add(bearerTokenLocalVar1);
+
+                    bearerTokenLocalVar1.UseInHeader(httpRequestMessageLocalVar, "");
+
+                    string[] acceptLocalVars = new string[] {
+                        "application/json"
+                    };
+
+                    IEnumerable<MediaTypeWithQualityHeaderValue> acceptHeaderValuesLocalVar = ClientUtils.SelectHeaderAcceptArray(acceptLocalVars);
+
+                    foreach (var acceptLocalVar in acceptHeaderValuesLocalVar)
+                        httpRequestMessageLocalVar.Headers.Accept.Add(acceptLocalVar);
+
+                    httpRequestMessageLocalVar.Method = HttpMethod.Get;
+
+                    DateTime requestedAtLocalVar = DateTime.UtcNow;
+
+                    using (HttpResponseMessage httpResponseMessageLocalVar = await HttpClient.SendAsync(httpRequestMessageLocalVar, cancellationToken).ConfigureAwait(false))
+                    {
+                        SkillsQuarantinedApiResponse apiResponseLocalVar;
+
+                        switch ((int)httpResponseMessageLocalVar.StatusCode) {
+                            default: {
+                                string responseContentLocalVar = await httpResponseMessageLocalVar.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                                apiResponseLocalVar = new(Logger, httpRequestMessageLocalVar, httpResponseMessageLocalVar, responseContentLocalVar, "/skills-quarantined", requestedAtLocalVar, _jsonSerializerOptions);
+
+                                break;
+                            }
+                        }
+
+                        AfterSkillsQuarantinedDefaultImplementation(apiResponseLocalVar, workdir);
+
+                        Events.ExecuteOnSkillsQuarantined(apiResponseLocalVar);
+
+                        if (apiResponseLocalVar.StatusCode == (HttpStatusCode) 429)
+                            foreach(TokenBase tokenBaseLocalVar in tokenBaseLocalVars)
+                                tokenBaseLocalVar.BeginRateLimit();
+
+                        return apiResponseLocalVar;
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                OnErrorSkillsQuarantinedDefaultImplementation(e, "/skills-quarantined", uriBuilderLocalVar.Path, workdir);
+                Events.ExecuteOnErrorSkillsQuarantined(e);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="SkillsQuarantinedApiResponse"/>
+        /// </summary>
+        public partial class SkillsQuarantinedApiResponse : ChatPanel.Sdk.Client.ApiResponse, ISkillsQuarantinedApiResponse
+        {
+            /// <summary>
+            /// The logger
+            /// </summary>
+            public ILogger<SkillsApi> Logger { get; }
+
+            /// <summary>
+            /// The <see cref="SkillsQuarantinedApiResponse"/>
+            /// </summary>
+            /// <param name="logger"></param>
+            /// <param name="httpRequestMessage"></param>
+            /// <param name="httpResponseMessage"></param>
+            /// <param name="rawContent"></param>
+            /// <param name="path"></param>
+            /// <param name="requestedAt"></param>
+            /// <param name="jsonSerializerOptions"></param>
+            public SkillsQuarantinedApiResponse(ILogger<SkillsApi> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, string rawContent, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, rawContent, path, requestedAt, jsonSerializerOptions)
+            {
+                Logger = logger;
+                OnCreated(httpRequestMessage, httpResponseMessage);
+            }
+
+            /// <summary>
+            /// The <see cref="SkillsQuarantinedApiResponse"/>
+            /// </summary>
+            /// <param name="logger"></param>
+            /// <param name="httpRequestMessage"></param>
+            /// <param name="httpResponseMessage"></param>
+            /// <param name="contentStream"></param>
+            /// <param name="path"></param>
+            /// <param name="requestedAt"></param>
+            /// <param name="jsonSerializerOptions"></param>
+            public SkillsQuarantinedApiResponse(ILogger<SkillsApi> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, System.IO.Stream contentStream, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, contentStream, path, requestedAt, jsonSerializerOptions)
+            {
+                Logger = logger;
+                OnCreated(httpRequestMessage, httpResponseMessage);
+            }
+
+            partial void OnCreated(global::System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage);
+
+            /// <summary>
+            /// Returns true if the response is 200 Ok
+            /// </summary>
+            /// <returns></returns>
+            public bool IsOk => 200 == (int)StatusCode;
+
+            /// <summary>
+            /// Deserializes the response if the response is 200 Ok
+            /// </summary>
+            /// <returns></returns>
+            public ChatPanel.Sdk.Model.SkillsQuarantined200Response? Ok()
+            {
+                bool suppressDefault = false;
+                ChatPanel.Sdk.Model.SkillsQuarantined200Response? result = null;
+                OnOk(ref suppressDefault, ref result);
+                if (!suppressDefault)
+                    result = DefaultOk();
+                return result;
+            }
+
+            private ChatPanel.Sdk.Model.SkillsQuarantined200Response? DefaultOk()
+            {
+                // NOTICE: Consider this AsModel template deprecated. Implement the appropriate partial method instead
+                return IsOk
+                    ? System.Text.Json.JsonSerializer.Deserialize<ChatPanel.Sdk.Model.SkillsQuarantined200Response>(RawContent, _jsonSerializerOptions)
+                    : null;
+            }
+
+            partial void OnOk(ref bool suppressDefault, ref ChatPanel.Sdk.Model.SkillsQuarantined200Response? result);
+
+            /// <summary>
+            /// Returns true if the response is 200 Ok and the deserialized response is not null
+            /// </summary>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public bool TryOk([NotNullWhen(true)]out ChatPanel.Sdk.Model.SkillsQuarantined200Response? result)
             {
                 result = null;
 

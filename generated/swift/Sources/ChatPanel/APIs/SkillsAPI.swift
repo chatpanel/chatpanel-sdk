@@ -97,4 +97,47 @@ open class SkillsAPI {
 
         return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
+
+    /**
+     Packages the admission scanner refused — what is on disk and deliberately not listed.
+     
+     - parameter workdir: (query)  (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: SkillsQuarantined200Response
+     */
+    open class func skillsQuarantined(workdir: String? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> SkillsQuarantined200Response {
+        return try await skillsQuarantinedWithRequestBuilder(workdir: workdir, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     Packages the admission scanner refused — what is on disk and deliberately not listed.
+     - GET /skills-quarantined
+     - A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of `GET /skills` entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter workdir: (query)  (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<SkillsQuarantined200Response> 
+     */
+    open class func skillsQuarantinedWithRequestBuilder(workdir: String? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<SkillsQuarantined200Response> {
+        let localVariablePath = "/skills-quarantined"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "workdir": (wrappedValue: workdir?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<SkillsQuarantined200Response>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
 }

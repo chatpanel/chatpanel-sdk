@@ -27,6 +27,11 @@ import java.io.IOException
 import okhttp3.Call
 import okhttp3.HttpUrl
 
+import net.chatpanel.sdk.models.AgentExportPlan
+import net.chatpanel.sdk.models.AgentExportRequest
+import net.chatpanel.sdk.models.AgentsExportDef200Response
+import net.chatpanel.sdk.models.AgentsGetDef200Response
+import net.chatpanel.sdk.models.AgentsListDefs200Response
 import net.chatpanel.sdk.models.AgentsRateRequest
 import net.chatpanel.sdk.models.AgentsScorecards200Response
 import net.chatpanel.sdk.models.ErrorResponse
@@ -53,6 +58,319 @@ open class AgentsApi(basePath: kotlin.String = defaultBasePath, client: Call.Fac
         val defaultBasePath: String by lazy {
             System.getProperties().getProperty(ApiClient.BASE_URL_KEY, "http://127.0.0.1:4320")
         }
+    }
+
+    /**
+     * POST /agent-defs/export
+     * Write an agent definition into another tool&#39;s folder.
+     * Only from a named action. The file is backed up before it is touched, and one ChatPanel did not write — or one edited since it did — is refused with &#x60;NOT_OURS&#x60; unless &#x60;overwrite&#x60; is set. Which of those applies is what &#x60;export-plan&#x60; reports as &#x60;status&#x60;.
+     * @param agentExportRequest 
+     * @return AgentsExportDef200Response
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun agentsExportDef(agentExportRequest: AgentExportRequest) : AgentsExportDef200Response {
+        val localVarResponse = agentsExportDefWithHttpInfo(agentExportRequest = agentExportRequest)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as AgentsExportDef200Response
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * POST /agent-defs/export
+     * Write an agent definition into another tool&#39;s folder.
+     * Only from a named action. The file is backed up before it is touched, and one ChatPanel did not write — or one edited since it did — is refused with &#x60;NOT_OURS&#x60; unless &#x60;overwrite&#x60; is set. Which of those applies is what &#x60;export-plan&#x60; reports as &#x60;status&#x60;.
+     * @param agentExportRequest 
+     * @return ApiResponse<AgentsExportDef200Response?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun agentsExportDefWithHttpInfo(agentExportRequest: AgentExportRequest) : ApiResponse<AgentsExportDef200Response?> {
+        val localVariableConfig = agentsExportDefRequestConfig(agentExportRequest = agentExportRequest)
+
+        return request<AgentExportRequest, AgentsExportDef200Response>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation agentsExportDef
+     *
+     * @param agentExportRequest 
+     * @return RequestConfig
+     */
+    fun agentsExportDefRequestConfig(agentExportRequest: AgentExportRequest) : RequestConfig<AgentExportRequest> {
+        val localVariableBody = agentExportRequest
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/agent-defs/export",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * POST /agent-defs/export-plan
+     * What an export would write, and what the target cannot carry — without writing it.
+     * A separate call from the export itself, deliberately: \&quot;show me what you are about to do to my Claude Code directory\&quot; is a question a person answers before saying yes, and a dry run sharing a code path with the real thing is one edit away from not being dry.
+     * @param agentExportRequest 
+     * @return AgentExportPlan
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun agentsExportPlan(agentExportRequest: AgentExportRequest) : AgentExportPlan {
+        val localVarResponse = agentsExportPlanWithHttpInfo(agentExportRequest = agentExportRequest)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as AgentExportPlan
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * POST /agent-defs/export-plan
+     * What an export would write, and what the target cannot carry — without writing it.
+     * A separate call from the export itself, deliberately: \&quot;show me what you are about to do to my Claude Code directory\&quot; is a question a person answers before saying yes, and a dry run sharing a code path with the real thing is one edit away from not being dry.
+     * @param agentExportRequest 
+     * @return ApiResponse<AgentExportPlan?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun agentsExportPlanWithHttpInfo(agentExportRequest: AgentExportRequest) : ApiResponse<AgentExportPlan?> {
+        val localVariableConfig = agentsExportPlanRequestConfig(agentExportRequest = agentExportRequest)
+
+        return request<AgentExportRequest, AgentExportPlan>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation agentsExportPlan
+     *
+     * @param agentExportRequest 
+     * @return RequestConfig
+     */
+    fun agentsExportPlanRequestConfig(agentExportRequest: AgentExportRequest) : RequestConfig<AgentExportRequest> {
+        val localVariableBody = agentExportRequest
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/agent-defs/export-plan",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * GET /agent-defs/{agentId}
+     * One agent definition, prompt included.
+     * 
+     * @param agentId One path segment; slashes and &#x60;..&#x60; are refused.
+     * @param workdir  (optional)
+     * @return AgentsGetDef200Response
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun agentsGetDef(agentId: kotlin.String, workdir: kotlin.String? = null) : AgentsGetDef200Response {
+        val localVarResponse = agentsGetDefWithHttpInfo(agentId = agentId, workdir = workdir)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as AgentsGetDef200Response
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * GET /agent-defs/{agentId}
+     * One agent definition, prompt included.
+     * 
+     * @param agentId One path segment; slashes and &#x60;..&#x60; are refused.
+     * @param workdir  (optional)
+     * @return ApiResponse<AgentsGetDef200Response?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun agentsGetDefWithHttpInfo(agentId: kotlin.String, workdir: kotlin.String?) : ApiResponse<AgentsGetDef200Response?> {
+        val localVariableConfig = agentsGetDefRequestConfig(agentId = agentId, workdir = workdir)
+
+        return request<Unit, AgentsGetDef200Response>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation agentsGetDef
+     *
+     * @param agentId One path segment; slashes and &#x60;..&#x60; are refused.
+     * @param workdir  (optional)
+     * @return RequestConfig
+     */
+    fun agentsGetDefRequestConfig(agentId: kotlin.String, workdir: kotlin.String?) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf<kotlin.String, kotlin.collections.List<kotlin.String>>()
+            .apply {
+                if (workdir != null) {
+                    put("workdir", listOf(workdir.toString()))
+                }
+            }
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.GET,
+            path = "/agent-defs/{agentId}".replace("{"+"agentId"+"}", encodeURIComponent(agentId.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * GET /agent-defs
+     * The agent definitions on this machine, from every tool that writes one.
+     * &#x60;.claude/agents/_*.md&#x60;, &#x60;.codex/agents/_*.toml&#x60;, &#x60;~/.chatpanel/agents/_*.json&#x60; and the project-local equivalents, each read in its own dialect and returned in one shape. No prompts — &#x60;promptChars&#x60; only, for the same reason &#x60;GET /skills&#x60; omits them.
+     * @param workdir Also read this project&#39;s own agent folders, ahead of the home ones. (optional)
+     * @param dir An extra absolute folder to scan. Repeatable. (optional)
+     * @return AgentsListDefs200Response
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun agentsListDefs(workdir: kotlin.String? = null, dir: kotlin.String? = null) : AgentsListDefs200Response {
+        val localVarResponse = agentsListDefsWithHttpInfo(workdir = workdir, dir = dir)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as AgentsListDefs200Response
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * GET /agent-defs
+     * The agent definitions on this machine, from every tool that writes one.
+     * &#x60;.claude/agents/_*.md&#x60;, &#x60;.codex/agents/_*.toml&#x60;, &#x60;~/.chatpanel/agents/_*.json&#x60; and the project-local equivalents, each read in its own dialect and returned in one shape. No prompts — &#x60;promptChars&#x60; only, for the same reason &#x60;GET /skills&#x60; omits them.
+     * @param workdir Also read this project&#39;s own agent folders, ahead of the home ones. (optional)
+     * @param dir An extra absolute folder to scan. Repeatable. (optional)
+     * @return ApiResponse<AgentsListDefs200Response?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun agentsListDefsWithHttpInfo(workdir: kotlin.String?, dir: kotlin.String?) : ApiResponse<AgentsListDefs200Response?> {
+        val localVariableConfig = agentsListDefsRequestConfig(workdir = workdir, dir = dir)
+
+        return request<Unit, AgentsListDefs200Response>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation agentsListDefs
+     *
+     * @param workdir Also read this project&#39;s own agent folders, ahead of the home ones. (optional)
+     * @param dir An extra absolute folder to scan. Repeatable. (optional)
+     * @return RequestConfig
+     */
+    fun agentsListDefsRequestConfig(workdir: kotlin.String?, dir: kotlin.String?) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf<kotlin.String, kotlin.collections.List<kotlin.String>>()
+            .apply {
+                if (workdir != null) {
+                    put("workdir", listOf(workdir.toString()))
+                }
+                if (dir != null) {
+                    put("dir", listOf(dir.toString()))
+                }
+            }
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.GET,
+            path = "/agent-defs",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
     }
 
     /**

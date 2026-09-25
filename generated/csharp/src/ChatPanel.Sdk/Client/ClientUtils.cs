@@ -138,6 +138,16 @@ namespace ChatPanel.Sdk.Client
                 return boolean
                     ? "true"
                     : "false";
+            if (obj is AgentDef.DialectEnum agentDefDialectEnum)
+                return AgentDef.DialectEnumToJsonValue(agentDefDialectEnum);
+            if (obj is AgentExportPlan.StatusEnum agentExportPlanStatusEnum)
+                return AgentExportPlan.StatusEnumToJsonValue(agentExportPlanStatusEnum);
+            if (obj is AgentExportRequest.ToEnum agentExportRequestToEnum)
+                return AgentExportRequest.ToEnumToJsonValue(agentExportRequestToEnum);
+            if (obj is AgentsExportDef200Response.StatusEnum agentsExportDef200ResponseStatusEnum)
+                return AgentsExportDef200Response.StatusEnumToJsonValue(agentsExportDef200ResponseStatusEnum);
+            if (obj is AgentsGetDef200Response.DialectEnum agentsGetDef200ResponseDialectEnum)
+                return AgentsGetDef200Response.DialectEnumToJsonValue(agentsGetDef200ResponseDialectEnum);
             if (obj is AudioSpeechRequest.ResponseFormatEnum audioSpeechRequestResponseFormatEnum)
                 return AudioSpeechRequest.ResponseFormatEnumToJsonValue(audioSpeechRequestResponseFormatEnum);
             if (obj is Capability.IdEnum capabilityIdEnum)
@@ -170,6 +180,8 @@ namespace ChatPanel.Sdk.Client
                 return ModelList.ObjectEnumToJsonValue(modelListObjectEnum);
             if (obj is PrefsEvent.TypeEnum prefsEventTypeEnum)
                 return PrefsEvent.TypeEnumToJsonValue(prefsEventTypeEnum);
+            if (obj is QuarantinedSkill.VerdictEnum quarantinedSkillVerdictEnum)
+                return QuarantinedSkill.VerdictEnumToJsonValue(quarantinedSkillVerdictEnum);
             if (obj is ReadRequest.FormatEnum readRequestFormatEnum)
                 return ReadRequest.FormatEnumToJsonValue(readRequestFormatEnum);
             if (obj is ReadResponse.FormatEnum readResponseFormatEnum)

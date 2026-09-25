@@ -66,6 +66,11 @@ require_once(__DIR__ . '/vendor/autoload.php');
 
 
 
+// Configure API key authorization: tokenHeader
+$config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setApiKey('X-ChatPanel-Token', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// $config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-ChatPanel-Token', 'Bearer');
+
 // Configure Bearer authorization: gatewayToken
 $config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setAccessToken('YOUR_ACCESS_TOKEN');
 
@@ -76,14 +81,13 @@ $apiInstance = new ChatPanelSdk\Api\AgentsApi(
     new GuzzleHttp\Client(),
     $config
 );
-$agent_id = 'agent_id_example'; // string
-$agents_rate_request = new \ChatPanelSdk\Model\AgentsRateRequest(); // \ChatPanelSdk\Model\AgentsRateRequest
+$agent_export_request = new \ChatPanelSdk\Model\AgentExportRequest(); // \ChatPanelSdk\Model\AgentExportRequest
 
 try {
-    $result = $apiInstance->agentsRate($agent_id, $agents_rate_request);
+    $result = $apiInstance->agentsExportDef($agent_export_request);
     print_r($result);
 } catch (Exception $e) {
-    echo 'Exception when calling AgentsApi->agentsRate: ', $e->getMessage(), PHP_EOL;
+    echo 'Exception when calling AgentsApi->agentsExportDef: ', $e->getMessage(), PHP_EOL;
 }
 
 ```
@@ -94,6 +98,10 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*AgentsApi* | [**agentsExportDef**](docs/Api/AgentsApi.md#agentsexportdef) | **POST** /agent-defs/export | Write an agent definition into another tool&#39;s folder.
+*AgentsApi* | [**agentsExportPlan**](docs/Api/AgentsApi.md#agentsexportplan) | **POST** /agent-defs/export-plan | What an export would write, and what the target cannot carry — without writing it.
+*AgentsApi* | [**agentsGetDef**](docs/Api/AgentsApi.md#agentsgetdef) | **GET** /agent-defs/{agentId} | One agent definition, prompt included.
+*AgentsApi* | [**agentsListDefs**](docs/Api/AgentsApi.md#agentslistdefs) | **GET** /agent-defs | The agent definitions on this machine, from every tool that writes one.
 *AgentsApi* | [**agentsRate**](docs/Api/AgentsApi.md#agentsrate) | **POST** /v1/agents/{agentId}/scorecard | A person rates the agent&#39;s work on a run, task or job.
 *AgentsApi* | [**agentsScorecard**](docs/Api/AgentsApi.md#agentsscorecard) | **GET** /v1/agents/{agentId}/scorecard | One agent&#39;s attested scorecard.
 *AgentsApi* | [**agentsScorecards**](docs/Api/AgentsApi.md#agentsscorecards) | **GET** /v1/agents/scorecards | Every agent&#39;s scorecard.
@@ -160,6 +168,7 @@ Class | Method | HTTP request | Description
 *RuntimeApi* | [**runtimeStatus**](docs/Api/RuntimeApi.md#runtimestatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
 *SkillsApi* | [**skillsGet**](docs/Api/SkillsApi.md#skillsget) | **GET** /skills/{skillId} | One skill, with its prompt.
 *SkillsApi* | [**skillsList**](docs/Api/SkillsApi.md#skillslist) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
+*SkillsApi* | [**skillsQuarantined**](docs/Api/SkillsApi.md#skillsquarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed.
 *TeamsApi* | [**teamsAnswer**](docs/Api/TeamsApi.md#teamsanswer) | **POST** /v1/teams/runs/{runId}/answer | A person answers an ask on the board.
 *TeamsApi* | [**teamsAppendRunEvents**](docs/Api/TeamsApi.md#teamsappendrunevents) | **POST** /v1/teams/runs/{runId}/events | The running client appends events.
 *TeamsApi* | [**teamsCheckpoint**](docs/Api/TeamsApi.md#teamscheckpoint) | **GET** /v1/teams/runs/{runId}/checkpoint | What a client needs to resume a run whose client went away.
@@ -177,6 +186,14 @@ Class | Method | HTTP request | Description
 
 ## Models
 
+- [AgentDef](docs/Model/AgentDef.md)
+- [AgentExportPlan](docs/Model/AgentExportPlan.md)
+- [AgentExportRequest](docs/Model/AgentExportRequest.md)
+- [AgentFidelity](docs/Model/AgentFidelity.md)
+- [AgentFidelityDroppedInner](docs/Model/AgentFidelityDroppedInner.md)
+- [AgentsExportDef200Response](docs/Model/AgentsExportDef200Response.md)
+- [AgentsGetDef200Response](docs/Model/AgentsGetDef200Response.md)
+- [AgentsListDefs200Response](docs/Model/AgentsListDefs200Response.md)
 - [AgentsRateRequest](docs/Model/AgentsRateRequest.md)
 - [AgentsScorecards200Response](docs/Model/AgentsScorecards200Response.md)
 - [AudioSpeechRequest](docs/Model/AudioSpeechRequest.md)
@@ -264,6 +281,7 @@ Class | Method | HTTP request | Description
 - [PushEventsResponseRejectedInner](docs/Model/PushEventsResponseRejectedInner.md)
 - [PutRecordsRequest](docs/Model/PutRecordsRequest.md)
 - [PutRecordsResponse](docs/Model/PutRecordsResponse.md)
+- [QuarantinedSkill](docs/Model/QuarantinedSkill.md)
 - [ReadRequest](docs/Model/ReadRequest.md)
 - [ReadResponse](docs/Model/ReadResponse.md)
 - [ReadRestriction](docs/Model/ReadRestriction.md)
@@ -296,6 +314,7 @@ Class | Method | HTTP request | Description
 - [Skill](docs/Model/Skill.md)
 - [SkillsGet200Response](docs/Model/SkillsGet200Response.md)
 - [SkillsList200Response](docs/Model/SkillsList200Response.md)
+- [SkillsQuarantined200Response](docs/Model/SkillsQuarantined200Response.md)
 - [SmartSearchRequest](docs/Model/SmartSearchRequest.md)
 - [SmartSearchResponse](docs/Model/SmartSearchResponse.md)
 - [TeamRun](docs/Model/TeamRun.md)

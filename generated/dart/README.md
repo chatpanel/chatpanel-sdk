@@ -66,14 +66,13 @@ import 'package:chatpanel/chatpanel.dart';
 
 
 final api = Chatpanel().getAgentsApi();
-final String agentId = agentId_example; // String | 
-final AgentsRateRequest agentsRateRequest = ; // AgentsRateRequest | 
+final AgentExportRequest agentExportRequest = ; // AgentExportRequest | 
 
 try {
-    final response = await api.agentsRate(agentId, agentsRateRequest);
+    final response = await api.agentsExportDef(agentExportRequest);
     print(response);
 } on DioException catch (e) {
-    print("Exception when calling AgentsApi->agentsRate: $e\n");
+    print("Exception when calling AgentsApi->agentsExportDef: $e\n");
 }
 
 ```
@@ -84,6 +83,10 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+[*AgentsApi*](doc/AgentsApi.md) | [**agentsExportDef**](doc/AgentsApi.md#agentsexportdef) | **POST** /agent-defs/export | Write an agent definition into another tool&#39;s folder.
+[*AgentsApi*](doc/AgentsApi.md) | [**agentsExportPlan**](doc/AgentsApi.md#agentsexportplan) | **POST** /agent-defs/export-plan | What an export would write, and what the target cannot carry — without writing it.
+[*AgentsApi*](doc/AgentsApi.md) | [**agentsGetDef**](doc/AgentsApi.md#agentsgetdef) | **GET** /agent-defs/{agentId} | One agent definition, prompt included.
+[*AgentsApi*](doc/AgentsApi.md) | [**agentsListDefs**](doc/AgentsApi.md#agentslistdefs) | **GET** /agent-defs | The agent definitions on this machine, from every tool that writes one.
 [*AgentsApi*](doc/AgentsApi.md) | [**agentsRate**](doc/AgentsApi.md#agentsrate) | **POST** /v1/agents/{agentId}/scorecard | A person rates the agent&#39;s work on a run, task or job.
 [*AgentsApi*](doc/AgentsApi.md) | [**agentsScorecard**](doc/AgentsApi.md#agentsscorecard) | **GET** /v1/agents/{agentId}/scorecard | One agent&#39;s attested scorecard.
 [*AgentsApi*](doc/AgentsApi.md) | [**agentsScorecards**](doc/AgentsApi.md#agentsscorecards) | **GET** /v1/agents/scorecards | Every agent&#39;s scorecard.
@@ -150,6 +153,7 @@ Class | Method | HTTP request | Description
 [*RuntimeApi*](doc/RuntimeApi.md) | [**runtimeStatus**](doc/RuntimeApi.md#runtimestatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
 [*SkillsApi*](doc/SkillsApi.md) | [**skillsGet**](doc/SkillsApi.md#skillsget) | **GET** /skills/{skillId} | One skill, with its prompt.
 [*SkillsApi*](doc/SkillsApi.md) | [**skillsList**](doc/SkillsApi.md#skillslist) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
+[*SkillsApi*](doc/SkillsApi.md) | [**skillsQuarantined**](doc/SkillsApi.md#skillsquarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed.
 [*TeamsApi*](doc/TeamsApi.md) | [**teamsAnswer**](doc/TeamsApi.md#teamsanswer) | **POST** /v1/teams/runs/{runId}/answer | A person answers an ask on the board.
 [*TeamsApi*](doc/TeamsApi.md) | [**teamsAppendRunEvents**](doc/TeamsApi.md#teamsappendrunevents) | **POST** /v1/teams/runs/{runId}/events | The running client appends events.
 [*TeamsApi*](doc/TeamsApi.md) | [**teamsCheckpoint**](doc/TeamsApi.md#teamscheckpoint) | **GET** /v1/teams/runs/{runId}/checkpoint | What a client needs to resume a run whose client went away.
@@ -168,6 +172,14 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [AgentDef](doc/AgentDef.md)
+ - [AgentExportPlan](doc/AgentExportPlan.md)
+ - [AgentExportRequest](doc/AgentExportRequest.md)
+ - [AgentFidelity](doc/AgentFidelity.md)
+ - [AgentFidelityDroppedInner](doc/AgentFidelityDroppedInner.md)
+ - [AgentsExportDef200Response](doc/AgentsExportDef200Response.md)
+ - [AgentsGetDef200Response](doc/AgentsGetDef200Response.md)
+ - [AgentsListDefs200Response](doc/AgentsListDefs200Response.md)
  - [AgentsRateRequest](doc/AgentsRateRequest.md)
  - [AgentsScorecards200Response](doc/AgentsScorecards200Response.md)
  - [AudioSpeechRequest](doc/AudioSpeechRequest.md)
@@ -255,6 +267,7 @@ Class | Method | HTTP request | Description
  - [PushEventsResponseRejectedInner](doc/PushEventsResponseRejectedInner.md)
  - [PutRecordsRequest](doc/PutRecordsRequest.md)
  - [PutRecordsResponse](doc/PutRecordsResponse.md)
+ - [QuarantinedSkill](doc/QuarantinedSkill.md)
  - [ReadRequest](doc/ReadRequest.md)
  - [ReadResponse](doc/ReadResponse.md)
  - [ReadRestriction](doc/ReadRestriction.md)
@@ -287,6 +300,7 @@ Class | Method | HTTP request | Description
  - [Skill](doc/Skill.md)
  - [SkillsGet200Response](doc/SkillsGet200Response.md)
  - [SkillsList200Response](doc/SkillsList200Response.md)
+ - [SkillsQuarantined200Response](doc/SkillsQuarantined200Response.md)
  - [SmartSearchRequest](doc/SmartSearchRequest.md)
  - [SmartSearchResponse](doc/SmartSearchResponse.md)
  - [TeamRun](doc/TeamRun.md)

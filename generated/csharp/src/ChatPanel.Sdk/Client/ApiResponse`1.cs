@@ -381,6 +381,26 @@ namespace ChatPanel.Sdk.Client
     /// An interface for responses of type 
     /// </summary>
     /// <typeparam name="TType"></typeparam>
+    public interface IConflict<TType> : IApiResponse
+    {
+        /// <summary>
+        /// Deserializes the response if the response is Conflict
+        /// </summary>
+        /// <returns></returns>
+        TType Conflict();
+
+        /// <summary>
+        /// Returns true if the response is Conflict and the deserialized response is not null
+        /// </summary>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        bool TryConflict([NotNullWhen(true)]out TType? result);
+    }
+
+    /// <summary>
+    /// An interface for responses of type 
+    /// </summary>
+    /// <typeparam name="TType"></typeparam>
     public interface IUnauthorized<TType> : IApiResponse
     {
         /// <summary>
@@ -401,26 +421,6 @@ namespace ChatPanel.Sdk.Client
     /// An interface for responses of type 
     /// </summary>
     /// <typeparam name="TType"></typeparam>
-    public interface IServiceUnavailable<TType> : IApiResponse
-    {
-        /// <summary>
-        /// Deserializes the response if the response is ServiceUnavailable
-        /// </summary>
-        /// <returns></returns>
-        TType ServiceUnavailable();
-
-        /// <summary>
-        /// Returns true if the response is ServiceUnavailable and the deserialized response is not null
-        /// </summary>
-        /// <param name="result"></param>
-        /// <returns></returns>
-        bool TryServiceUnavailable([NotNullWhen(true)]out TType? result);
-    }
-
-    /// <summary>
-    /// An interface for responses of type 
-    /// </summary>
-    /// <typeparam name="TType"></typeparam>
     public interface IBadGateway<TType> : IApiResponse
     {
         /// <summary>
@@ -435,6 +435,26 @@ namespace ChatPanel.Sdk.Client
         /// <param name="result"></param>
         /// <returns></returns>
         bool TryBadGateway([NotNullWhen(true)]out TType? result);
+    }
+
+    /// <summary>
+    /// An interface for responses of type 
+    /// </summary>
+    /// <typeparam name="TType"></typeparam>
+    public interface IServiceUnavailable<TType> : IApiResponse
+    {
+        /// <summary>
+        /// Deserializes the response if the response is ServiceUnavailable
+        /// </summary>
+        /// <returns></returns>
+        TType ServiceUnavailable();
+
+        /// <summary>
+        /// Returns true if the response is ServiceUnavailable and the deserialized response is not null
+        /// </summary>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        bool TryServiceUnavailable([NotNullWhen(true)]out TType? result);
     }
 
     /// <summary>

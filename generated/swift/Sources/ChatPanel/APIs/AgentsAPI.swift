@@ -10,6 +10,185 @@ import Foundation
 open class AgentsAPI {
 
     /**
+     Write an agent definition into another tool's folder.
+     
+     - parameter agentExportRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: AgentsExportDef200Response
+     */
+    open class func agentsExportDef(agentExportRequest: AgentExportRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> AgentsExportDef200Response {
+        return try await agentsExportDefWithRequestBuilder(agentExportRequest: agentExportRequest, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     Write an agent definition into another tool's folder.
+     - POST /agent-defs/export
+     - Only from a named action. The file is backed up before it is touched, and one ChatPanel did not write — or one edited since it did — is refused with `NOT_OURS` unless `overwrite` is set. Which of those applies is what `export-plan` reports as `status`.
+     - API Key:
+       - type: apiKey X-ChatPanel-Token (HEADER)
+       - name: tokenHeader
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter agentExportRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<AgentsExportDef200Response> 
+     */
+    open class func agentsExportDefWithRequestBuilder(agentExportRequest: AgentExportRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<AgentsExportDef200Response> {
+        let localVariablePath = "/agent-defs/export"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: agentExportRequest, codableHelper: apiConfiguration.codableHelper)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            "Content-Type": "application/json",
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<AgentsExportDef200Response>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
+     What an export would write, and what the target cannot carry — without writing it.
+     
+     - parameter agentExportRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: AgentExportPlan
+     */
+    open class func agentsExportPlan(agentExportRequest: AgentExportRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> AgentExportPlan {
+        return try await agentsExportPlanWithRequestBuilder(agentExportRequest: agentExportRequest, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     What an export would write, and what the target cannot carry — without writing it.
+     - POST /agent-defs/export-plan
+     - A separate call from the export itself, deliberately: \"show me what you are about to do to my Claude Code directory\" is a question a person answers before saying yes, and a dry run sharing a code path with the real thing is one edit away from not being dry.
+     - API Key:
+       - type: apiKey X-ChatPanel-Token (HEADER)
+       - name: tokenHeader
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter agentExportRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<AgentExportPlan> 
+     */
+    open class func agentsExportPlanWithRequestBuilder(agentExportRequest: AgentExportRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<AgentExportPlan> {
+        let localVariablePath = "/agent-defs/export-plan"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: agentExportRequest, codableHelper: apiConfiguration.codableHelper)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            "Content-Type": "application/json",
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<AgentExportPlan>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
+     One agent definition, prompt included.
+     
+     - parameter agentId: (path) One path segment; slashes and &#x60;..&#x60; are refused. 
+     - parameter workdir: (query)  (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: AgentsGetDef200Response
+     */
+    open class func agentsGetDef(agentId: String, workdir: String? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> AgentsGetDef200Response {
+        return try await agentsGetDefWithRequestBuilder(agentId: agentId, workdir: workdir, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     One agent definition, prompt included.
+     - GET /agent-defs/{agentId}
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter agentId: (path) One path segment; slashes and &#x60;..&#x60; are refused. 
+     - parameter workdir: (query)  (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<AgentsGetDef200Response> 
+     */
+    open class func agentsGetDefWithRequestBuilder(agentId: String, workdir: String? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<AgentsGetDef200Response> {
+        var localVariablePath = "/agent-defs/{agentId}"
+        let agentIdPreEscape = "\(APIHelper.mapValueToPathItem(agentId))"
+        let agentIdPostEscape = agentIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{agentId}", with: agentIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "workdir": (wrappedValue: workdir?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<AgentsGetDef200Response>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
+     The agent definitions on this machine, from every tool that writes one.
+     
+     - parameter workdir: (query) Also read this project&#39;s own agent folders, ahead of the home ones. (optional)
+     - parameter dir: (query) An extra absolute folder to scan. Repeatable. (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: AgentsListDefs200Response
+     */
+    open class func agentsListDefs(workdir: String? = nil, dir: String? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> AgentsListDefs200Response {
+        return try await agentsListDefsWithRequestBuilder(workdir: workdir, dir: dir, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     The agent definitions on this machine, from every tool that writes one.
+     - GET /agent-defs
+     - `.claude/agents/_*.md`, `.codex/agents/_*.toml`, `~/.chatpanel/agents/_*.json` and the project-local equivalents, each read in its own dialect and returned in one shape. No prompts — `promptChars` only, for the same reason `GET /skills` omits them.
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter workdir: (query) Also read this project&#39;s own agent folders, ahead of the home ones. (optional)
+     - parameter dir: (query) An extra absolute folder to scan. Repeatable. (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<AgentsListDefs200Response> 
+     */
+    open class func agentsListDefsWithRequestBuilder(workdir: String? = nil, dir: String? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<AgentsListDefs200Response> {
+        let localVariablePath = "/agent-defs"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "workdir": (wrappedValue: workdir?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+            "dir": (wrappedValue: dir?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<AgentsListDefs200Response>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
      A person rates the agent's work on a run, task or job.
      
      - parameter agentId: (path)  

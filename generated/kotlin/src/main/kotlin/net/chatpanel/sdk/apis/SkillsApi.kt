@@ -30,6 +30,7 @@ import okhttp3.HttpUrl
 import net.chatpanel.sdk.models.ErrorResponse
 import net.chatpanel.sdk.models.SkillsGet200Response
 import net.chatpanel.sdk.models.SkillsList200Response
+import net.chatpanel.sdk.models.SkillsQuarantined200Response
 
 import com.squareup.moshi.Json
 
@@ -207,6 +208,84 @@ open class SkillsApi(basePath: kotlin.String = defaultBasePath, client: Call.Fac
         return RequestConfig(
             method = RequestMethod.GET,
             path = "/skills",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * GET /skills-quarantined
+     * Packages the admission scanner refused — what is on disk and deliberately not listed.
+     * A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of &#x60;GET /skills&#x60; entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+     * @param workdir  (optional)
+     * @return SkillsQuarantined200Response
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun skillsQuarantined(workdir: kotlin.String? = null) : SkillsQuarantined200Response {
+        val localVarResponse = skillsQuarantinedWithHttpInfo(workdir = workdir)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as SkillsQuarantined200Response
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * GET /skills-quarantined
+     * Packages the admission scanner refused — what is on disk and deliberately not listed.
+     * A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of &#x60;GET /skills&#x60; entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+     * @param workdir  (optional)
+     * @return ApiResponse<SkillsQuarantined200Response?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun skillsQuarantinedWithHttpInfo(workdir: kotlin.String?) : ApiResponse<SkillsQuarantined200Response?> {
+        val localVariableConfig = skillsQuarantinedRequestConfig(workdir = workdir)
+
+        return request<Unit, SkillsQuarantined200Response>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation skillsQuarantined
+     *
+     * @param workdir  (optional)
+     * @return RequestConfig
+     */
+    fun skillsQuarantinedRequestConfig(workdir: kotlin.String?) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf<kotlin.String, kotlin.collections.List<kotlin.String>>()
+            .apply {
+                if (workdir != null) {
+                    put("workdir", listOf(workdir.toString()))
+                }
+            }
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.GET,
+            path = "/skills-quarantined",
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,

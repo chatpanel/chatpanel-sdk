@@ -17,6 +17,7 @@ import net.chatpanel.sdk.ApiException;
 import net.chatpanel.sdk.model.ErrorResponse;
 import net.chatpanel.sdk.model.SkillsGet200Response;
 import net.chatpanel.sdk.model.SkillsList200Response;
+import net.chatpanel.sdk.model.SkillsQuarantined200Response;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -67,6 +68,23 @@ public class SkillsApiTest {
         String workdir = null;
         SkillsList200Response response = 
         api.skillsList(workdir);
+        
+        // TODO: test validations
+    }
+    
+    /**
+     * Packages the admission scanner refused — what is on disk and deliberately not listed.
+     *
+     * A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of &#x60;GET /skills&#x60; entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+     *
+     * @throws ApiException
+     *          if the Api call fails
+     */
+    @Test
+    public void skillsQuarantinedTest() throws ApiException {
+        String workdir = null;
+        SkillsQuarantined200Response response = 
+        api.skillsQuarantined(workdir);
         
         // TODO: test validations
     }

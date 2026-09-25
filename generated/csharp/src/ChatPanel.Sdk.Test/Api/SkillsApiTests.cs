@@ -74,5 +74,17 @@ namespace ChatPanel.Sdk.Test.Api
             var model = response.Ok();
             Assert.IsType<ChatPanel.Sdk.Model.SkillsList200Response>(model);
         }
+
+        /// <summary>
+        /// Test SkillsQuarantined
+        /// </summary>
+        [Fact (Skip = "not implemented")]
+        public async Task SkillsQuarantinedAsyncTest()
+        {
+            Client.Option<string> workdir = default!;
+            var response = await _instance.SkillsQuarantinedAsync(workdir);
+            var model = response.Ok();
+            Assert.IsType<ChatPanel.Sdk.Model.SkillsQuarantined200Response>(model);
+        }
     }
 }

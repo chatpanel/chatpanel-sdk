@@ -6,6 +6,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**SkillsGet**](SkillsAPI.md#SkillsGet) | **Get** /skills/{skillId} | One skill, with its prompt.
 [**SkillsList**](SkillsAPI.md#SkillsList) | **Get** /skills | The skills on this machine — with a prompt character count, not the prompt.
+[**SkillsQuarantined**](SkillsAPI.md#SkillsQuarantined) | **Get** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed.
 
 
 
@@ -128,6 +129,72 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**SkillsList200Response**](SkillsList200Response.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
+
+
+## SkillsQuarantined
+
+> SkillsQuarantined200Response SkillsQuarantined(ctx).Workdir(workdir).Execute()
+
+Packages the admission scanner refused — what is on disk and deliberately not listed.
+
+
+
+### Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	openapiclient "github.com/chatpanel/chatpanel-sdk"
+)
+
+func main() {
+	workdir := "workdir_example" // string |  (optional)
+
+	configuration := openapiclient.NewConfiguration()
+	apiClient := openapiclient.NewAPIClient(configuration)
+	resp, r, err := apiClient.SkillsAPI.SkillsQuarantined(context.Background()).Workdir(workdir).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `SkillsAPI.SkillsQuarantined``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `SkillsQuarantined`: SkillsQuarantined200Response
+	fmt.Fprintf(os.Stdout, "Response from `SkillsAPI.SkillsQuarantined`: %v\n", resp)
+}
+```
+
+### Path Parameters
+
+
+
+### Other Parameters
+
+Other parameters are passed through a pointer to a apiSkillsQuarantinedRequest struct via the builder pattern
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **workdir** | **string** |  | 
+
+### Return type
+
+[**SkillsQuarantined200Response**](SkillsQuarantined200Response.md)
 
 ### Authorization
 

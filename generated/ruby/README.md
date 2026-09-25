@@ -77,6 +77,11 @@ require 'chatpanel'
 
 # Setup authorization
 ChatPanel.configure do |config|
+  # Configure API key authorization: tokenHeader
+  config.api_key['X-ChatPanel-Token'] = 'YOUR API KEY'
+  # Uncomment the following line to set a prefix for the API key, e.g. 'Bearer' (defaults to nil)
+  # config.api_key_prefix['X-ChatPanel-Token'] = 'Bearer'
+
   # Configure Bearer authorization: gatewayToken
   config.access_token = 'YOUR_BEARER_TOKEN'
   # Configure a proc to get access tokens in lieu of the static access_token configuration
@@ -84,15 +89,14 @@ ChatPanel.configure do |config|
 end
 
 api_instance = ChatPanel::AgentsApi.new
-agent_id = 'agent_id_example' # String | 
-agents_rate_request = ChatPanel::AgentsRateRequest.new({score: 3.56}) # AgentsRateRequest | 
+agent_export_request = ChatPanel::AgentExportRequest.new({agent: ChatPanel::AgentDef.new({id: 'id_example'}), to: 'claude'}) # AgentExportRequest | 
 
 begin
-  #A person rates the agent's work on a run, task or job.
-  result = api_instance.agents_rate(agent_id, agents_rate_request)
+  #Write an agent definition into another tool's folder.
+  result = api_instance.agents_export_def(agent_export_request)
   p result
 rescue ChatPanel::ApiError => e
-  puts "Exception when calling AgentsApi->agents_rate: #{e}"
+  puts "Exception when calling AgentsApi->agents_export_def: #{e}"
 end
 
 ```
@@ -103,6 +107,10 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*ChatPanel::AgentsApi* | [**agents_export_def**](docs/AgentsApi.md#agents_export_def) | **POST** /agent-defs/export | Write an agent definition into another tool's folder.
+*ChatPanel::AgentsApi* | [**agents_export_plan**](docs/AgentsApi.md#agents_export_plan) | **POST** /agent-defs/export-plan | What an export would write, and what the target cannot carry — without writing it.
+*ChatPanel::AgentsApi* | [**agents_get_def**](docs/AgentsApi.md#agents_get_def) | **GET** /agent-defs/{agentId} | One agent definition, prompt included.
+*ChatPanel::AgentsApi* | [**agents_list_defs**](docs/AgentsApi.md#agents_list_defs) | **GET** /agent-defs | The agent definitions on this machine, from every tool that writes one.
 *ChatPanel::AgentsApi* | [**agents_rate**](docs/AgentsApi.md#agents_rate) | **POST** /v1/agents/{agentId}/scorecard | A person rates the agent's work on a run, task or job.
 *ChatPanel::AgentsApi* | [**agents_scorecard**](docs/AgentsApi.md#agents_scorecard) | **GET** /v1/agents/{agentId}/scorecard | One agent's attested scorecard.
 *ChatPanel::AgentsApi* | [**agents_scorecards**](docs/AgentsApi.md#agents_scorecards) | **GET** /v1/agents/scorecards | Every agent's scorecard.
@@ -169,6 +177,7 @@ Class | Method | HTTP request | Description
 *ChatPanel::RuntimeApi* | [**runtime_status**](docs/RuntimeApi.md#runtime_status) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
 *ChatPanel::SkillsApi* | [**skills_get**](docs/SkillsApi.md#skills_get) | **GET** /skills/{skillId} | One skill, with its prompt.
 *ChatPanel::SkillsApi* | [**skills_list**](docs/SkillsApi.md#skills_list) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
+*ChatPanel::SkillsApi* | [**skills_quarantined**](docs/SkillsApi.md#skills_quarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed.
 *ChatPanel::TeamsApi* | [**teams_answer**](docs/TeamsApi.md#teams_answer) | **POST** /v1/teams/runs/{runId}/answer | A person answers an ask on the board.
 *ChatPanel::TeamsApi* | [**teams_append_run_events**](docs/TeamsApi.md#teams_append_run_events) | **POST** /v1/teams/runs/{runId}/events | The running client appends events.
 *ChatPanel::TeamsApi* | [**teams_checkpoint**](docs/TeamsApi.md#teams_checkpoint) | **GET** /v1/teams/runs/{runId}/checkpoint | What a client needs to resume a run whose client went away.
@@ -187,6 +196,14 @@ Class | Method | HTTP request | Description
 
 ## Documentation for Models
 
+ - [ChatPanel::AgentDef](docs/AgentDef.md)
+ - [ChatPanel::AgentExportPlan](docs/AgentExportPlan.md)
+ - [ChatPanel::AgentExportRequest](docs/AgentExportRequest.md)
+ - [ChatPanel::AgentFidelity](docs/AgentFidelity.md)
+ - [ChatPanel::AgentFidelityDroppedInner](docs/AgentFidelityDroppedInner.md)
+ - [ChatPanel::AgentsExportDef200Response](docs/AgentsExportDef200Response.md)
+ - [ChatPanel::AgentsGetDef200Response](docs/AgentsGetDef200Response.md)
+ - [ChatPanel::AgentsListDefs200Response](docs/AgentsListDefs200Response.md)
  - [ChatPanel::AgentsRateRequest](docs/AgentsRateRequest.md)
  - [ChatPanel::AgentsScorecards200Response](docs/AgentsScorecards200Response.md)
  - [ChatPanel::AudioSpeechRequest](docs/AudioSpeechRequest.md)
@@ -274,6 +291,7 @@ Class | Method | HTTP request | Description
  - [ChatPanel::PushEventsResponseRejectedInner](docs/PushEventsResponseRejectedInner.md)
  - [ChatPanel::PutRecordsRequest](docs/PutRecordsRequest.md)
  - [ChatPanel::PutRecordsResponse](docs/PutRecordsResponse.md)
+ - [ChatPanel::QuarantinedSkill](docs/QuarantinedSkill.md)
  - [ChatPanel::ReadRequest](docs/ReadRequest.md)
  - [ChatPanel::ReadResponse](docs/ReadResponse.md)
  - [ChatPanel::ReadRestriction](docs/ReadRestriction.md)
@@ -306,6 +324,7 @@ Class | Method | HTTP request | Description
  - [ChatPanel::Skill](docs/Skill.md)
  - [ChatPanel::SkillsGet200Response](docs/SkillsGet200Response.md)
  - [ChatPanel::SkillsList200Response](docs/SkillsList200Response.md)
+ - [ChatPanel::SkillsQuarantined200Response](docs/SkillsQuarantined200Response.md)
  - [ChatPanel::SmartSearchRequest](docs/SmartSearchRequest.md)
  - [ChatPanel::SmartSearchResponse](docs/SmartSearchResponse.md)
  - [ChatPanel::TeamRun](docs/TeamRun.md)

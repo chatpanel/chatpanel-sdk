@@ -149,5 +149,65 @@ module ChatPanel
       end
       return data, status_code, headers
     end
+
+    # Packages the admission scanner refused — what is on disk and deliberately not listed.
+    # A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of `GET /skills` entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+    # @param [Hash] opts the optional parameters
+    # @option opts [String] :workdir 
+    # @return [SkillsQuarantined200Response]
+    def skills_quarantined(opts = {})
+      data, _status_code, _headers = skills_quarantined_with_http_info(opts)
+      data
+    end
+
+    # Packages the admission scanner refused — what is on disk and deliberately not listed.
+    # A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of &#x60;GET /skills&#x60; entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+    # @param [Hash] opts the optional parameters
+    # @option opts [String] :workdir 
+    # @return [Array<(SkillsQuarantined200Response, Integer, Hash)>] SkillsQuarantined200Response data, response status code and response headers
+    def skills_quarantined_with_http_info(opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: SkillsApi.skills_quarantined ...'
+      end
+      # resource path
+      local_var_path = '/skills-quarantined'
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+      query_params[:'workdir'] = opts[:'workdir'] if !opts[:'workdir'].nil?
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json']) unless header_params['Accept']
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body]
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'SkillsQuarantined200Response'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['gatewayToken']
+
+      new_options = opts.merge(
+        :operation => :"SkillsApi.skills_quarantined",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: SkillsApi#skills_quarantined\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
   end
 end

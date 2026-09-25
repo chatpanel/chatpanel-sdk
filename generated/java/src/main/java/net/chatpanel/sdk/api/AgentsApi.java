@@ -18,6 +18,11 @@ import net.chatpanel.sdk.ApiResponse;
 import net.chatpanel.sdk.Configuration;
 import net.chatpanel.sdk.Pair;
 
+import net.chatpanel.sdk.model.AgentExportPlan;
+import net.chatpanel.sdk.model.AgentExportRequest;
+import net.chatpanel.sdk.model.AgentsExportDef200Response;
+import net.chatpanel.sdk.model.AgentsGetDef200Response;
+import net.chatpanel.sdk.model.AgentsListDefs200Response;
 import net.chatpanel.sdk.model.AgentsRateRequest;
 import net.chatpanel.sdk.model.AgentsScorecards200Response;
 import net.chatpanel.sdk.model.ErrorResponse;
@@ -162,6 +167,523 @@ public class AgentsApi {
       file.deleteOnExit(); // best effort cleanup
     }
     return file;
+  }
+
+  /**
+   * Write an agent definition into another tool&#39;s folder.
+   * Only from a named action. The file is backed up before it is touched, and one ChatPanel did not write — or one edited since it did — is refused with &#x60;NOT_OURS&#x60; unless &#x60;overwrite&#x60; is set. Which of those applies is what &#x60;export-plan&#x60; reports as &#x60;status&#x60;.
+   * @param agentExportRequest  (required)
+   * @return AgentsExportDef200Response
+   * @throws ApiException if fails to make API call
+   */
+  public AgentsExportDef200Response agentsExportDef(@jakarta.annotation.Nonnull AgentExportRequest agentExportRequest) throws ApiException {
+    return agentsExportDef(agentExportRequest, null);
+  }
+
+  /**
+   * Write an agent definition into another tool&#39;s folder.
+   * Only from a named action. The file is backed up before it is touched, and one ChatPanel did not write — or one edited since it did — is refused with &#x60;NOT_OURS&#x60; unless &#x60;overwrite&#x60; is set. Which of those applies is what &#x60;export-plan&#x60; reports as &#x60;status&#x60;.
+   * @param agentExportRequest  (required)
+   * @param headers Optional headers to include in the request
+   * @return AgentsExportDef200Response
+   * @throws ApiException if fails to make API call
+   */
+  public AgentsExportDef200Response agentsExportDef(@jakarta.annotation.Nonnull AgentExportRequest agentExportRequest, Map<String, String> headers) throws ApiException {
+    ApiResponse<AgentsExportDef200Response> localVarResponse = agentsExportDefWithHttpInfo(agentExportRequest, headers);
+    return localVarResponse.getData();
+  }
+
+  /**
+   * Write an agent definition into another tool&#39;s folder.
+   * Only from a named action. The file is backed up before it is touched, and one ChatPanel did not write — or one edited since it did — is refused with &#x60;NOT_OURS&#x60; unless &#x60;overwrite&#x60; is set. Which of those applies is what &#x60;export-plan&#x60; reports as &#x60;status&#x60;.
+   * @param agentExportRequest  (required)
+   * @return ApiResponse&lt;AgentsExportDef200Response&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<AgentsExportDef200Response> agentsExportDefWithHttpInfo(@jakarta.annotation.Nonnull AgentExportRequest agentExportRequest) throws ApiException {
+    return agentsExportDefWithHttpInfo(agentExportRequest, null);
+  }
+
+  /**
+   * Write an agent definition into another tool&#39;s folder.
+   * Only from a named action. The file is backed up before it is touched, and one ChatPanel did not write — or one edited since it did — is refused with &#x60;NOT_OURS&#x60; unless &#x60;overwrite&#x60; is set. Which of those applies is what &#x60;export-plan&#x60; reports as &#x60;status&#x60;.
+   * @param agentExportRequest  (required)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;AgentsExportDef200Response&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<AgentsExportDef200Response> agentsExportDefWithHttpInfo(@jakarta.annotation.Nonnull AgentExportRequest agentExportRequest, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = agentsExportDefRequestBuilder(agentExportRequest, headers);
+    try {
+      HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
+          localVarRequestBuilder.build(),
+          HttpResponse.BodyHandlers.ofInputStream());
+      if (memberVarResponseInterceptor != null) {
+        memberVarResponseInterceptor.accept(localVarResponse);
+      }
+      InputStream localVarResponseBody = null;
+      try {
+        if (localVarResponse.statusCode()/ 100 != 2) {
+          throw getApiException("agentsExportDef", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
+          return new ApiResponse<AgentsExportDef200Response>(
+              localVarResponse.statusCode(),
+              localVarResponse.headers().map(),
+              null
+          );
+        }
+
+        
+        
+        String responseBody = new String(localVarResponseBody.readAllBytes());
+        AgentsExportDef200Response responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<AgentsExportDef200Response>() {});
+        
+
+        return new ApiResponse<AgentsExportDef200Response>(
+            localVarResponse.statusCode(),
+            localVarResponse.headers().map(),
+            responseValue
+        );
+      } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
+      }
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(e);
+    }
+  }
+
+  private HttpRequest.Builder agentsExportDefRequestBuilder(@jakarta.annotation.Nonnull AgentExportRequest agentExportRequest, Map<String, String> headers) throws ApiException {
+    // verify the required parameter 'agentExportRequest' is set
+    if (agentExportRequest == null) {
+      throw new ApiException(400, "Missing the required parameter 'agentExportRequest' when calling agentsExportDef");
+    }
+
+    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+    String localVarPath = "/agent-defs/export";
+
+    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+    localVarRequestBuilder.header("Content-Type", "application/json");
+    localVarRequestBuilder.header("Accept", "application/json");
+
+    try {
+      byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(agentExportRequest);
+      localVarRequestBuilder.method("POST", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    if (memberVarReadTimeout != null) {
+      localVarRequestBuilder.timeout(memberVarReadTimeout);
+    }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
+    if (memberVarInterceptor != null) {
+      memberVarInterceptor.accept(localVarRequestBuilder);
+    }
+    return localVarRequestBuilder;
+  }
+
+  /**
+   * What an export would write, and what the target cannot carry — without writing it.
+   * A separate call from the export itself, deliberately: \&quot;show me what you are about to do to my Claude Code directory\&quot; is a question a person answers before saying yes, and a dry run sharing a code path with the real thing is one edit away from not being dry.
+   * @param agentExportRequest  (required)
+   * @return AgentExportPlan
+   * @throws ApiException if fails to make API call
+   */
+  public AgentExportPlan agentsExportPlan(@jakarta.annotation.Nonnull AgentExportRequest agentExportRequest) throws ApiException {
+    return agentsExportPlan(agentExportRequest, null);
+  }
+
+  /**
+   * What an export would write, and what the target cannot carry — without writing it.
+   * A separate call from the export itself, deliberately: \&quot;show me what you are about to do to my Claude Code directory\&quot; is a question a person answers before saying yes, and a dry run sharing a code path with the real thing is one edit away from not being dry.
+   * @param agentExportRequest  (required)
+   * @param headers Optional headers to include in the request
+   * @return AgentExportPlan
+   * @throws ApiException if fails to make API call
+   */
+  public AgentExportPlan agentsExportPlan(@jakarta.annotation.Nonnull AgentExportRequest agentExportRequest, Map<String, String> headers) throws ApiException {
+    ApiResponse<AgentExportPlan> localVarResponse = agentsExportPlanWithHttpInfo(agentExportRequest, headers);
+    return localVarResponse.getData();
+  }
+
+  /**
+   * What an export would write, and what the target cannot carry — without writing it.
+   * A separate call from the export itself, deliberately: \&quot;show me what you are about to do to my Claude Code directory\&quot; is a question a person answers before saying yes, and a dry run sharing a code path with the real thing is one edit away from not being dry.
+   * @param agentExportRequest  (required)
+   * @return ApiResponse&lt;AgentExportPlan&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<AgentExportPlan> agentsExportPlanWithHttpInfo(@jakarta.annotation.Nonnull AgentExportRequest agentExportRequest) throws ApiException {
+    return agentsExportPlanWithHttpInfo(agentExportRequest, null);
+  }
+
+  /**
+   * What an export would write, and what the target cannot carry — without writing it.
+   * A separate call from the export itself, deliberately: \&quot;show me what you are about to do to my Claude Code directory\&quot; is a question a person answers before saying yes, and a dry run sharing a code path with the real thing is one edit away from not being dry.
+   * @param agentExportRequest  (required)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;AgentExportPlan&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<AgentExportPlan> agentsExportPlanWithHttpInfo(@jakarta.annotation.Nonnull AgentExportRequest agentExportRequest, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = agentsExportPlanRequestBuilder(agentExportRequest, headers);
+    try {
+      HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
+          localVarRequestBuilder.build(),
+          HttpResponse.BodyHandlers.ofInputStream());
+      if (memberVarResponseInterceptor != null) {
+        memberVarResponseInterceptor.accept(localVarResponse);
+      }
+      InputStream localVarResponseBody = null;
+      try {
+        if (localVarResponse.statusCode()/ 100 != 2) {
+          throw getApiException("agentsExportPlan", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
+          return new ApiResponse<AgentExportPlan>(
+              localVarResponse.statusCode(),
+              localVarResponse.headers().map(),
+              null
+          );
+        }
+
+        
+        
+        String responseBody = new String(localVarResponseBody.readAllBytes());
+        AgentExportPlan responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<AgentExportPlan>() {});
+        
+
+        return new ApiResponse<AgentExportPlan>(
+            localVarResponse.statusCode(),
+            localVarResponse.headers().map(),
+            responseValue
+        );
+      } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
+      }
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(e);
+    }
+  }
+
+  private HttpRequest.Builder agentsExportPlanRequestBuilder(@jakarta.annotation.Nonnull AgentExportRequest agentExportRequest, Map<String, String> headers) throws ApiException {
+    // verify the required parameter 'agentExportRequest' is set
+    if (agentExportRequest == null) {
+      throw new ApiException(400, "Missing the required parameter 'agentExportRequest' when calling agentsExportPlan");
+    }
+
+    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+    String localVarPath = "/agent-defs/export-plan";
+
+    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+    localVarRequestBuilder.header("Content-Type", "application/json");
+    localVarRequestBuilder.header("Accept", "application/json");
+
+    try {
+      byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(agentExportRequest);
+      localVarRequestBuilder.method("POST", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    if (memberVarReadTimeout != null) {
+      localVarRequestBuilder.timeout(memberVarReadTimeout);
+    }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
+    if (memberVarInterceptor != null) {
+      memberVarInterceptor.accept(localVarRequestBuilder);
+    }
+    return localVarRequestBuilder;
+  }
+
+  /**
+   * One agent definition, prompt included.
+   * 
+   * @param agentId One path segment; slashes and &#x60;..&#x60; are refused. (required)
+   * @param workdir  (optional)
+   * @return AgentsGetDef200Response
+   * @throws ApiException if fails to make API call
+   */
+  public AgentsGetDef200Response agentsGetDef(@jakarta.annotation.Nonnull String agentId, @jakarta.annotation.Nullable String workdir) throws ApiException {
+    return agentsGetDef(agentId, workdir, null);
+  }
+
+  /**
+   * One agent definition, prompt included.
+   * 
+   * @param agentId One path segment; slashes and &#x60;..&#x60; are refused. (required)
+   * @param workdir  (optional)
+   * @param headers Optional headers to include in the request
+   * @return AgentsGetDef200Response
+   * @throws ApiException if fails to make API call
+   */
+  public AgentsGetDef200Response agentsGetDef(@jakarta.annotation.Nonnull String agentId, @jakarta.annotation.Nullable String workdir, Map<String, String> headers) throws ApiException {
+    ApiResponse<AgentsGetDef200Response> localVarResponse = agentsGetDefWithHttpInfo(agentId, workdir, headers);
+    return localVarResponse.getData();
+  }
+
+  /**
+   * One agent definition, prompt included.
+   * 
+   * @param agentId One path segment; slashes and &#x60;..&#x60; are refused. (required)
+   * @param workdir  (optional)
+   * @return ApiResponse&lt;AgentsGetDef200Response&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<AgentsGetDef200Response> agentsGetDefWithHttpInfo(@jakarta.annotation.Nonnull String agentId, @jakarta.annotation.Nullable String workdir) throws ApiException {
+    return agentsGetDefWithHttpInfo(agentId, workdir, null);
+  }
+
+  /**
+   * One agent definition, prompt included.
+   * 
+   * @param agentId One path segment; slashes and &#x60;..&#x60; are refused. (required)
+   * @param workdir  (optional)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;AgentsGetDef200Response&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<AgentsGetDef200Response> agentsGetDefWithHttpInfo(@jakarta.annotation.Nonnull String agentId, @jakarta.annotation.Nullable String workdir, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = agentsGetDefRequestBuilder(agentId, workdir, headers);
+    try {
+      HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
+          localVarRequestBuilder.build(),
+          HttpResponse.BodyHandlers.ofInputStream());
+      if (memberVarResponseInterceptor != null) {
+        memberVarResponseInterceptor.accept(localVarResponse);
+      }
+      InputStream localVarResponseBody = null;
+      try {
+        if (localVarResponse.statusCode()/ 100 != 2) {
+          throw getApiException("agentsGetDef", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
+          return new ApiResponse<AgentsGetDef200Response>(
+              localVarResponse.statusCode(),
+              localVarResponse.headers().map(),
+              null
+          );
+        }
+
+        
+        
+        String responseBody = new String(localVarResponseBody.readAllBytes());
+        AgentsGetDef200Response responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<AgentsGetDef200Response>() {});
+        
+
+        return new ApiResponse<AgentsGetDef200Response>(
+            localVarResponse.statusCode(),
+            localVarResponse.headers().map(),
+            responseValue
+        );
+      } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
+      }
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(e);
+    }
+  }
+
+  private HttpRequest.Builder agentsGetDefRequestBuilder(@jakarta.annotation.Nonnull String agentId, @jakarta.annotation.Nullable String workdir, Map<String, String> headers) throws ApiException {
+    // verify the required parameter 'agentId' is set
+    if (agentId == null) {
+      throw new ApiException(400, "Missing the required parameter 'agentId' when calling agentsGetDef");
+    }
+
+    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+    String localVarPath = "/agent-defs/{agentId}"
+        .replace("{agentId}", ApiClient.urlEncode(agentId.toString()));
+
+    List<Pair> localVarQueryParams = new ArrayList<>();
+    StringJoiner localVarQueryStringJoiner = new StringJoiner("&");
+    String localVarQueryParameterBaseName;
+    localVarQueryParameterBaseName = "workdir";
+    localVarQueryParams.addAll(ApiClient.parameterToPairs("workdir", workdir));
+
+    if (!localVarQueryParams.isEmpty() || localVarQueryStringJoiner.length() != 0) {
+      StringJoiner queryJoiner = new StringJoiner("&");
+      localVarQueryParams.forEach(p -> queryJoiner.add(p.getName() + '=' + p.getValue()));
+      if (localVarQueryStringJoiner.length() != 0) {
+        queryJoiner.add(localVarQueryStringJoiner.toString());
+      }
+      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath + '?' + queryJoiner.toString()));
+    } else {
+      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+    }
+
+    localVarRequestBuilder.header("Accept", "application/json");
+
+    localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+    if (memberVarReadTimeout != null) {
+      localVarRequestBuilder.timeout(memberVarReadTimeout);
+    }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
+    if (memberVarInterceptor != null) {
+      memberVarInterceptor.accept(localVarRequestBuilder);
+    }
+    return localVarRequestBuilder;
+  }
+
+  /**
+   * The agent definitions on this machine, from every tool that writes one.
+   * &#x60;.claude/agents/_*.md&#x60;, &#x60;.codex/agents/_*.toml&#x60;, &#x60;~/.chatpanel/agents/_*.json&#x60; and the project-local equivalents, each read in its own dialect and returned in one shape. No prompts — &#x60;promptChars&#x60; only, for the same reason &#x60;GET /skills&#x60; omits them.
+   * @param workdir Also read this project&#39;s own agent folders, ahead of the home ones. (optional)
+   * @param dir An extra absolute folder to scan. Repeatable. (optional)
+   * @return AgentsListDefs200Response
+   * @throws ApiException if fails to make API call
+   */
+  public AgentsListDefs200Response agentsListDefs(@jakarta.annotation.Nullable String workdir, @jakarta.annotation.Nullable String dir) throws ApiException {
+    return agentsListDefs(workdir, dir, null);
+  }
+
+  /**
+   * The agent definitions on this machine, from every tool that writes one.
+   * &#x60;.claude/agents/_*.md&#x60;, &#x60;.codex/agents/_*.toml&#x60;, &#x60;~/.chatpanel/agents/_*.json&#x60; and the project-local equivalents, each read in its own dialect and returned in one shape. No prompts — &#x60;promptChars&#x60; only, for the same reason &#x60;GET /skills&#x60; omits them.
+   * @param workdir Also read this project&#39;s own agent folders, ahead of the home ones. (optional)
+   * @param dir An extra absolute folder to scan. Repeatable. (optional)
+   * @param headers Optional headers to include in the request
+   * @return AgentsListDefs200Response
+   * @throws ApiException if fails to make API call
+   */
+  public AgentsListDefs200Response agentsListDefs(@jakarta.annotation.Nullable String workdir, @jakarta.annotation.Nullable String dir, Map<String, String> headers) throws ApiException {
+    ApiResponse<AgentsListDefs200Response> localVarResponse = agentsListDefsWithHttpInfo(workdir, dir, headers);
+    return localVarResponse.getData();
+  }
+
+  /**
+   * The agent definitions on this machine, from every tool that writes one.
+   * &#x60;.claude/agents/_*.md&#x60;, &#x60;.codex/agents/_*.toml&#x60;, &#x60;~/.chatpanel/agents/_*.json&#x60; and the project-local equivalents, each read in its own dialect and returned in one shape. No prompts — &#x60;promptChars&#x60; only, for the same reason &#x60;GET /skills&#x60; omits them.
+   * @param workdir Also read this project&#39;s own agent folders, ahead of the home ones. (optional)
+   * @param dir An extra absolute folder to scan. Repeatable. (optional)
+   * @return ApiResponse&lt;AgentsListDefs200Response&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<AgentsListDefs200Response> agentsListDefsWithHttpInfo(@jakarta.annotation.Nullable String workdir, @jakarta.annotation.Nullable String dir) throws ApiException {
+    return agentsListDefsWithHttpInfo(workdir, dir, null);
+  }
+
+  /**
+   * The agent definitions on this machine, from every tool that writes one.
+   * &#x60;.claude/agents/_*.md&#x60;, &#x60;.codex/agents/_*.toml&#x60;, &#x60;~/.chatpanel/agents/_*.json&#x60; and the project-local equivalents, each read in its own dialect and returned in one shape. No prompts — &#x60;promptChars&#x60; only, for the same reason &#x60;GET /skills&#x60; omits them.
+   * @param workdir Also read this project&#39;s own agent folders, ahead of the home ones. (optional)
+   * @param dir An extra absolute folder to scan. Repeatable. (optional)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;AgentsListDefs200Response&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<AgentsListDefs200Response> agentsListDefsWithHttpInfo(@jakarta.annotation.Nullable String workdir, @jakarta.annotation.Nullable String dir, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = agentsListDefsRequestBuilder(workdir, dir, headers);
+    try {
+      HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
+          localVarRequestBuilder.build(),
+          HttpResponse.BodyHandlers.ofInputStream());
+      if (memberVarResponseInterceptor != null) {
+        memberVarResponseInterceptor.accept(localVarResponse);
+      }
+      InputStream localVarResponseBody = null;
+      try {
+        if (localVarResponse.statusCode()/ 100 != 2) {
+          throw getApiException("agentsListDefs", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
+          return new ApiResponse<AgentsListDefs200Response>(
+              localVarResponse.statusCode(),
+              localVarResponse.headers().map(),
+              null
+          );
+        }
+
+        
+        
+        String responseBody = new String(localVarResponseBody.readAllBytes());
+        AgentsListDefs200Response responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<AgentsListDefs200Response>() {});
+        
+
+        return new ApiResponse<AgentsListDefs200Response>(
+            localVarResponse.statusCode(),
+            localVarResponse.headers().map(),
+            responseValue
+        );
+      } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
+      }
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(e);
+    }
+  }
+
+  private HttpRequest.Builder agentsListDefsRequestBuilder(@jakarta.annotation.Nullable String workdir, @jakarta.annotation.Nullable String dir, Map<String, String> headers) throws ApiException {
+
+    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+    String localVarPath = "/agent-defs";
+
+    List<Pair> localVarQueryParams = new ArrayList<>();
+    StringJoiner localVarQueryStringJoiner = new StringJoiner("&");
+    String localVarQueryParameterBaseName;
+    localVarQueryParameterBaseName = "workdir";
+    localVarQueryParams.addAll(ApiClient.parameterToPairs("workdir", workdir));
+    localVarQueryParameterBaseName = "dir";
+    localVarQueryParams.addAll(ApiClient.parameterToPairs("dir", dir));
+
+    if (!localVarQueryParams.isEmpty() || localVarQueryStringJoiner.length() != 0) {
+      StringJoiner queryJoiner = new StringJoiner("&");
+      localVarQueryParams.forEach(p -> queryJoiner.add(p.getName() + '=' + p.getValue()));
+      if (localVarQueryStringJoiner.length() != 0) {
+        queryJoiner.add(localVarQueryStringJoiner.toString());
+      }
+      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath + '?' + queryJoiner.toString()));
+    } else {
+      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+    }
+
+    localVarRequestBuilder.header("Accept", "application/json");
+
+    localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+    if (memberVarReadTimeout != null) {
+      localVarRequestBuilder.timeout(memberVarReadTimeout);
+    }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
+    if (memberVarInterceptor != null) {
+      memberVarInterceptor.accept(localVarRequestBuilder);
+    }
+    return localVarRequestBuilder;
   }
 
   /**

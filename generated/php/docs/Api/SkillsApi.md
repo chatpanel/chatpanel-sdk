@@ -8,6 +8,7 @@ All URIs are relative to http://127.0.0.1:4320, except if the operation defines 
 | ------------- | ------------- | ------------- |
 | [**skillsGet()**](SkillsApi.md#skillsGet) | **GET** /skills/{skillId} | One skill, with its prompt. |
 | [**skillsList()**](SkillsApi.md#skillsList) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt. |
+| [**skillsQuarantined()**](SkillsApi.md#skillsQuarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed. |
 
 
 ## `skillsGet()`
@@ -114,6 +115,66 @@ try {
 ### Return type
 
 [**\ChatPanelSdk\Model\SkillsList200Response**](../Model/SkillsList200Response.md)
+
+### Authorization
+
+[gatewayToken](../../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+[[Back to top]](#) [[Back to API list]](../../README.md#endpoints)
+[[Back to Model list]](../../README.md#models)
+[[Back to README]](../../README.md)
+
+## `skillsQuarantined()`
+
+```php
+skillsQuarantined($workdir): \ChatPanelSdk\Model\SkillsQuarantined200Response
+```
+
+Packages the admission scanner refused — what is on disk and deliberately not listed.
+
+A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of `GET /skills` entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+
+### Example
+
+```php
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+
+// Configure Bearer authorization: gatewayToken
+$config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setAccessToken('YOUR_ACCESS_TOKEN');
+
+
+$apiInstance = new ChatPanelSdk\Api\SkillsApi(
+    // If you want use custom http client, pass your client which implements `GuzzleHttp\ClientInterface`.
+    // This is optional, `GuzzleHttp\Client` will be used as default.
+    new GuzzleHttp\Client(),
+    $config
+);
+$workdir = 'workdir_example'; // string
+
+try {
+    $result = $apiInstance->skillsQuarantined($workdir);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling SkillsApi->skillsQuarantined: ', $e->getMessage(), PHP_EOL;
+}
+```
+
+### Parameters
+
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **workdir** | **string**|  | [optional] |
+
+### Return type
+
+[**\ChatPanelSdk\Model\SkillsQuarantined200Response**](../Model/SkillsQuarantined200Response.md)
 
 ### Authorization
 

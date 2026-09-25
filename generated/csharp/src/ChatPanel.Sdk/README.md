@@ -55,8 +55,8 @@ namespace YourProject
         {
             var host = CreateHostBuilder(args).Build();
             var api = host.Services.GetRequiredService<IAgentsApi>();
-            IAgentsRateApiResponse apiResponse = await api.AgentsRateAsync("todo");
-            Dictionary<string, Object>? model = apiResponse.Ok();
+            IAgentsExportDefApiResponse apiResponse = await api.AgentsExportDefAsync("todo");
+            AgentsExportDef200Response? model = apiResponse.Ok();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)

@@ -51,6 +51,56 @@ namespace ChatPanel.Sdk.Test.Api
         }
 
         /// <summary>
+        /// Test AgentsExportDef
+        /// </summary>
+        [Fact (Skip = "not implemented")]
+        public async Task AgentsExportDefAsyncTest()
+        {
+            AgentExportRequest agentExportRequest = default!;
+            var response = await _instance.AgentsExportDefAsync(agentExportRequest);
+            var model = response.Ok();
+            Assert.IsType<ChatPanel.Sdk.Model.AgentsExportDef200Response>(model);
+        }
+
+        /// <summary>
+        /// Test AgentsExportPlan
+        /// </summary>
+        [Fact (Skip = "not implemented")]
+        public async Task AgentsExportPlanAsyncTest()
+        {
+            AgentExportRequest agentExportRequest = default!;
+            var response = await _instance.AgentsExportPlanAsync(agentExportRequest);
+            var model = response.Ok();
+            Assert.IsType<ChatPanel.Sdk.Model.AgentExportPlan>(model);
+        }
+
+        /// <summary>
+        /// Test AgentsGetDef
+        /// </summary>
+        [Fact (Skip = "not implemented")]
+        public async Task AgentsGetDefAsyncTest()
+        {
+            string agentId = default!;
+            Client.Option<string> workdir = default!;
+            var response = await _instance.AgentsGetDefAsync(agentId, workdir);
+            var model = response.Ok();
+            Assert.IsType<ChatPanel.Sdk.Model.AgentsGetDef200Response>(model);
+        }
+
+        /// <summary>
+        /// Test AgentsListDefs
+        /// </summary>
+        [Fact (Skip = "not implemented")]
+        public async Task AgentsListDefsAsyncTest()
+        {
+            Client.Option<string> workdir = default!;
+            Client.Option<string> dir = default!;
+            var response = await _instance.AgentsListDefsAsync(workdir, dir);
+            var model = response.Ok();
+            Assert.IsType<ChatPanel.Sdk.Model.AgentsListDefs200Response>(model);
+        }
+
+        /// <summary>
         /// Test AgentsRate
         /// </summary>
         [Fact (Skip = "not implemented")]

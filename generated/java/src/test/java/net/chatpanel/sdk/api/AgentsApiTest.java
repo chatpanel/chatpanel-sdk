@@ -14,6 +14,11 @@
 package net.chatpanel.sdk.api;
 
 import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.model.AgentExportPlan;
+import net.chatpanel.sdk.model.AgentExportRequest;
+import net.chatpanel.sdk.model.AgentsExportDef200Response;
+import net.chatpanel.sdk.model.AgentsGetDef200Response;
+import net.chatpanel.sdk.model.AgentsListDefs200Response;
 import net.chatpanel.sdk.model.AgentsRateRequest;
 import net.chatpanel.sdk.model.AgentsScorecards200Response;
 import net.chatpanel.sdk.model.ErrorResponse;
@@ -35,6 +40,76 @@ public class AgentsApiTest {
 
     private final AgentsApi api = new AgentsApi();
 
+    
+    /**
+     * Write an agent definition into another tool&#39;s folder.
+     *
+     * Only from a named action. The file is backed up before it is touched, and one ChatPanel did not write — or one edited since it did — is refused with &#x60;NOT_OURS&#x60; unless &#x60;overwrite&#x60; is set. Which of those applies is what &#x60;export-plan&#x60; reports as &#x60;status&#x60;.
+     *
+     * @throws ApiException
+     *          if the Api call fails
+     */
+    @Test
+    public void agentsExportDefTest() throws ApiException {
+        AgentExportRequest agentExportRequest = null;
+        AgentsExportDef200Response response = 
+        api.agentsExportDef(agentExportRequest);
+        
+        // TODO: test validations
+    }
+    
+    /**
+     * What an export would write, and what the target cannot carry — without writing it.
+     *
+     * A separate call from the export itself, deliberately: \&quot;show me what you are about to do to my Claude Code directory\&quot; is a question a person answers before saying yes, and a dry run sharing a code path with the real thing is one edit away from not being dry.
+     *
+     * @throws ApiException
+     *          if the Api call fails
+     */
+    @Test
+    public void agentsExportPlanTest() throws ApiException {
+        AgentExportRequest agentExportRequest = null;
+        AgentExportPlan response = 
+        api.agentsExportPlan(agentExportRequest);
+        
+        // TODO: test validations
+    }
+    
+    /**
+     * One agent definition, prompt included.
+     *
+     * 
+     *
+     * @throws ApiException
+     *          if the Api call fails
+     */
+    @Test
+    public void agentsGetDefTest() throws ApiException {
+        String agentId = null;
+        String workdir = null;
+        AgentsGetDef200Response response = 
+        api.agentsGetDef(agentId, workdir);
+        
+        // TODO: test validations
+    }
+    
+    /**
+     * The agent definitions on this machine, from every tool that writes one.
+     *
+     * &#x60;.claude/agents/_*.md&#x60;, &#x60;.codex/agents/_*.toml&#x60;, &#x60;~/.chatpanel/agents/_*.json&#x60; and the project-local equivalents, each read in its own dialect and returned in one shape. No prompts — &#x60;promptChars&#x60; only, for the same reason &#x60;GET /skills&#x60; omits them.
+     *
+     * @throws ApiException
+     *          if the Api call fails
+     */
+    @Test
+    public void agentsListDefsTest() throws ApiException {
+        String workdir = null;
+        String dir = null;
+        AgentsListDefs200Response response = 
+        api.agentsListDefs(workdir, dir);
+        
+        // TODO: test validations
+    }
     
     /**
      * A person rates the agent&#39;s work on a run, task or job.

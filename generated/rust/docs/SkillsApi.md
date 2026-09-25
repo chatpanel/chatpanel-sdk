@@ -6,6 +6,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**skills_get**](SkillsApi.md#skills_get) | **GET** /skills/{skillId} | One skill, with its prompt.
 [**skills_list**](SkillsApi.md#skills_list) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
+[**skills_quarantined**](SkillsApi.md#skills_quarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed.
 
 
 
@@ -53,6 +54,36 @@ Name | Type | Description  | Required | Notes
 ### Return type
 
 [**models::SkillsList200Response**](skills_list_200_response.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## skills_quarantined
+
+> models::SkillsQuarantined200Response skills_quarantined(workdir)
+Packages the admission scanner refused — what is on disk and deliberately not listed.
+
+A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of `GET /skills` entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**workdir** | Option<**String**> |  |  |
+
+### Return type
+
+[**models::SkillsQuarantined200Response**](skills_quarantined_200_response.md)
 
 ### Authorization
 

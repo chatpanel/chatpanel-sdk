@@ -6,6 +6,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | ------------- | ------------- | ------------- |
 | [**skillsGet**](SkillsApi.md#skillsGet) | **GET** /skills/{skillId} | One skill, with its prompt. |
 | [**skillsList**](SkillsApi.md#skillsList) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt. |
+| [**skillsQuarantined**](SkillsApi.md#skillsQuarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed. |
 
 
 <a id="skillsGet"></a>
@@ -96,6 +97,60 @@ try {
 ### Return type
 
 [**SkillsList200Response**](SkillsList200Response.md)
+
+### Authorization
+
+
+Configure gatewayToken statically:
+```kotlin
+ApiClient.accessToken = ""
+```
+Configure gatewayToken dynamically:
+```kotlin
+apiInstance.accessTokenProvider = { "" }
+```
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+<a id="skillsQuarantined"></a>
+# **skillsQuarantined**
+> SkillsQuarantined200Response skillsQuarantined(workdir)
+
+Packages the admission scanner refused — what is on disk and deliberately not listed.
+
+A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of &#x60;GET /skills&#x60; entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+
+### Example
+```kotlin
+// Import classes:
+//import net.chatpanel.sdk.infrastructure.*
+//import net.chatpanel.sdk.models.*
+
+val apiInstance = SkillsApi()
+val workdir : kotlin.String = workdir_example // kotlin.String | 
+try {
+    val result : SkillsQuarantined200Response = apiInstance.skillsQuarantined(workdir)
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling SkillsApi#skillsQuarantined")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling SkillsApi#skillsQuarantined")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **workdir** | **kotlin.String**|  | [optional] |
+
+### Return type
+
+[**SkillsQuarantined200Response**](SkillsQuarantined200Response.md)
 
 ### Authorization
 

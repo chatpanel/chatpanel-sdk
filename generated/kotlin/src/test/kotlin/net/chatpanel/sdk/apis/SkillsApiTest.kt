@@ -30,6 +30,7 @@ import net.chatpanel.sdk.apis.SkillsApi
 import net.chatpanel.sdk.models.ErrorResponse
 import net.chatpanel.sdk.models.SkillsGet200Response
 import net.chatpanel.sdk.models.SkillsList200Response
+import net.chatpanel.sdk.models.SkillsQuarantined200Response
 
 class SkillsApiTest : ShouldSpec() {
     init {
@@ -50,6 +51,14 @@ class SkillsApiTest : ShouldSpec() {
             // uncomment below to test skillsList
             //val workdir : kotlin.String = workdir_example // kotlin.String | Include the project-local skill roots of this directory (0.9.4+).
             //val result : SkillsList200Response = apiInstance.skillsList(workdir)
+            //result shouldBe ("TODO")
+        }
+
+        // to test skillsQuarantined
+        should("test skillsQuarantined") {
+            // uncomment below to test skillsQuarantined
+            //val workdir : kotlin.String = workdir_example // kotlin.String | 
+            //val result : SkillsQuarantined200Response = apiInstance.skillsQuarantined(workdir)
             //result shouldBe ("TODO")
         }
 

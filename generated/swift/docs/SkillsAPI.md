@@ -6,6 +6,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**skillsGet**](SkillsAPI.md#skillsget) | **GET** /skills/{skillId} | One skill, with its prompt.
 [**skillsList**](SkillsAPI.md#skillslist) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
+[**skillsQuarantined**](SkillsAPI.md#skillsquarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed.
 
 
 # **skillsGet**
@@ -94,6 +95,56 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**SkillsList200Response**](SkillsList200Response.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **skillsQuarantined**
+```swift
+    open class func skillsQuarantined(workdir: String? = nil, completion: @escaping (_ data: SkillsQuarantined200Response?, _ error: Error?) -> Void)
+```
+
+Packages the admission scanner refused — what is on disk and deliberately not listed.
+
+A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of `GET /skills` entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import ChatPanel
+
+let workdir = "workdir_example" // String |  (optional)
+
+// Packages the admission scanner refused — what is on disk and deliberately not listed.
+SkillsAPI.skillsQuarantined(workdir: workdir) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **workdir** | **String** |  | [optional] 
+
+### Return type
+
+[**SkillsQuarantined200Response**](SkillsQuarantined200Response.md)
 
 ### Authorization
 

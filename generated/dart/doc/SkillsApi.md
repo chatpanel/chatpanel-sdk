@@ -11,6 +11,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**skillsGet**](SkillsApi.md#skillsget) | **GET** /skills/{skillId} | One skill, with its prompt.
 [**skillsList**](SkillsApi.md#skillslist) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
+[**skillsQuarantined**](SkillsApi.md#skillsquarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed.
 
 
 # **skillsGet**
@@ -85,6 +86,49 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**SkillsList200Response**](SkillsList200Response.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **skillsQuarantined**
+> SkillsQuarantined200Response skillsQuarantined(workdir)
+
+Packages the admission scanner refused — what is on disk and deliberately not listed.
+
+A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of `GET /skills` entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+
+### Example
+```dart
+import 'package:chatpanel/api.dart';
+
+final api = Chatpanel().getSkillsApi();
+final String workdir = workdir_example; // String | 
+
+try {
+    final response = api.skillsQuarantined(workdir);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling SkillsApi->skillsQuarantined: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **workdir** | **String**|  | [optional] 
+
+### Return type
+
+[**SkillsQuarantined200Response**](SkillsQuarantined200Response.md)
 
 ### Authorization
 

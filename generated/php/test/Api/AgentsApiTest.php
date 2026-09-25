@@ -72,6 +72,54 @@ class AgentsApiTest extends TestCase
     }
 
     /**
+     * Test case for agentsExportDef
+     *
+     * Write an agent definition into another tool's folder..
+     *
+     */
+    public function testAgentsExportDef()
+    {
+        // TODO: implement
+        self::markTestIncomplete('Not implemented');
+    }
+
+    /**
+     * Test case for agentsExportPlan
+     *
+     * What an export would write, and what the target cannot carry — without writing it..
+     *
+     */
+    public function testAgentsExportPlan()
+    {
+        // TODO: implement
+        self::markTestIncomplete('Not implemented');
+    }
+
+    /**
+     * Test case for agentsGetDef
+     *
+     * One agent definition, prompt included..
+     *
+     */
+    public function testAgentsGetDef()
+    {
+        // TODO: implement
+        self::markTestIncomplete('Not implemented');
+    }
+
+    /**
+     * Test case for agentsListDefs
+     *
+     * The agent definitions on this machine, from every tool that writes one..
+     *
+     */
+    public function testAgentsListDefs()
+    {
+        // TODO: implement
+        self::markTestIncomplete('Not implemented');
+    }
+
+    /**
      * Test case for agentsRate
      *
      * A person rates the agent's work on a run, task or job..

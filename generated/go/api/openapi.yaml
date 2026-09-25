@@ -2396,6 +2396,200 @@ paths:
       - engines
       x-chatpanel-auth: open
       x-chatpanel-since: 0.6.89
+  /skills-quarantined:
+    get:
+      description: "A skill package is a prompt that will run with tools attached,\
+        \ so it is scanned before it is admitted. One that fails is kept out of `GET\
+        \ /skills` entirely; this is the only way to learn it exists, and why. The\
+        \ bridge has implemented it since packages could arrive; nothing could reach\
+        \ it until 0.48.0."
+      operationId: skills.quarantined
+      parameters:
+      - explode: true
+        in: query
+        name: workdir
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/skills_quarantined_200_response"
+          description: The refused packages.
+        "502":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      summary: Packages the admission scanner refused — what is on disk and deliberately
+        not listed.
+      tags:
+      - skills
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.48.0
+  /agent-defs:
+    get:
+      description: "`.claude/agents/*.md`, `.codex/agents/*.toml`, `~/.chatpanel/agents/*.json`\
+        \ and the project-local equivalents, each read in its own dialect and returned\
+        \ in one shape. No prompts — `promptChars` only, for the same reason `GET\
+        \ /skills` omits them."
+      operationId: agents.listDefs
+      parameters:
+      - description: "Also read this project's own agent folders, ahead of the home\
+          \ ones."
+        explode: true
+        in: query
+        name: workdir
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: An extra absolute folder to scan. Repeatable.
+        explode: true
+        in: query
+        name: dir
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/agents_listDefs_200_response"
+          description: The definitions.
+        "502":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      summary: "The agent definitions on this machine, from every tool that writes\
+        \ one."
+      tags:
+      - agents
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.48.0
+  /agent-defs/{agentId}:
+    get:
+      operationId: agents.getDef
+      parameters:
+      - explode: true
+        in: query
+        name: workdir
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: One path segment; slashes and `..` are refused.
+        explode: false
+        in: path
+        name: agentId
+        required: true
+        schema:
+          maxLength: 200
+          pattern: "^[^/\\\\]+$"
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/agents_getDef_200_response"
+          description: The definition.
+        "404":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+      summary: "One agent definition, prompt included."
+      tags:
+      - agents
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.48.0
+    parameters:
+    - description: One path segment; slashes and `..` are refused.
+      explode: false
+      in: path
+      name: agentId
+      required: true
+      schema:
+        maxLength: 200
+        pattern: "^[^/\\\\]+$"
+        type: string
+      style: simple
+  /agent-defs/export-plan:
+    post:
+      description: "A separate call from the export itself, deliberately: \"show me\
+        \ what you are about to do to my Claude Code directory\" is a question a person\
+        \ answers before saying yes, and a dry run sharing a code path with the real\
+        \ thing is one edit away from not being dry."
+      operationId: agents.exportPlan
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentExportRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentExportPlan"
+          description: The plan.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "What an export would write, and what the target cannot carry — without\
+        \ writing it."
+      tags:
+      - agents
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.48.0
+  /agent-defs/export:
+    post:
+      description: "Only from a named action. The file is backed up before it is touched,\
+        \ and one ChatPanel did not write — or one edited since it did — is refused\
+        \ with `NOT_OURS` unless `overwrite` is set. Which of those applies is what\
+        \ `export-plan` reports as `status`."
+      operationId: agents.exportDef
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentExportRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/agents_exportDef_200_response"
+          description: Written.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: Write an agent definition into another tool's folder.
+      tags:
+      - agents
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.48.0
   /skills:
     get:
       operationId: skills.list
@@ -5406,6 +5600,224 @@ components:
           default: null
       required:
       - id
+    QuarantinedSkill:
+      additionalProperties: true
+      example:
+        id: id
+        path: path
+        source: source
+        verdict: suspicious
+      properties:
+        id:
+          type: string
+        path:
+          type: string
+        source:
+          type: string
+        verdict:
+          enum:
+          - suspicious
+          - dangerous
+          type: string
+    AgentDef:
+      additionalProperties: {}
+      description: "An agent definition, read from whichever tool's dialect wrote\
+        \ it."
+      example:
+        id: id
+        name: name
+        purpose: purpose
+        dialect: chatpanel
+        source: source
+        label: label
+        path: path
+        writable: true
+        engine:
+          key: ""
+        grants:
+        - grants
+        - grants
+        skills:
+        - skills
+        - skills
+        promptChars: 0
+        prompt: prompt
+        warnings:
+        - warnings
+        - warnings
+        scanned:
+          key: ""
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        purpose:
+          type: string
+        dialect:
+          enum:
+          - chatpanel
+          - claude
+          - codex
+          - a2a
+          type: string
+        source:
+          description: "The folder it was read from: chatpanel, claude, codex, agents-dir,\
+            \ external."
+          type: string
+        label:
+          type: string
+        path:
+          description: Relative to the root it was found in.
+          type: string
+        writable:
+          type: boolean
+        engine:
+          additionalProperties: true
+          type: object
+        grants:
+          items:
+            type: string
+          type: array
+          default: null
+        skills:
+          items:
+            type: string
+          type: array
+          default: null
+        promptChars:
+          type: integer
+        prompt:
+          description: "Only on `GET /agent-defs/{agentId}`."
+          type: string
+        warnings:
+          description: "What the dialect could not map — an unmapped tool is reported,\
+            \ never widened into a grant."
+          items:
+            type: string
+          type: array
+          default: null
+        scanned:
+          additionalProperties: true
+          type: object
+      required:
+      - id
+    AgentExportRequest:
+      example:
+        agent:
+          id: id
+          name: name
+          purpose: purpose
+          dialect: chatpanel
+          source: source
+          label: label
+          path: path
+          writable: true
+          engine:
+            key: ""
+          grants:
+          - grants
+          - grants
+          skills:
+          - skills
+          - skills
+          promptChars: 0
+          prompt: prompt
+          warnings:
+          - warnings
+          - warnings
+          scanned:
+            key: ""
+        to: claude
+        overwrite: false
+      properties:
+        agent:
+          $ref: "#/components/schemas/AgentDef"
+        to:
+          description: The dialect to write.
+          enum:
+          - claude
+          - codex
+          - chatpanel
+          type: string
+        overwrite:
+          default: false
+          description: Only ever after a plan reported `theirs` and a person agreed.
+          type: boolean
+      required:
+      - agent
+      - to
+    AgentExportPlan:
+      example:
+        to: to
+        label: label
+        path: path
+        text: text
+        exists: true
+        status: new
+        fidelity:
+          dialect: dialect
+          lossless: true
+          carried:
+          - carried
+          - carried
+          dropped:
+          - field: field
+            why: why
+          - field: field
+            why: why
+      properties:
+        to:
+          type: string
+        label:
+          type: string
+        path:
+          description: The exact file that would be written.
+          type: string
+        text:
+          description: Its rendered contents.
+          type: string
+        exists:
+          type: boolean
+        status:
+          description: "`theirs` means ChatPanel did not write it, or it has been\
+            \ edited since."
+          enum:
+          - new
+          - ours
+          - theirs
+          type: string
+        fidelity:
+          $ref: "#/components/schemas/AgentFidelity"
+    AgentFidelity:
+      description: "What survives a trip into a dialect, derived from what that dialect\
+        \ declares it can express."
+      example:
+        dialect: dialect
+        lossless: true
+        carried:
+        - carried
+        - carried
+        dropped:
+        - field: field
+          why: why
+        - field: field
+          why: why
+      properties:
+        dialect:
+          type: string
+        lossless:
+          type: boolean
+        carried:
+          items:
+            type: string
+          type: array
+          default: null
+        dropped:
+          items:
+            $ref: "#/components/schemas/AgentFidelity_dropped_inner"
+          type: array
+          default: null
     Skill:
       additionalProperties: true
       example:
@@ -6009,6 +6421,181 @@ components:
       required:
       - engines
       - ok
+    skills_quarantined_200_response:
+      example:
+        quarantined:
+        - id: id
+          path: path
+          source: source
+          verdict: suspicious
+        - id: id
+          path: path
+          source: source
+          verdict: suspicious
+      properties:
+        quarantined:
+          items:
+            $ref: "#/components/schemas/QuarantinedSkill"
+          type: array
+          default: null
+      required:
+      - quarantined
+    agents_listDefs_200_response:
+      example:
+        agents:
+        - id: id
+          name: name
+          purpose: purpose
+          dialect: chatpanel
+          source: source
+          label: label
+          path: path
+          writable: true
+          engine:
+            key: ""
+          grants:
+          - grants
+          - grants
+          skills:
+          - skills
+          - skills
+          promptChars: 0
+          prompt: prompt
+          warnings:
+          - warnings
+          - warnings
+          scanned:
+            key: ""
+        - id: id
+          name: name
+          purpose: purpose
+          dialect: chatpanel
+          source: source
+          label: label
+          path: path
+          writable: true
+          engine:
+            key: ""
+          grants:
+          - grants
+          - grants
+          skills:
+          - skills
+          - skills
+          promptChars: 0
+          prompt: prompt
+          warnings:
+          - warnings
+          - warnings
+          scanned:
+            key: ""
+        quarantined:
+        - key: ""
+        - key: ""
+        problems:
+        - key: ""
+        - key: ""
+      properties:
+        agents:
+          items:
+            $ref: "#/components/schemas/AgentDef"
+          type: array
+          default: null
+        quarantined:
+          description: Definitions the scanner refused.
+          items:
+            additionalProperties:
+              nullable: true
+            type: object
+          type: array
+          default: null
+        problems:
+          description: Files that parsed as a definition and could not be made one.
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          default: null
+      required:
+      - agents
+    agents_getDef_200_response:
+      example:
+        agent:
+          id: id
+          name: name
+          purpose: purpose
+          dialect: chatpanel
+          source: source
+          label: label
+          path: path
+          writable: true
+          engine:
+            key: ""
+          grants:
+          - grants
+          - grants
+          skills:
+          - skills
+          - skills
+          promptChars: 0
+          prompt: prompt
+          warnings:
+          - warnings
+          - warnings
+          scanned:
+            key: ""
+        dialect: chatpanel
+        source: source
+        path: path
+      properties:
+        agent:
+          $ref: "#/components/schemas/AgentDef"
+        dialect:
+          enum:
+          - chatpanel
+          - claude
+          - codex
+          - a2a
+          type: string
+        source:
+          type: string
+        path:
+          type: string
+    agents_exportDef_200_response:
+      example:
+        ok: true
+        path: path
+        to: to
+        backedUp: true
+        status: new
+        fidelity:
+          dialect: dialect
+          lossless: true
+          carried:
+          - carried
+          - carried
+          dropped:
+          - field: field
+            why: why
+          - field: field
+            why: why
+      properties:
+        ok:
+          type: boolean
+        path:
+          type: string
+        to:
+          type: string
+        backedUp:
+          type: boolean
+        status:
+          enum:
+          - new
+          - ours
+          - theirs
+          type: string
+        fidelity:
+          $ref: "#/components/schemas/AgentFidelity"
     skills_list_200_response:
       example:
         skills:
@@ -6315,6 +6902,15 @@ components:
       required:
       - id
       - text
+    AgentFidelity_dropped_inner:
+      example:
+        field: field
+        why: why
+      properties:
+        field:
+          type: string
+        why:
+          type: string
     Transcription_segments_inner:
       example:
         id: 1

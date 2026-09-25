@@ -27,6 +27,11 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.ShouldSpec
 
 import net.chatpanel.sdk.apis.AgentsApi
+import net.chatpanel.sdk.models.AgentExportPlan
+import net.chatpanel.sdk.models.AgentExportRequest
+import net.chatpanel.sdk.models.AgentsExportDef200Response
+import net.chatpanel.sdk.models.AgentsGetDef200Response
+import net.chatpanel.sdk.models.AgentsListDefs200Response
 import net.chatpanel.sdk.models.AgentsRateRequest
 import net.chatpanel.sdk.models.AgentsScorecards200Response
 import net.chatpanel.sdk.models.ErrorResponse
@@ -35,6 +40,40 @@ class AgentsApiTest : ShouldSpec() {
     init {
         // uncomment below to create an instance of AgentsApi
         //val apiInstance = AgentsApi()
+
+        // to test agentsExportDef
+        should("test agentsExportDef") {
+            // uncomment below to test agentsExportDef
+            //val agentExportRequest : AgentExportRequest =  // AgentExportRequest | 
+            //val result : AgentsExportDef200Response = apiInstance.agentsExportDef(agentExportRequest)
+            //result shouldBe ("TODO")
+        }
+
+        // to test agentsExportPlan
+        should("test agentsExportPlan") {
+            // uncomment below to test agentsExportPlan
+            //val agentExportRequest : AgentExportRequest =  // AgentExportRequest | 
+            //val result : AgentExportPlan = apiInstance.agentsExportPlan(agentExportRequest)
+            //result shouldBe ("TODO")
+        }
+
+        // to test agentsGetDef
+        should("test agentsGetDef") {
+            // uncomment below to test agentsGetDef
+            //val agentId : kotlin.String = agentId_example // kotlin.String | One path segment; slashes and `..` are refused.
+            //val workdir : kotlin.String = workdir_example // kotlin.String | 
+            //val result : AgentsGetDef200Response = apiInstance.agentsGetDef(agentId, workdir)
+            //result shouldBe ("TODO")
+        }
+
+        // to test agentsListDefs
+        should("test agentsListDefs") {
+            // uncomment below to test agentsListDefs
+            //val workdir : kotlin.String = workdir_example // kotlin.String | Also read this project's own agent folders, ahead of the home ones.
+            //val dir : kotlin.String = dir_example // kotlin.String | An extra absolute folder to scan. Repeatable.
+            //val result : AgentsListDefs200Response = apiInstance.agentsListDefs(workdir, dir)
+            //result shouldBe ("TODO")
+        }
 
         // to test agentsRate
         should("test agentsRate") {

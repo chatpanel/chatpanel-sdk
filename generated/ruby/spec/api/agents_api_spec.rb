@@ -32,6 +32,55 @@ describe 'AgentsApi' do
     end
   end
 
+  # unit tests for agents_export_def
+  # Write an agent definition into another tool&#39;s folder.
+  # Only from a named action. The file is backed up before it is touched, and one ChatPanel did not write — or one edited since it did — is refused with &#x60;NOT_OURS&#x60; unless &#x60;overwrite&#x60; is set. Which of those applies is what &#x60;export-plan&#x60; reports as &#x60;status&#x60;.
+  # @param agent_export_request 
+  # @param [Hash] opts the optional parameters
+  # @return [AgentsExportDef200Response]
+  describe 'agents_export_def test' do
+    it 'should work' do
+      # assertion here. ref: https://rspec.info/features/3-12/rspec-expectations/built-in-matchers/
+    end
+  end
+
+  # unit tests for agents_export_plan
+  # What an export would write, and what the target cannot carry — without writing it.
+  # A separate call from the export itself, deliberately: \&quot;show me what you are about to do to my Claude Code directory\&quot; is a question a person answers before saying yes, and a dry run sharing a code path with the real thing is one edit away from not being dry.
+  # @param agent_export_request 
+  # @param [Hash] opts the optional parameters
+  # @return [AgentExportPlan]
+  describe 'agents_export_plan test' do
+    it 'should work' do
+      # assertion here. ref: https://rspec.info/features/3-12/rspec-expectations/built-in-matchers/
+    end
+  end
+
+  # unit tests for agents_get_def
+  # One agent definition, prompt included.
+  # @param agent_id One path segment; slashes and &#x60;..&#x60; are refused.
+  # @param [Hash] opts the optional parameters
+  # @option opts [String] :workdir 
+  # @return [AgentsGetDef200Response]
+  describe 'agents_get_def test' do
+    it 'should work' do
+      # assertion here. ref: https://rspec.info/features/3-12/rspec-expectations/built-in-matchers/
+    end
+  end
+
+  # unit tests for agents_list_defs
+  # The agent definitions on this machine, from every tool that writes one.
+  # &#x60;.claude/agents/*.md&#x60;, &#x60;.codex/agents/*.toml&#x60;, &#x60;~/.chatpanel/agents/*.json&#x60; and the project-local equivalents, each read in its own dialect and returned in one shape. No prompts — &#x60;promptChars&#x60; only, for the same reason &#x60;GET /skills&#x60; omits them.
+  # @param [Hash] opts the optional parameters
+  # @option opts [String] :workdir Also read this project&#39;s own agent folders, ahead of the home ones.
+  # @option opts [String] :dir An extra absolute folder to scan. Repeatable.
+  # @return [AgentsListDefs200Response]
+  describe 'agents_list_defs test' do
+    it 'should work' do
+      # assertion here. ref: https://rspec.info/features/3-12/rspec-expectations/built-in-matchers/
+    end
+  end
+
   # unit tests for agents_rate
   # A person rates the agent&#39;s work on a run, task or job.
   # @param agent_id 

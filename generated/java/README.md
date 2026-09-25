@@ -103,13 +103,12 @@ public class AgentsApiExample {
         // Configure clients using the `defaultClient` object, such as
         // overriding the host and port, timeout, etc.
         AgentsApi apiInstance = new AgentsApi(defaultClient);
-        String agentId = "agentId_example"; // String | 
-        AgentsRateRequest agentsRateRequest = new AgentsRateRequest(); // AgentsRateRequest | 
+        AgentExportRequest agentExportRequest = new AgentExportRequest(); // AgentExportRequest | 
         try {
-            Map<String, Object> result = apiInstance.agentsRate(agentId, agentsRateRequest);
+            AgentsExportDef200Response result = apiInstance.agentsExportDef(agentExportRequest);
             System.out.println(result);
         } catch (ApiException e) {
-            System.err.println("Exception when calling AgentsApi#agentsRate");
+            System.err.println("Exception when calling AgentsApi#agentsExportDef");
             System.err.println("Status code: " + e.getCode());
             System.err.println("Reason: " + e.getResponseBody());
             System.err.println("Response headers: " + e.getResponseHeaders());
@@ -126,6 +125,14 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*AgentsApi* | [**agentsExportDef**](docs/AgentsApi.md#agentsExportDef) | **POST** /agent-defs/export | Write an agent definition into another tool&#39;s folder.
+*AgentsApi* | [**agentsExportDefWithHttpInfo**](docs/AgentsApi.md#agentsExportDefWithHttpInfo) | **POST** /agent-defs/export | Write an agent definition into another tool&#39;s folder.
+*AgentsApi* | [**agentsExportPlan**](docs/AgentsApi.md#agentsExportPlan) | **POST** /agent-defs/export-plan | What an export would write, and what the target cannot carry — without writing it.
+*AgentsApi* | [**agentsExportPlanWithHttpInfo**](docs/AgentsApi.md#agentsExportPlanWithHttpInfo) | **POST** /agent-defs/export-plan | What an export would write, and what the target cannot carry — without writing it.
+*AgentsApi* | [**agentsGetDef**](docs/AgentsApi.md#agentsGetDef) | **GET** /agent-defs/{agentId} | One agent definition, prompt included.
+*AgentsApi* | [**agentsGetDefWithHttpInfo**](docs/AgentsApi.md#agentsGetDefWithHttpInfo) | **GET** /agent-defs/{agentId} | One agent definition, prompt included.
+*AgentsApi* | [**agentsListDefs**](docs/AgentsApi.md#agentsListDefs) | **GET** /agent-defs | The agent definitions on this machine, from every tool that writes one.
+*AgentsApi* | [**agentsListDefsWithHttpInfo**](docs/AgentsApi.md#agentsListDefsWithHttpInfo) | **GET** /agent-defs | The agent definitions on this machine, from every tool that writes one.
 *AgentsApi* | [**agentsRate**](docs/AgentsApi.md#agentsRate) | **POST** /v1/agents/{agentId}/scorecard | A person rates the agent&#39;s work on a run, task or job.
 *AgentsApi* | [**agentsRateWithHttpInfo**](docs/AgentsApi.md#agentsRateWithHttpInfo) | **POST** /v1/agents/{agentId}/scorecard | A person rates the agent&#39;s work on a run, task or job.
 *AgentsApi* | [**agentsScorecard**](docs/AgentsApi.md#agentsScorecard) | **GET** /v1/agents/{agentId}/scorecard | One agent&#39;s attested scorecard.
@@ -258,6 +265,8 @@ Class | Method | HTTP request | Description
 *SkillsApi* | [**skillsGetWithHttpInfo**](docs/SkillsApi.md#skillsGetWithHttpInfo) | **GET** /skills/{skillId} | One skill, with its prompt.
 *SkillsApi* | [**skillsList**](docs/SkillsApi.md#skillsList) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
 *SkillsApi* | [**skillsListWithHttpInfo**](docs/SkillsApi.md#skillsListWithHttpInfo) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
+*SkillsApi* | [**skillsQuarantined**](docs/SkillsApi.md#skillsQuarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed.
+*SkillsApi* | [**skillsQuarantinedWithHttpInfo**](docs/SkillsApi.md#skillsQuarantinedWithHttpInfo) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed.
 *TeamsApi* | [**teamsAnswer**](docs/TeamsApi.md#teamsAnswer) | **POST** /v1/teams/runs/{runId}/answer | A person answers an ask on the board.
 *TeamsApi* | [**teamsAnswerWithHttpInfo**](docs/TeamsApi.md#teamsAnswerWithHttpInfo) | **POST** /v1/teams/runs/{runId}/answer | A person answers an ask on the board.
 *TeamsApi* | [**teamsAppendRunEvents**](docs/TeamsApi.md#teamsAppendRunEvents) | **POST** /v1/teams/runs/{runId}/events | The running client appends events.
@@ -290,6 +299,14 @@ Class | Method | HTTP request | Description
 
 ## Documentation for Models
 
+ - [AgentDef](docs/AgentDef.md)
+ - [AgentExportPlan](docs/AgentExportPlan.md)
+ - [AgentExportRequest](docs/AgentExportRequest.md)
+ - [AgentFidelity](docs/AgentFidelity.md)
+ - [AgentFidelityDroppedInner](docs/AgentFidelityDroppedInner.md)
+ - [AgentsExportDef200Response](docs/AgentsExportDef200Response.md)
+ - [AgentsGetDef200Response](docs/AgentsGetDef200Response.md)
+ - [AgentsListDefs200Response](docs/AgentsListDefs200Response.md)
  - [AgentsRateRequest](docs/AgentsRateRequest.md)
  - [AgentsScorecards200Response](docs/AgentsScorecards200Response.md)
  - [AudioSpeechRequest](docs/AudioSpeechRequest.md)
@@ -377,6 +394,7 @@ Class | Method | HTTP request | Description
  - [PushEventsResponseRejectedInner](docs/PushEventsResponseRejectedInner.md)
  - [PutRecordsRequest](docs/PutRecordsRequest.md)
  - [PutRecordsResponse](docs/PutRecordsResponse.md)
+ - [QuarantinedSkill](docs/QuarantinedSkill.md)
  - [ReadRequest](docs/ReadRequest.md)
  - [ReadResponse](docs/ReadResponse.md)
  - [ReadRestriction](docs/ReadRestriction.md)
@@ -409,6 +427,7 @@ Class | Method | HTTP request | Description
  - [Skill](docs/Skill.md)
  - [SkillsGet200Response](docs/SkillsGet200Response.md)
  - [SkillsList200Response](docs/SkillsList200Response.md)
+ - [SkillsQuarantined200Response](docs/SkillsQuarantined200Response.md)
  - [SmartSearchRequest](docs/SmartSearchRequest.md)
  - [SmartSearchResponse](docs/SmartSearchResponse.md)
  - [TeamRun](docs/TeamRun.md)

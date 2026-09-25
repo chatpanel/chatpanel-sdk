@@ -43,6 +43,14 @@ namespace ChatPanel.Sdk.Client
             _jsonOptions.Converters.Add(new DateTimeNullableJsonConverter());
             _jsonOptions.Converters.Add(new DateOnlyJsonConverter());
             _jsonOptions.Converters.Add(new DateOnlyNullableJsonConverter());
+            _jsonOptions.Converters.Add(new AgentDefJsonConverter());
+            _jsonOptions.Converters.Add(new AgentExportPlanJsonConverter());
+            _jsonOptions.Converters.Add(new AgentExportRequestJsonConverter());
+            _jsonOptions.Converters.Add(new AgentFidelityJsonConverter());
+            _jsonOptions.Converters.Add(new AgentFidelityDroppedInnerJsonConverter());
+            _jsonOptions.Converters.Add(new AgentsExportDef200ResponseJsonConverter());
+            _jsonOptions.Converters.Add(new AgentsGetDef200ResponseJsonConverter());
+            _jsonOptions.Converters.Add(new AgentsListDefs200ResponseJsonConverter());
             _jsonOptions.Converters.Add(new AgentsRateRequestJsonConverter());
             _jsonOptions.Converters.Add(new AgentsScorecards200ResponseJsonConverter());
             _jsonOptions.Converters.Add(new AudioSpeechRequestJsonConverter());
@@ -130,6 +138,7 @@ namespace ChatPanel.Sdk.Client
             _jsonOptions.Converters.Add(new PushEventsResponseRejectedInnerJsonConverter());
             _jsonOptions.Converters.Add(new PutRecordsRequestJsonConverter());
             _jsonOptions.Converters.Add(new PutRecordsResponseJsonConverter());
+            _jsonOptions.Converters.Add(new QuarantinedSkillJsonConverter());
             _jsonOptions.Converters.Add(new ReadRequestJsonConverter());
             _jsonOptions.Converters.Add(new ReadResponseJsonConverter());
             _jsonOptions.Converters.Add(new ReadRestrictionJsonConverter());
@@ -163,6 +172,7 @@ namespace ChatPanel.Sdk.Client
             _jsonOptions.Converters.Add(new SkillJsonConverter());
             _jsonOptions.Converters.Add(new SkillsGet200ResponseJsonConverter());
             _jsonOptions.Converters.Add(new SkillsList200ResponseJsonConverter());
+            _jsonOptions.Converters.Add(new SkillsQuarantined200ResponseJsonConverter());
             _jsonOptions.Converters.Add(new SmartSearchRequestJsonConverter());
             _jsonOptions.Converters.Add(new SmartSearchResponseJsonConverter());
             _jsonOptions.Converters.Add(new TeamRunJsonConverter());

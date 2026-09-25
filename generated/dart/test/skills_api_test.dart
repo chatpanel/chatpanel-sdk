@@ -21,5 +21,14 @@ void main() {
       // TODO
     });
 
+    // Packages the admission scanner refused — what is on disk and deliberately not listed.
+    //
+    // A skill package is a prompt that will run with tools attached, so it is scanned before it is admitted. One that fails is kept out of `GET /skills` entirely; this is the only way to learn it exists, and why. The bridge has implemented it since packages could arrive; nothing could reach it until 0.48.0.
+    //
+    //Future<SkillsQuarantined200Response> skillsQuarantined({ String workdir }) async
+    test('test skillsQuarantined', () async {
+      // TODO
+    });
+
   });
 }

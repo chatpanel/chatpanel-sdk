@@ -63,6 +63,10 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 | Class | Method | HTTP request | Description |
 | ------------ | ------------- | ------------- | ------------- |
+| *AgentsApi* | [**agentsExportDef**](docs/AgentsApi.md#agentsexportdef) | **POST** /agent-defs/export | Write an agent definition into another tool's folder. |
+| *AgentsApi* | [**agentsExportPlan**](docs/AgentsApi.md#agentsexportplan) | **POST** /agent-defs/export-plan | What an export would write, and what the target cannot carry — without writing it. |
+| *AgentsApi* | [**agentsGetDef**](docs/AgentsApi.md#agentsgetdef) | **GET** /agent-defs/{agentId} | One agent definition, prompt included. |
+| *AgentsApi* | [**agentsListDefs**](docs/AgentsApi.md#agentslistdefs) | **GET** /agent-defs | The agent definitions on this machine, from every tool that writes one. |
 | *AgentsApi* | [**agentsRate**](docs/AgentsApi.md#agentsrate) | **POST** /v1/agents/{agentId}/scorecard | A person rates the agent's work on a run, task or job. |
 | *AgentsApi* | [**agentsScorecard**](docs/AgentsApi.md#agentsscorecard) | **GET** /v1/agents/{agentId}/scorecard | One agent's attested scorecard. |
 | *AgentsApi* | [**agentsScorecards**](docs/AgentsApi.md#agentsscorecards) | **GET** /v1/agents/scorecards | Every agent's scorecard. |
@@ -129,6 +133,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | *RuntimeApi* | [**runtimeStatus**](docs/RuntimeApi.md#runtimestatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services. |
 | *SkillsApi* | [**skillsGet**](docs/SkillsApi.md#skillsget) | **GET** /skills/{skillId} | One skill, with its prompt. |
 | *SkillsApi* | [**skillsList**](docs/SkillsApi.md#skillslist) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt. |
+| *SkillsApi* | [**skillsQuarantined**](docs/SkillsApi.md#skillsquarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed. |
 | *TeamsApi* | [**teamsAnswer**](docs/TeamsApi.md#teamsanswer) | **POST** /v1/teams/runs/{runId}/answer | A person answers an ask on the board. |
 | *TeamsApi* | [**teamsAppendRunEvents**](docs/TeamsApi.md#teamsappendrunevents) | **POST** /v1/teams/runs/{runId}/events | The running client appends events. |
 | *TeamsApi* | [**teamsCheckpoint**](docs/TeamsApi.md#teamscheckpoint) | **GET** /v1/teams/runs/{runId}/checkpoint | What a client needs to resume a run whose client went away. |
@@ -148,6 +153,14 @@ All URIs are relative to *http://127.0.0.1:4320*
 <a id="documentation-for-models"></a>
 ## Documentation for Models
 
+ - [net.chatpanel.sdk.models.AgentDef](docs/AgentDef.md)
+ - [net.chatpanel.sdk.models.AgentExportPlan](docs/AgentExportPlan.md)
+ - [net.chatpanel.sdk.models.AgentExportRequest](docs/AgentExportRequest.md)
+ - [net.chatpanel.sdk.models.AgentFidelity](docs/AgentFidelity.md)
+ - [net.chatpanel.sdk.models.AgentFidelityDroppedInner](docs/AgentFidelityDroppedInner.md)
+ - [net.chatpanel.sdk.models.AgentsExportDef200Response](docs/AgentsExportDef200Response.md)
+ - [net.chatpanel.sdk.models.AgentsGetDef200Response](docs/AgentsGetDef200Response.md)
+ - [net.chatpanel.sdk.models.AgentsListDefs200Response](docs/AgentsListDefs200Response.md)
  - [net.chatpanel.sdk.models.AgentsRateRequest](docs/AgentsRateRequest.md)
  - [net.chatpanel.sdk.models.AgentsScorecards200Response](docs/AgentsScorecards200Response.md)
  - [net.chatpanel.sdk.models.AudioSpeechRequest](docs/AudioSpeechRequest.md)
@@ -235,6 +248,7 @@ All URIs are relative to *http://127.0.0.1:4320*
  - [net.chatpanel.sdk.models.PushEventsResponseRejectedInner](docs/PushEventsResponseRejectedInner.md)
  - [net.chatpanel.sdk.models.PutRecordsRequest](docs/PutRecordsRequest.md)
  - [net.chatpanel.sdk.models.PutRecordsResponse](docs/PutRecordsResponse.md)
+ - [net.chatpanel.sdk.models.QuarantinedSkill](docs/QuarantinedSkill.md)
  - [net.chatpanel.sdk.models.ReadRequest](docs/ReadRequest.md)
  - [net.chatpanel.sdk.models.ReadResponse](docs/ReadResponse.md)
  - [net.chatpanel.sdk.models.ReadRestriction](docs/ReadRestriction.md)
@@ -267,6 +281,7 @@ All URIs are relative to *http://127.0.0.1:4320*
  - [net.chatpanel.sdk.models.Skill](docs/Skill.md)
  - [net.chatpanel.sdk.models.SkillsGet200Response](docs/SkillsGet200Response.md)
  - [net.chatpanel.sdk.models.SkillsList200Response](docs/SkillsList200Response.md)
+ - [net.chatpanel.sdk.models.SkillsQuarantined200Response](docs/SkillsQuarantined200Response.md)
  - [net.chatpanel.sdk.models.SmartSearchRequest](docs/SmartSearchRequest.md)
  - [net.chatpanel.sdk.models.SmartSearchResponse](docs/SmartSearchResponse.md)
  - [net.chatpanel.sdk.models.TeamRun](docs/TeamRun.md)

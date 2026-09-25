@@ -44,6 +44,10 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*AgentsAPI* | [**agentsExportDef**](docs/AgentsAPI.md#agentsexportdef) | **POST** /agent-defs/export | Write an agent definition into another tool&#39;s folder.
+*AgentsAPI* | [**agentsExportPlan**](docs/AgentsAPI.md#agentsexportplan) | **POST** /agent-defs/export-plan | What an export would write, and what the target cannot carry — without writing it.
+*AgentsAPI* | [**agentsGetDef**](docs/AgentsAPI.md#agentsgetdef) | **GET** /agent-defs/{agentId} | One agent definition, prompt included.
+*AgentsAPI* | [**agentsListDefs**](docs/AgentsAPI.md#agentslistdefs) | **GET** /agent-defs | The agent definitions on this machine, from every tool that writes one.
 *AgentsAPI* | [**agentsRate**](docs/AgentsAPI.md#agentsrate) | **POST** /v1/agents/{agentId}/scorecard | A person rates the agent&#39;s work on a run, task or job.
 *AgentsAPI* | [**agentsScorecard**](docs/AgentsAPI.md#agentsscorecard) | **GET** /v1/agents/{agentId}/scorecard | One agent&#39;s attested scorecard.
 *AgentsAPI* | [**agentsScorecards**](docs/AgentsAPI.md#agentsscorecards) | **GET** /v1/agents/scorecards | Every agent&#39;s scorecard.
@@ -110,6 +114,7 @@ Class | Method | HTTP request | Description
 *RuntimeAPI* | [**runtimeStatus**](docs/RuntimeAPI.md#runtimestatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
 *SkillsAPI* | [**skillsGet**](docs/SkillsAPI.md#skillsget) | **GET** /skills/{skillId} | One skill, with its prompt.
 *SkillsAPI* | [**skillsList**](docs/SkillsAPI.md#skillslist) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
+*SkillsAPI* | [**skillsQuarantined**](docs/SkillsAPI.md#skillsquarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed.
 *TeamsAPI* | [**teamsAnswer**](docs/TeamsAPI.md#teamsanswer) | **POST** /v1/teams/runs/{runId}/answer | A person answers an ask on the board.
 *TeamsAPI* | [**teamsAppendRunEvents**](docs/TeamsAPI.md#teamsappendrunevents) | **POST** /v1/teams/runs/{runId}/events | The running client appends events.
 *TeamsAPI* | [**teamsCheckpoint**](docs/TeamsAPI.md#teamscheckpoint) | **GET** /v1/teams/runs/{runId}/checkpoint | What a client needs to resume a run whose client went away.
@@ -128,6 +133,14 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [AgentDef](docs/AgentDef.md)
+ - [AgentExportPlan](docs/AgentExportPlan.md)
+ - [AgentExportRequest](docs/AgentExportRequest.md)
+ - [AgentFidelity](docs/AgentFidelity.md)
+ - [AgentFidelityDroppedInner](docs/AgentFidelityDroppedInner.md)
+ - [AgentsExportDef200Response](docs/AgentsExportDef200Response.md)
+ - [AgentsGetDef200Response](docs/AgentsGetDef200Response.md)
+ - [AgentsListDefs200Response](docs/AgentsListDefs200Response.md)
  - [AgentsRateRequest](docs/AgentsRateRequest.md)
  - [AgentsScorecards200Response](docs/AgentsScorecards200Response.md)
  - [AudioSpeechRequest](docs/AudioSpeechRequest.md)
@@ -215,6 +228,7 @@ Class | Method | HTTP request | Description
  - [PushEventsResponseRejectedInner](docs/PushEventsResponseRejectedInner.md)
  - [PutRecordsRequest](docs/PutRecordsRequest.md)
  - [PutRecordsResponse](docs/PutRecordsResponse.md)
+ - [QuarantinedSkill](docs/QuarantinedSkill.md)
  - [ReadRequest](docs/ReadRequest.md)
  - [ReadResponse](docs/ReadResponse.md)
  - [ReadRestriction](docs/ReadRestriction.md)
@@ -247,6 +261,7 @@ Class | Method | HTTP request | Description
  - [Skill](docs/Skill.md)
  - [SkillsGet200Response](docs/SkillsGet200Response.md)
  - [SkillsList200Response](docs/SkillsList200Response.md)
+ - [SkillsQuarantined200Response](docs/SkillsQuarantined200Response.md)
  - [SmartSearchRequest](docs/SmartSearchRequest.md)
  - [SmartSearchResponse](docs/SmartSearchResponse.md)
  - [TeamRun](docs/TeamRun.md)

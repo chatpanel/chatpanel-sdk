@@ -14,6 +14,14 @@ import 'package:built_value/iso_8601_date_time_serializer.dart';
 import 'package:chatpanel/src/date_serializer.dart';
 import 'package:chatpanel/src/model/date.dart';
 
+import 'package:chatpanel/src/model/agent_def.dart';
+import 'package:chatpanel/src/model/agent_export_plan.dart';
+import 'package:chatpanel/src/model/agent_export_request.dart';
+import 'package:chatpanel/src/model/agent_fidelity.dart';
+import 'package:chatpanel/src/model/agent_fidelity_dropped_inner.dart';
+import 'package:chatpanel/src/model/agents_export_def200_response.dart';
+import 'package:chatpanel/src/model/agents_get_def200_response.dart';
+import 'package:chatpanel/src/model/agents_list_defs200_response.dart';
 import 'package:chatpanel/src/model/agents_rate_request.dart';
 import 'package:chatpanel/src/model/agents_scorecards200_response.dart';
 import 'package:chatpanel/src/model/audio_speech_request.dart';
@@ -101,6 +109,7 @@ import 'package:chatpanel/src/model/push_events_response.dart';
 import 'package:chatpanel/src/model/push_events_response_rejected_inner.dart';
 import 'package:chatpanel/src/model/put_records_request.dart';
 import 'package:chatpanel/src/model/put_records_response.dart';
+import 'package:chatpanel/src/model/quarantined_skill.dart';
 import 'package:chatpanel/src/model/read_request.dart';
 import 'package:chatpanel/src/model/read_response.dart';
 import 'package:chatpanel/src/model/read_restriction.dart';
@@ -133,6 +142,7 @@ import 'package:chatpanel/src/model/search_response.dart';
 import 'package:chatpanel/src/model/skill.dart';
 import 'package:chatpanel/src/model/skills_get200_response.dart';
 import 'package:chatpanel/src/model/skills_list200_response.dart';
+import 'package:chatpanel/src/model/skills_quarantined200_response.dart';
 import 'package:chatpanel/src/model/smart_search_request.dart';
 import 'package:chatpanel/src/model/smart_search_response.dart';
 import 'package:chatpanel/src/model/team_run.dart';
@@ -155,6 +165,14 @@ import 'package:chatpanel/src/model/who_am_i.dart';
 part 'serializers.g.dart';
 
 @SerializersFor([
+  AgentDef,
+  AgentExportPlan,
+  AgentExportRequest,
+  AgentFidelity,
+  AgentFidelityDroppedInner,
+  AgentsExportDef200Response,
+  AgentsGetDef200Response,
+  AgentsListDefs200Response,
   AgentsRateRequest,
   AgentsScorecards200Response,
   AudioSpeechRequest,
@@ -242,6 +260,7 @@ part 'serializers.g.dart';
   PushEventsResponseRejectedInner,
   PutRecordsRequest,
   PutRecordsResponse,
+  QuarantinedSkill,
   ReadRequest,
   ReadResponse,
   ReadRestriction,
@@ -274,6 +293,7 @@ part 'serializers.g.dart';
   Skill,
   SkillsGet200Response,
   SkillsList200Response,
+  SkillsQuarantined200Response,
   SmartSearchRequest,
   SmartSearchResponse,
   TeamRun,
@@ -327,6 +347,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<TeamRun>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(QuarantinedSkill)]),
+        () => ListBuilder<QuarantinedSkill>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(Model)]),
         () => ListBuilder<Model>(),
       )
@@ -341,6 +365,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType(DecideAnswer)]),
         () => MapBuilder<String, DecideAnswer>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AgentDef)]),
+        () => ListBuilder<AgentDef>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(BuiltMap, [FullType(String), FullType(JsonObject)])]),
@@ -393,6 +421,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(FusionListFusionsInnerMembersInner)]),
         () => ListBuilder<FusionListFusionsInnerMembersInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AgentFidelityDroppedInner)]),
+        () => ListBuilder<AgentFidelityDroppedInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SearchHit)]),
