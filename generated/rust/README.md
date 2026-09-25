@@ -44,6 +44,11 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*A2aApi* | [**a2a_agents**](docs/A2aApi.md#a2a_agents) | **GET** /a2a/agents | Every remote agent this gateway has spoken to.
+*A2aApi* | [**a2a_card**](docs/A2aApi.md#a2a_card) | **POST** /a2a/card | Fetch a remote agent's card, revalidating the one already held.
+*A2aApi* | [**a2a_message**](docs/A2aApi.md#a2a_message) | **POST** /a2a/message | Send a message to a remote agent and wait for the answer.
+*A2aApi* | [**a2a_stream**](docs/A2aApi.md#a2a_stream) | **POST** /a2a/message/stream | Send a message and stream the answer as it is produced.
+*A2aApi* | [**a2a_task**](docs/A2aApi.md#a2a_task) | **POST** /a2a/task | Poll or cancel a task on a remote agent.
 *AgentsApi* | [**agents_export_def**](docs/AgentsApi.md#agents_export_def) | **POST** /agent-defs/export | Write an agent definition into another tool's folder.
 *AgentsApi* | [**agents_export_plan**](docs/AgentsApi.md#agents_export_plan) | **POST** /agent-defs/export-plan | What an export would write, and what the target cannot carry — without writing it.
 *AgentsApi* | [**agents_get_def**](docs/AgentsApi.md#agents_get_def) | **GET** /agent-defs/{agentId} | One agent definition, prompt included.
@@ -133,6 +138,16 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [A2AResult](docs/A2AResult.md)
+ - [A2ASendRequest](docs/A2ASendRequest.md)
+ - [A2aAgents200Response](docs/A2aAgents200Response.md)
+ - [A2aCard200Response](docs/A2aCard200Response.md)
+ - [A2aCardRequest](docs/A2aCardRequest.md)
+ - [A2aTaskRequest](docs/A2aTaskRequest.md)
+ - [AgentCard](docs/AgentCard.md)
+ - [AgentCardCapabilities](docs/AgentCardCapabilities.md)
+ - [AgentCardProvider](docs/AgentCardProvider.md)
+ - [AgentCardSupportedInterfacesInner](docs/AgentCardSupportedInterfacesInner.md)
  - [AgentDef](docs/AgentDef.md)
  - [AgentExportPlan](docs/AgentExportPlan.md)
  - [AgentExportRequest](docs/AgentExportRequest.md)

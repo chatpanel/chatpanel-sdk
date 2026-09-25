@@ -54,9 +54,9 @@ namespace YourProject
         public static async Task Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
-            var api = host.Services.GetRequiredService<IAgentsApi>();
-            IAgentsExportDefApiResponse apiResponse = await api.AgentsExportDefAsync("todo");
-            AgentsExportDef200Response? model = apiResponse.Ok();
+            var api = host.Services.GetRequiredService<IA2aApi>();
+            IA2aAgentsApiResponse apiResponse = await api.A2aAgentsAsync("todo");
+            A2aAgents200Response? model = apiResponse.Ok();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)

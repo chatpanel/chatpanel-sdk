@@ -65,14 +65,13 @@ Please follow the [installation procedure](#installation--usage) and then run th
 import 'package:chatpanel/chatpanel.dart';
 
 
-final api = Chatpanel().getAgentsApi();
-final AgentExportRequest agentExportRequest = ; // AgentExportRequest | 
+final api = Chatpanel().getA2aApi();
 
 try {
-    final response = await api.agentsExportDef(agentExportRequest);
+    final response = await api.a2aAgents();
     print(response);
 } on DioException catch (e) {
-    print("Exception when calling AgentsApi->agentsExportDef: $e\n");
+    print("Exception when calling A2aApi->a2aAgents: $e\n");
 }
 
 ```
@@ -83,6 +82,11 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+[*A2aApi*](doc/A2aApi.md) | [**a2aAgents**](doc/A2aApi.md#a2aagents) | **GET** /a2a/agents | Every remote agent this gateway has spoken to.
+[*A2aApi*](doc/A2aApi.md) | [**a2aCard**](doc/A2aApi.md#a2acard) | **POST** /a2a/card | Fetch a remote agent&#39;s card, revalidating the one already held.
+[*A2aApi*](doc/A2aApi.md) | [**a2aMessage**](doc/A2aApi.md#a2amessage) | **POST** /a2a/message | Send a message to a remote agent and wait for the answer.
+[*A2aApi*](doc/A2aApi.md) | [**a2aStream**](doc/A2aApi.md#a2astream) | **POST** /a2a/message/stream | Send a message and stream the answer as it is produced.
+[*A2aApi*](doc/A2aApi.md) | [**a2aTask**](doc/A2aApi.md#a2atask) | **POST** /a2a/task | Poll or cancel a task on a remote agent.
 [*AgentsApi*](doc/AgentsApi.md) | [**agentsExportDef**](doc/AgentsApi.md#agentsexportdef) | **POST** /agent-defs/export | Write an agent definition into another tool&#39;s folder.
 [*AgentsApi*](doc/AgentsApi.md) | [**agentsExportPlan**](doc/AgentsApi.md#agentsexportplan) | **POST** /agent-defs/export-plan | What an export would write, and what the target cannot carry — without writing it.
 [*AgentsApi*](doc/AgentsApi.md) | [**agentsGetDef**](doc/AgentsApi.md#agentsgetdef) | **GET** /agent-defs/{agentId} | One agent definition, prompt included.
@@ -172,6 +176,16 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [A2AResult](doc/A2AResult.md)
+ - [A2ASendRequest](doc/A2ASendRequest.md)
+ - [A2aAgents200Response](doc/A2aAgents200Response.md)
+ - [A2aCard200Response](doc/A2aCard200Response.md)
+ - [A2aCardRequest](doc/A2aCardRequest.md)
+ - [A2aTaskRequest](doc/A2aTaskRequest.md)
+ - [AgentCard](doc/AgentCard.md)
+ - [AgentCardCapabilities](doc/AgentCardCapabilities.md)
+ - [AgentCardProvider](doc/AgentCardProvider.md)
+ - [AgentCardSupportedInterfacesInner](doc/AgentCardSupportedInterfacesInner.md)
  - [AgentDef](doc/AgentDef.md)
  - [AgentExportPlan](doc/AgentExportPlan.md)
  - [AgentExportRequest](doc/AgentExportRequest.md)

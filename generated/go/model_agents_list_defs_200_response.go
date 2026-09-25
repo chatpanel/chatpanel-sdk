@@ -22,7 +22,7 @@ var _ MappedNullable = &AgentsListDefs200Response{}
 type AgentsListDefs200Response struct {
 	Agents []AgentDef `json:"agents"`
 	// Definitions the scanner refused.
-	Quarantined []map[string]*interface{} `json:"quarantined,omitempty"`
+	Quarantined []map[string]interface{} `json:"quarantined,omitempty"`
 	// Files that parsed as a definition and could not be made one.
 	Problems []map[string]interface{} `json:"problems,omitempty"`
 	AdditionalProperties map[string]interface{}
@@ -73,9 +73,9 @@ func (o *AgentsListDefs200Response) SetAgents(v []AgentDef) {
 }
 
 // GetQuarantined returns the Quarantined field value if set, zero value otherwise.
-func (o *AgentsListDefs200Response) GetQuarantined() []map[string]*interface{} {
+func (o *AgentsListDefs200Response) GetQuarantined() []map[string]interface{} {
 	if o == nil || IsNil(o.Quarantined) {
-		var ret []map[string]*interface{}
+		var ret []map[string]interface{}
 		return ret
 	}
 	return o.Quarantined
@@ -83,7 +83,7 @@ func (o *AgentsListDefs200Response) GetQuarantined() []map[string]*interface{} {
 
 // GetQuarantinedOk returns a tuple with the Quarantined field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *AgentsListDefs200Response) GetQuarantinedOk() ([]map[string]*interface{}, bool) {
+func (o *AgentsListDefs200Response) GetQuarantinedOk() ([]map[string]interface{}, bool) {
 	if o == nil || IsNil(o.Quarantined) {
 		return nil, false
 	}
@@ -99,8 +99,8 @@ func (o *AgentsListDefs200Response) HasQuarantined() bool {
 	return false
 }
 
-// SetQuarantined gets a reference to the given []map[string]*interface{} and assigns it to the Quarantined field.
-func (o *AgentsListDefs200Response) SetQuarantined(v []map[string]*interface{}) {
+// SetQuarantined gets a reference to the given []map[string]interface{} and assigns it to the Quarantined field.
+func (o *AgentsListDefs200Response) SetQuarantined(v []map[string]interface{}) {
 	o.Quarantined = v
 }
 

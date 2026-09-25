@@ -44,7 +44,7 @@ data class AgentsListDefs200Response (
 
     /* Definitions the scanner refused. */
     @Json(name = "quarantined")
-    val quarantined: kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.Any?>>? = null,
+    val quarantined: kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.Any>>? = null,
 
     /* Files that parsed as a definition and could not be made one. */
     @Json(name = "problems")

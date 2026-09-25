@@ -81,6 +81,11 @@ export const OPERATIONS = {
   "engines.card": { id: "engines.card", method: "GET", path: "/v1/engines/{engineKey}/card", auth: "open", since: "0.6.89", stream: null, pathParams: ["engineKey"], queryParams: ["entries","minCalls"] },
   "engines.appendEntry": { id: "engines.appendEntry", method: "POST", path: "/v1/engines/{engineKey}/entries", auth: "open", since: "0.6.89", stream: null, pathParams: ["engineKey"], queryParams: [] },
   "skills.quarantined": { id: "skills.quarantined", method: "GET", path: "/skills-quarantined", auth: "open", since: "0.48.0", stream: null, pathParams: [], queryParams: ["workdir"] },
+  "a2a.card": { id: "a2a.card", method: "POST", path: "/a2a/card", auth: "token", since: "0.53.0", stream: null, pathParams: [], queryParams: [] },
+  "a2a.message": { id: "a2a.message", method: "POST", path: "/a2a/message", auth: "token", since: "0.53.0", stream: null, pathParams: [], queryParams: [] },
+  "a2a.stream": { id: "a2a.stream", method: "POST", path: "/a2a/message/stream", auth: "token", since: "0.53.0", stream: "sse", pathParams: [], queryParams: [] },
+  "a2a.task": { id: "a2a.task", method: "POST", path: "/a2a/task", auth: "token", since: "0.53.0", stream: null, pathParams: [], queryParams: [] },
+  "a2a.agents": { id: "a2a.agents", method: "GET", path: "/a2a/agents", auth: "token", since: "0.53.0", stream: null, pathParams: [], queryParams: [] },
   "agents.listDefs": { id: "agents.listDefs", method: "GET", path: "/agent-defs", auth: "open", since: "0.48.0", stream: null, pathParams: [], queryParams: ["workdir","dir"] },
   "agents.getDef": { id: "agents.getDef", method: "GET", path: "/agent-defs/{agentId}", auth: "open", since: "0.48.0", stream: null, pathParams: ["agentId"], queryParams: ["workdir"] },
   "agents.exportPlan": { id: "agents.exportPlan", method: "POST", path: "/agent-defs/export-plan", auth: "token", since: "0.48.0", stream: null, pathParams: [], queryParams: [] },
@@ -713,6 +718,61 @@ export class SkillsApi {
   }
 }
 
+/** Remote agents reached over the Agent2Agent protocol — discovery, messages, tasks. */
+export class A2aApi {
+  private readonly rt: Runtime;
+  constructor(rt: Runtime) { this.rt = rt; }
+  /** Fetch a remote agent's card, revalidating the one already held. The gateway is the only component allowed to reach a remote agent: every outbound host goes through its SSRF guard, and a card names the endpoints this machine will then talk to. Cached per §8.6 — an ETag is revalidated with `If-None-Match`, so `fresh: false` means the peer answered 304 and the card is unchanged. Plain HTTP is refused for a remote host; loopback is not. — Requires the gateway token. Gateway 0.53.0+. */
+  card(body: {
+    /** The agent's origin, or a card URL outright. */
+    url: string;
+    /** Skip the TTL and revalidate — the ETag is still sent. */
+    force?: boolean;
+    /** Drop the cached card first. */
+    forget?: boolean;
+    /** An Authorization header value for agents that need one. */
+    auth?: string;
+  }, opts?: RequestOptions): Promise<{
+    ok?: boolean;
+    card?: T.AgentCard;
+    /** Changes when the card's content does. */
+    fingerprint?: string;
+    /** false when the peer answered 304. */
+    fresh?: boolean;
+    changed?: boolean;
+    url?: string;
+  }> {
+    return this.rt.request(OPERATIONS["a2a.card"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** Send a message to a remote agent and wait for the answer. The reply is a TASK or a MESSAGE — an agent that can answer at once returns a message and no task is ever created, so `kind` says which. `text` and `needs` are derived here rather than by each caller: `needs` is `answer` for an input stop and `approval` for an authorization one, and telling a caller to send a message when approval is wanted is how a task sits forever with both ends waiting. — Requires the gateway token. Gateway 0.53.0+. */
+  message(body: T.A2ASendRequest, opts?: RequestOptions): Promise<T.A2AResult> {
+    return this.rt.request(OPERATIONS["a2a.message"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** Send a message and stream the answer as it is produced. Server-sent events, one per protocol frame — `task`, `status`, `artifact`, `message`, then `done` with the final result (or `error`). Each event carries the task as it stands, so a chunked artifact arrives whole rather than as fragments the caller must reassemble. Requires the agent to advertise `capabilities.streaming`. — Requires the gateway token. Gateway 0.53.0+. */
+  stream(body: T.A2ASendRequest, opts?: RequestOptions): AsyncIterable<SseFrame<unknown>> {
+    return this.rt.stream<unknown>(OPERATIONS["a2a.stream"], { path: {  }, query: undefined, headers: opts?.headers, opts });
+  }
+  /** Poll or cancel a task on a remote agent. — Requires the gateway token. Gateway 0.53.0+. */
+  task(body: {
+    id: string;
+    url?: string;
+    card?: T.AgentCard;
+    /** Cancel instead of polling. */
+    cancel?: boolean;
+    auth?: string;
+  }, opts?: RequestOptions): Promise<T.A2AResult> {
+    return this.rt.request(OPERATIONS["a2a.task"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** Every remote agent this gateway has spoken to. What the audit lists — an agent a person connected is a host this machine talks to. — Requires the gateway token. Gateway 0.53.0+. */
+  agents(opts?: RequestOptions): Promise<{
+    agents: Array<{
+      [key: string]: unknown;
+    }>;
+  }> {
+    return this.rt.request(OPERATIONS["a2a.agents"], { path: {  }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+}
+
 /** Several models as one — union, draft + target, fallback. */
 export class FusionsApi {
   private readonly rt: Runtime;
@@ -742,6 +802,7 @@ export function buildApi(rt: Runtime) {
     retrieval: new RetrievalApi(rt),
     engines: new EnginesApi(rt),
     skills: new SkillsApi(rt),
+    a2a: new A2aApi(rt),
     fusions: new FusionsApi(rt),
   };
 }

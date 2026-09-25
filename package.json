@@ -1,7 +1,7 @@
 {
   "name": "chatpanel-sdk",
   "private": true,
-  "version": "0.12.1",
+  "version": "0.13.0",
   "description": "ChatPanel client SDKs — one OpenAPI contract for the local gateway, generated into every language.",
   "type": "module",
   "engines": {

@@ -75,19 +75,18 @@ $config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setApiKey('X-Ch
 $config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setAccessToken('YOUR_ACCESS_TOKEN');
 
 
-$apiInstance = new ChatPanelSdk\Api\AgentsApi(
+$apiInstance = new ChatPanelSdk\Api\A2aApi(
     // If you want use custom http client, pass your client which implements `GuzzleHttp\ClientInterface`.
     // This is optional, `GuzzleHttp\Client` will be used as default.
     new GuzzleHttp\Client(),
     $config
 );
-$agent_export_request = new \ChatPanelSdk\Model\AgentExportRequest(); // \ChatPanelSdk\Model\AgentExportRequest
 
 try {
-    $result = $apiInstance->agentsExportDef($agent_export_request);
+    $result = $apiInstance->a2aAgents();
     print_r($result);
 } catch (Exception $e) {
-    echo 'Exception when calling AgentsApi->agentsExportDef: ', $e->getMessage(), PHP_EOL;
+    echo 'Exception when calling A2aApi->a2aAgents: ', $e->getMessage(), PHP_EOL;
 }
 
 ```
@@ -98,6 +97,11 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*A2aApi* | [**a2aAgents**](docs/Api/A2aApi.md#a2aagents) | **GET** /a2a/agents | Every remote agent this gateway has spoken to.
+*A2aApi* | [**a2aCard**](docs/Api/A2aApi.md#a2acard) | **POST** /a2a/card | Fetch a remote agent&#39;s card, revalidating the one already held.
+*A2aApi* | [**a2aMessage**](docs/Api/A2aApi.md#a2amessage) | **POST** /a2a/message | Send a message to a remote agent and wait for the answer.
+*A2aApi* | [**a2aStream**](docs/Api/A2aApi.md#a2astream) | **POST** /a2a/message/stream | Send a message and stream the answer as it is produced.
+*A2aApi* | [**a2aTask**](docs/Api/A2aApi.md#a2atask) | **POST** /a2a/task | Poll or cancel a task on a remote agent.
 *AgentsApi* | [**agentsExportDef**](docs/Api/AgentsApi.md#agentsexportdef) | **POST** /agent-defs/export | Write an agent definition into another tool&#39;s folder.
 *AgentsApi* | [**agentsExportPlan**](docs/Api/AgentsApi.md#agentsexportplan) | **POST** /agent-defs/export-plan | What an export would write, and what the target cannot carry — without writing it.
 *AgentsApi* | [**agentsGetDef**](docs/Api/AgentsApi.md#agentsgetdef) | **GET** /agent-defs/{agentId} | One agent definition, prompt included.
@@ -186,6 +190,16 @@ Class | Method | HTTP request | Description
 
 ## Models
 
+- [A2AResult](docs/Model/A2AResult.md)
+- [A2ASendRequest](docs/Model/A2ASendRequest.md)
+- [A2aAgents200Response](docs/Model/A2aAgents200Response.md)
+- [A2aCard200Response](docs/Model/A2aCard200Response.md)
+- [A2aCardRequest](docs/Model/A2aCardRequest.md)
+- [A2aTaskRequest](docs/Model/A2aTaskRequest.md)
+- [AgentCard](docs/Model/AgentCard.md)
+- [AgentCardCapabilities](docs/Model/AgentCardCapabilities.md)
+- [AgentCardProvider](docs/Model/AgentCardProvider.md)
+- [AgentCardSupportedInterfacesInner](docs/Model/AgentCardSupportedInterfacesInner.md)
 - [AgentDef](docs/Model/AgentDef.md)
 - [AgentExportPlan](docs/Model/AgentExportPlan.md)
 - [AgentExportRequest](docs/Model/AgentExportRequest.md)

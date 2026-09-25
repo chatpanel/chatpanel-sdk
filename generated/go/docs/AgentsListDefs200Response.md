@@ -5,7 +5,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Agents** | [**[]AgentDef**](AgentDef.md) |  | 
-**Quarantined** | Pointer to **[]map[string]*interface{}** | Definitions the scanner refused. | [optional] 
+**Quarantined** | Pointer to **[]map[string]interface{}** | Definitions the scanner refused. | [optional] 
 **Problems** | Pointer to **[]map[string]interface{}** | Files that parsed as a definition and could not be made one. | [optional] 
 
 ## Methods
@@ -49,20 +49,20 @@ SetAgents sets Agents field to given value.
 
 ### GetQuarantined
 
-`func (o *AgentsListDefs200Response) GetQuarantined() []map[string]*interface{}`
+`func (o *AgentsListDefs200Response) GetQuarantined() []map[string]interface{}`
 
 GetQuarantined returns the Quarantined field if non-nil, zero value otherwise.
 
 ### GetQuarantinedOk
 
-`func (o *AgentsListDefs200Response) GetQuarantinedOk() (*[]map[string]*interface{}, bool)`
+`func (o *AgentsListDefs200Response) GetQuarantinedOk() (*[]map[string]interface{}, bool)`
 
 GetQuarantinedOk returns a tuple with the Quarantined field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetQuarantined
 
-`func (o *AgentsListDefs200Response) SetQuarantined(v []map[string]*interface{})`
+`func (o *AgentsListDefs200Response) SetQuarantined(v []map[string]interface{})`
 
 SetQuarantined sets Quarantined field to given value.
 

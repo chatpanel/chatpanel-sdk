@@ -82,6 +82,9 @@ namespace ChatPanel.Sdk.Test.Api
         [Fact]
         public void ConfigureApiWithAClientTest()
         {
+            var a2aApi = _hostUsingConfigureWithAClient.Services.GetRequiredService<IA2aApi>();
+            Assert.True(a2aApi.HttpClient.BaseAddress != null);
+
             var agentsApi = _hostUsingConfigureWithAClient.Services.GetRequiredService<IAgentsApi>();
             Assert.True(agentsApi.HttpClient.BaseAddress != null);
 
@@ -143,6 +146,9 @@ namespace ChatPanel.Sdk.Test.Api
         [Fact]
         public void ConfigureApiWithoutAClientTest()
         {
+            var a2aApi = _hostUsingConfigureWithoutAClient.Services.GetRequiredService<IA2aApi>();
+            Assert.True(a2aApi.HttpClient.BaseAddress != null);
+
             var agentsApi = _hostUsingConfigureWithoutAClient.Services.GetRequiredService<IAgentsApi>();
             Assert.True(agentsApi.HttpClient.BaseAddress != null);
 
@@ -204,6 +210,9 @@ namespace ChatPanel.Sdk.Test.Api
         [Fact]
         public void AddApiWithAClientTest()
         {
+            var a2aApi = _hostUsingAddWithAClient.Services.GetRequiredService<IA2aApi>();
+            Assert.True(a2aApi.HttpClient.BaseAddress != null);
+            
             var agentsApi = _hostUsingAddWithAClient.Services.GetRequiredService<IAgentsApi>();
             Assert.True(agentsApi.HttpClient.BaseAddress != null);
             
@@ -265,6 +274,9 @@ namespace ChatPanel.Sdk.Test.Api
         [Fact]
         public void AddApiWithoutAClientTest()
         {
+            var a2aApi = _hostUsingAddWithoutAClient.Services.GetRequiredService<IA2aApi>();
+            Assert.True(a2aApi.HttpClient.BaseAddress != null);
+
             var agentsApi = _hostUsingAddWithoutAClient.Services.GetRequiredService<IAgentsApi>();
             Assert.True(agentsApi.HttpClient.BaseAddress != null);
 

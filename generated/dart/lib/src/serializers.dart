@@ -14,6 +14,16 @@ import 'package:built_value/iso_8601_date_time_serializer.dart';
 import 'package:chatpanel/src/date_serializer.dart';
 import 'package:chatpanel/src/model/date.dart';
 
+import 'package:chatpanel/src/model/a2_a_result.dart';
+import 'package:chatpanel/src/model/a2_a_send_request.dart';
+import 'package:chatpanel/src/model/a2a_agents200_response.dart';
+import 'package:chatpanel/src/model/a2a_card200_response.dart';
+import 'package:chatpanel/src/model/a2a_card_request.dart';
+import 'package:chatpanel/src/model/a2a_task_request.dart';
+import 'package:chatpanel/src/model/agent_card.dart';
+import 'package:chatpanel/src/model/agent_card_capabilities.dart';
+import 'package:chatpanel/src/model/agent_card_provider.dart';
+import 'package:chatpanel/src/model/agent_card_supported_interfaces_inner.dart';
 import 'package:chatpanel/src/model/agent_def.dart';
 import 'package:chatpanel/src/model/agent_export_plan.dart';
 import 'package:chatpanel/src/model/agent_export_request.dart';
@@ -165,6 +175,16 @@ import 'package:chatpanel/src/model/who_am_i.dart';
 part 'serializers.g.dart';
 
 @SerializersFor([
+  A2AResult,
+  A2ASendRequest,
+  A2aAgents200Response,
+  A2aCard200Response,
+  A2aCardRequest,
+  A2aTaskRequest,
+  AgentCard,
+  AgentCardCapabilities,
+  AgentCardProvider,
+  AgentCardSupportedInterfacesInner,
   AgentDef,
   AgentExportPlan,
   AgentExportRequest,
@@ -409,6 +429,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType(PrefSection)]),
         () => MapBuilder<String, PrefSection>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AgentCardSupportedInterfacesInner)]),
+        () => ListBuilder<AgentCardSupportedInterfacesInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(IngestRequestUpsertsInner)]),

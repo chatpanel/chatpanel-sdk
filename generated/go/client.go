@@ -49,6 +49,8 @@ type APIClient struct {
 
 	// API Services
 
+	A2aAPI A2aAPI
+
 	AgentsAPI AgentsAPI
 
 	AudioAPI AudioAPI
@@ -102,6 +104,7 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.common.client = c
 
 	// API Services
+	c.A2aAPI = (*A2aAPIService)(&c.common)
 	c.AgentsAPI = (*AgentsAPIService)(&c.common)
 	c.AudioAPI = (*AudioAPIService)(&c.common)
 	c.CapabilitiesAPI = (*CapabilitiesAPIService)(&c.common)

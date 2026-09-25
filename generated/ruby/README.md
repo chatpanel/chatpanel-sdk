@@ -88,15 +88,14 @@ ChatPanel.configure do |config|
   config.access_token_getter = -> { 'YOUR TOKEN GETTER PROC' } 
 end
 
-api_instance = ChatPanel::AgentsApi.new
-agent_export_request = ChatPanel::AgentExportRequest.new({agent: ChatPanel::AgentDef.new({id: 'id_example'}), to: 'claude'}) # AgentExportRequest | 
+api_instance = ChatPanel::A2aApi.new
 
 begin
-  #Write an agent definition into another tool's folder.
-  result = api_instance.agents_export_def(agent_export_request)
+  #Every remote agent this gateway has spoken to.
+  result = api_instance.a2a_agents
   p result
 rescue ChatPanel::ApiError => e
-  puts "Exception when calling AgentsApi->agents_export_def: #{e}"
+  puts "Exception when calling A2aApi->a2a_agents: #{e}"
 end
 
 ```
@@ -107,6 +106,11 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*ChatPanel::A2aApi* | [**a2a_agents**](docs/A2aApi.md#a2a_agents) | **GET** /a2a/agents | Every remote agent this gateway has spoken to.
+*ChatPanel::A2aApi* | [**a2a_card**](docs/A2aApi.md#a2a_card) | **POST** /a2a/card | Fetch a remote agent's card, revalidating the one already held.
+*ChatPanel::A2aApi* | [**a2a_message**](docs/A2aApi.md#a2a_message) | **POST** /a2a/message | Send a message to a remote agent and wait for the answer.
+*ChatPanel::A2aApi* | [**a2a_stream**](docs/A2aApi.md#a2a_stream) | **POST** /a2a/message/stream | Send a message and stream the answer as it is produced.
+*ChatPanel::A2aApi* | [**a2a_task**](docs/A2aApi.md#a2a_task) | **POST** /a2a/task | Poll or cancel a task on a remote agent.
 *ChatPanel::AgentsApi* | [**agents_export_def**](docs/AgentsApi.md#agents_export_def) | **POST** /agent-defs/export | Write an agent definition into another tool's folder.
 *ChatPanel::AgentsApi* | [**agents_export_plan**](docs/AgentsApi.md#agents_export_plan) | **POST** /agent-defs/export-plan | What an export would write, and what the target cannot carry — without writing it.
 *ChatPanel::AgentsApi* | [**agents_get_def**](docs/AgentsApi.md#agents_get_def) | **GET** /agent-defs/{agentId} | One agent definition, prompt included.
@@ -196,6 +200,16 @@ Class | Method | HTTP request | Description
 
 ## Documentation for Models
 
+ - [ChatPanel::A2AResult](docs/A2AResult.md)
+ - [ChatPanel::A2ASendRequest](docs/A2ASendRequest.md)
+ - [ChatPanel::A2aAgents200Response](docs/A2aAgents200Response.md)
+ - [ChatPanel::A2aCard200Response](docs/A2aCard200Response.md)
+ - [ChatPanel::A2aCardRequest](docs/A2aCardRequest.md)
+ - [ChatPanel::A2aTaskRequest](docs/A2aTaskRequest.md)
+ - [ChatPanel::AgentCard](docs/AgentCard.md)
+ - [ChatPanel::AgentCardCapabilities](docs/AgentCardCapabilities.md)
+ - [ChatPanel::AgentCardProvider](docs/AgentCardProvider.md)
+ - [ChatPanel::AgentCardSupportedInterfacesInner](docs/AgentCardSupportedInterfacesInner.md)
  - [ChatPanel::AgentDef](docs/AgentDef.md)
  - [ChatPanel::AgentExportPlan](docs/AgentExportPlan.md)
  - [ChatPanel::AgentExportRequest](docs/AgentExportRequest.md)

@@ -138,6 +138,10 @@ namespace ChatPanel.Sdk.Client
                 return boolean
                     ? "true"
                     : "false";
+            if (obj is A2AResult.KindEnum a2AResultKindEnum)
+                return A2AResult.KindEnumToJsonValue(a2AResultKindEnum);
+            if (obj is A2AResult.NeedsEnum a2AResultNeedsEnum)
+                return A2AResult.NeedsEnumToJsonValue(a2AResultNeedsEnum);
             if (obj is AgentDef.DialectEnum agentDefDialectEnum)
                 return AgentDef.DialectEnumToJsonValue(agentDefDialectEnum);
             if (obj is AgentExportPlan.StatusEnum agentExportPlanStatusEnum)

@@ -89,6 +89,11 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*A2aAPI* | [**A2aAgents**](docs/A2aAPI.md#a2aagents) | **Get** /a2a/agents | Every remote agent this gateway has spoken to.
+*A2aAPI* | [**A2aCard**](docs/A2aAPI.md#a2acard) | **Post** /a2a/card | Fetch a remote agent&#39;s card, revalidating the one already held.
+*A2aAPI* | [**A2aMessage**](docs/A2aAPI.md#a2amessage) | **Post** /a2a/message | Send a message to a remote agent and wait for the answer.
+*A2aAPI* | [**A2aStream**](docs/A2aAPI.md#a2astream) | **Post** /a2a/message/stream | Send a message and stream the answer as it is produced.
+*A2aAPI* | [**A2aTask**](docs/A2aAPI.md#a2atask) | **Post** /a2a/task | Poll or cancel a task on a remote agent.
 *AgentsAPI* | [**AgentsExportDef**](docs/AgentsAPI.md#agentsexportdef) | **Post** /agent-defs/export | Write an agent definition into another tool&#39;s folder.
 *AgentsAPI* | [**AgentsExportPlan**](docs/AgentsAPI.md#agentsexportplan) | **Post** /agent-defs/export-plan | What an export would write, and what the target cannot carry — without writing it.
 *AgentsAPI* | [**AgentsGetDef**](docs/AgentsAPI.md#agentsgetdef) | **Get** /agent-defs/{agentId} | One agent definition, prompt included.
@@ -178,6 +183,16 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [A2AResult](docs/A2AResult.md)
+ - [A2ASendRequest](docs/A2ASendRequest.md)
+ - [A2aAgents200Response](docs/A2aAgents200Response.md)
+ - [A2aCard200Response](docs/A2aCard200Response.md)
+ - [A2aCardRequest](docs/A2aCardRequest.md)
+ - [A2aTaskRequest](docs/A2aTaskRequest.md)
+ - [AgentCard](docs/AgentCard.md)
+ - [AgentCardCapabilities](docs/AgentCardCapabilities.md)
+ - [AgentCardProvider](docs/AgentCardProvider.md)
+ - [AgentCardSupportedInterfacesInner](docs/AgentCardSupportedInterfacesInner.md)
  - [AgentDef](docs/AgentDef.md)
  - [AgentExportPlan](docs/AgentExportPlan.md)
  - [AgentExportRequest](docs/AgentExportRequest.md)

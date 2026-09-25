@@ -13,7 +13,7 @@ void main() {
     });
 
     // Definitions the scanner refused.
-    // BuiltList<BuiltMap<String, JsonObject?>> quarantined
+    // BuiltList<BuiltMap<String, JsonObject>> quarantined
     test('to test the property `quarantined`', () async {
       // TODO
     });

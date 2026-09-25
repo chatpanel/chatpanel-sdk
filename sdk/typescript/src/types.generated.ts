@@ -873,6 +873,76 @@ export interface QuarantinedSkill {
   [key: string]: unknown;
 }
 
+/** An A2A Agent Card (protocol 1.0). Unknown fields are preserved, so a card from a later spec round-trips. */
+export interface AgentCard {
+  name: string;
+  description: string;
+  version: string;
+  supportedInterfaces?: Array<{
+    url?: string;
+    /** JSONRPC, GRPC, HTTP+JSON — an open string, so an unknown binding is carried. */
+    protocolBinding?: string;
+    protocolVersion?: string;
+    /** Echoed on every request to this interface when set. */
+    tenant?: string;
+  }>;
+  provider?: {
+    organization?: string;
+    url?: string;
+  };
+  capabilities?: {
+    streaming?: boolean;
+    pushNotifications?: boolean;
+    extendedAgentCard?: boolean;
+    [key: string]: unknown;
+  };
+  defaultInputModes?: Array<string>;
+  defaultOutputModes?: Array<string>;
+  skills?: Array<{
+    [key: string]: unknown;
+  }>;
+  iconUrl?: string;
+  documentationUrl?: string;
+  [key: string]: unknown;
+}
+
+/** Either `url` or `card` identifies the agent; either `text` or `message` is what to say. */
+export interface A2ASendRequest {
+  url?: string;
+  card?: AgentCard;
+  /** Shorthand for a one-part text message. */
+  text?: string;
+  /** A full A2A Message. */
+  message?: {
+    [key: string]: unknown;
+  };
+  /** Groups related interactions. */
+  contextId?: string;
+  /** Continues an existing task — how an input or auth stop is answered. */
+  taskId?: string;
+  /** Do not wait for a terminal or interrupted state. */
+  returnImmediately?: boolean;
+  auth?: string;
+}
+
+/** The reply, plus the two facts every caller derives — done, and what a person must do. */
+export interface A2AResult {
+  ok?: boolean;
+  /** A2A returns one or the other; an agent answering at once creates no task. */
+  kind?: "task" | "message";
+  task?: {
+    [key: string]: unknown;
+  };
+  message?: {
+    [key: string]: unknown;
+  };
+  /** The answer as text — artifacts first, then what the agent actually said. */
+  text?: string;
+  done?: boolean;
+  /** `answer` for TASK_STATE_INPUT_REQUIRED, `approval` for TASK_STATE_AUTH_REQUIRED, null otherwise. */
+  needs?: "answer" | "approval";
+}
+
 /** An agent definition, read from whichever tool's dialect wrote it. */
 export interface AgentDef {
   id: string;

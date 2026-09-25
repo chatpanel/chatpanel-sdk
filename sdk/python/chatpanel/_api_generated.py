@@ -81,6 +81,11 @@ OPERATIONS: Dict[str, Operation] = {
     "engines.card": Operation(id="engines.card", method="GET", path="/v1/engines/{engineKey}/card", auth="open", since="0.6.89", stream=None, path_params=("engineKey",), query_params=("entries", "minCalls",)),
     "engines.appendEntry": Operation(id="engines.appendEntry", method="POST", path="/v1/engines/{engineKey}/entries", auth="open", since="0.6.89", stream=None, path_params=("engineKey",), query_params=()),
     "skills.quarantined": Operation(id="skills.quarantined", method="GET", path="/skills-quarantined", auth="open", since="0.48.0", stream=None, path_params=(), query_params=("workdir",)),
+    "a2a.card": Operation(id="a2a.card", method="POST", path="/a2a/card", auth="token", since="0.53.0", stream=None, path_params=(), query_params=()),
+    "a2a.message": Operation(id="a2a.message", method="POST", path="/a2a/message", auth="token", since="0.53.0", stream=None, path_params=(), query_params=()),
+    "a2a.stream": Operation(id="a2a.stream", method="POST", path="/a2a/message/stream", auth="token", since="0.53.0", stream="sse", path_params=(), query_params=()),
+    "a2a.task": Operation(id="a2a.task", method="POST", path="/a2a/task", auth="token", since="0.53.0", stream=None, path_params=(), query_params=()),
+    "a2a.agents": Operation(id="a2a.agents", method="GET", path="/a2a/agents", auth="token", since="0.53.0", stream=None, path_params=(), query_params=()),
     "agents.listDefs": Operation(id="agents.listDefs", method="GET", path="/agent-defs", auth="open", since="0.48.0", stream=None, path_params=(), query_params=("workdir", "dir",)),
     "agents.getDef": Operation(id="agents.getDef", method="GET", path="/agent-defs/{agentId}", auth="open", since="0.48.0", stream=None, path_params=("agentId",), query_params=("workdir",)),
     "agents.exportPlan": Operation(id="agents.exportPlan", method="POST", path="/agent-defs/export-plan", auth="token", since="0.48.0", stream=None, path_params=(), query_params=()),
@@ -535,6 +540,33 @@ class SkillsApi:
         return self._rt.request(OPERATIONS["skills.get"], path={"skillId": skill_id}, query=query, headers=headers, body=None, timeout=timeout)
 
 
+class A2aApi:
+    """Remote agents reached over the Agent2Agent protocol — discovery, messages, tasks."""
+
+    def __init__(self, rt: Runtime) -> None:
+        self._rt = rt
+
+    def card(self, body: Dict[str, Any], query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """Fetch a remote agent's card, revalidating the one already held. The gateway is the only component allowed to reach a remote agent: every outbound host goes through its SSRF guard, and a card names the endpoints this machine will then talk to. Cached per §8.6 — an ETag is revalidated with `If-None-Match`, so `fresh: false` means the peer answered 304 and the card is unchanged. Plain HTTP is refused for a remote host; loopback is not. — Requires the gateway token. Gateway 0.53.0+."""
+        return self._rt.request(OPERATIONS["a2a.card"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def message(self, body: "T.A2ASendRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.A2AResult":
+        """Send a message to a remote agent and wait for the answer. The reply is a TASK or a MESSAGE — an agent that can answer at once returns a message and no task is ever created, so `kind` says which. `text` and `needs` are derived here rather than by each caller: `needs` is `answer` for an input stop and `approval` for an authorization one, and telling a caller to send a message when approval is wanted is how a task sits forever with both ends waiting. — Requires the gateway token. Gateway 0.53.0+."""
+        return self._rt.request(OPERATIONS["a2a.message"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def stream(self, body: "T.A2ASendRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Iterator[SseFrame[Dict[str, Any]]]:
+        """Send a message and stream the answer as it is produced. Server-sent events, one per protocol frame — `task`, `status`, `artifact`, `message`, then `done` with the final result (or `error`). Each event carries the task as it stands, so a chunked artifact arrives whole rather than as fragments the caller must reassemble. Requires the agent to advertise `capabilities.streaming`. — Requires the gateway token. Gateway 0.53.0+."""
+        return self._rt.stream(OPERATIONS["a2a.stream"], path={}, query=query, headers=headers, timeout=timeout)
+
+    def task(self, body: Dict[str, Any], query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.A2AResult":
+        """Poll or cancel a task on a remote agent. — Requires the gateway token. Gateway 0.53.0+."""
+        return self._rt.request(OPERATIONS["a2a.task"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def agents(self, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """Every remote agent this gateway has spoken to. What the audit lists — an agent a person connected is a host this machine talks to. — Requires the gateway token. Gateway 0.53.0+."""
+        return self._rt.request(OPERATIONS["a2a.agents"], path={}, query=None, headers=headers, body=None, timeout=timeout)
+
+
 class FusionsApi:
     """Several models as one — union, draft + target, fallback."""
 
@@ -566,4 +598,5 @@ class Api:
         self.retrieval = RetrievalApi(rt)
         self.engines = EnginesApi(rt)
         self.skills = SkillsApi(rt)
+        self.a2a = A2aApi(rt)
         self.fusions = FusionsApi(rt)

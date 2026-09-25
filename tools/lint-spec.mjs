@@ -18,7 +18,10 @@ for (const s of spec.servers || []) {
 const seen = new Set();
 for (const op of ops) {
   const where = `${op.method} ${op.path}`;
-  if (!op.operationId || !/^[a-z]+\.[a-zA-Z]+$/.test(op.operationId)) fail(where, 'operationId must be `group.name`');
+  // A group may carry a digit after its first letter: `a2a` is the protocol's own name, and
+  // renaming a group to suit a regex written before any group had one would be the tail
+  // wagging the dog. Still a plain identifier — no dashes, no leading digit.
+  if (!op.operationId || !/^[a-z][a-z0-9]*\.[a-zA-Z]+$/.test(op.operationId)) fail(where, 'operationId must be `group.name`');
   if (seen.has(op.operationId)) fail(where, `duplicate operationId ${op.operationId}`);
   seen.add(op.operationId);
   if (!op.tag) fail(where, 'needs a tag');

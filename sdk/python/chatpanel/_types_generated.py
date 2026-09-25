@@ -703,6 +703,44 @@ class QuarantinedSkill(TypedDict, total=False):
     verdict: NotRequired[Literal["suspicious", "dangerous"]]
 
 
+class AgentCard(TypedDict, total=False):
+    """An A2A Agent Card (protocol 1.0). Unknown fields are preserved, so a card from a later spec round-trips."""
+    name: str
+    description: str
+    version: str
+    supportedInterfaces: NotRequired[List[Dict[str, Any]]]
+    provider: NotRequired[Dict[str, Any]]
+    capabilities: NotRequired[Dict[str, Any]]
+    defaultInputModes: NotRequired[List[str]]
+    defaultOutputModes: NotRequired[List[str]]
+    skills: NotRequired[List[Dict[str, Any]]]
+    iconUrl: NotRequired[str]
+    documentationUrl: NotRequired[str]
+
+
+class A2ASendRequest(TypedDict, total=False):
+    """Either `url` or `card` identifies the agent; either `text` or `message` is what to say."""
+    url: NotRequired[str]
+    card: NotRequired["AgentCard"]
+    text: NotRequired[str]  # Shorthand for a one-part text message.
+    message: NotRequired[Dict[str, Any]]  # A full A2A Message.
+    contextId: NotRequired[str]  # Groups related interactions.
+    taskId: NotRequired[str]  # Continues an existing task — how an input or auth stop is answered.
+    returnImmediately: NotRequired[bool]  # Do not wait for a terminal or interrupted state.
+    auth: NotRequired[str]
+
+
+class A2AResult(TypedDict, total=False):
+    """The reply, plus the two facts every caller derives — done, and what a person must do."""
+    ok: NotRequired[bool]
+    kind: NotRequired[Literal["task", "message"]]  # A2A returns one or the other; an agent answering at once creates no task.
+    task: NotRequired[Dict[str, Any]]
+    message: NotRequired[Dict[str, Any]]
+    text: NotRequired[str]  # The answer as text — artifacts first, then what the agent actually said.
+    done: NotRequired[bool]
+    needs: NotRequired[Literal["answer", "approval"]]  # `answer` for TASK_STATE_INPUT_REQUIRED, `approval` for TASK_STATE_AUTH_REQUIRED, null otherwise.
+
+
 class AgentDef(TypedDict, total=False):
     """An agent definition, read from whichever tool's dialect wrote it."""
     id: str

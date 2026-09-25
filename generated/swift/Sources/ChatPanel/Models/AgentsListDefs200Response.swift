@@ -11,11 +11,11 @@ public struct AgentsListDefs200Response: Sendable, Codable, Hashable {
 
     public var agents: [AgentDef]
     /** Definitions the scanner refused. */
-    public var quarantined: [[String: JSONValue?]]?
+    public var quarantined: [[String: JSONValue]]?
     /** Files that parsed as a definition and could not be made one. */
     public var problems: [[String: JSONValue]]?
 
-    public init(agents: [AgentDef], quarantined: [[String: JSONValue?]]? = nil, problems: [[String: JSONValue]]? = nil) {
+    public init(agents: [AgentDef], quarantined: [[String: JSONValue]]? = nil, problems: [[String: JSONValue]]? = nil) {
         self.agents = agents
         self.quarantined = quarantined
         self.problems = problems

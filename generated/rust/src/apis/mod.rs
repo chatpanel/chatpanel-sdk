@@ -111,6 +111,7 @@ impl From<&str> for ContentType {
     }
 }
 
+pub mod a2a_api;
 pub mod agents_api;
 pub mod audio_api;
 pub mod capabilities_api;

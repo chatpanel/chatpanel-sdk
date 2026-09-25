@@ -58,6 +58,9 @@ tags:
   name: projects
 - description: Attested per-agent scorecards.
   name: agents
+- description: "Remote agents reached over the Agent2Agent protocol — discovery, messages,\
+    \ tasks."
+  name: a2a
 - description: The model ledger — every engine's card.
   name: engines
 - description: "The small non-generative models this gateway provides — discovery,\
@@ -2429,6 +2432,168 @@ paths:
       - skills
       x-chatpanel-auth: open
       x-chatpanel-since: 0.48.0
+  /a2a/card:
+    post:
+      description: "The gateway is the only component allowed to reach a remote agent:\
+        \ every outbound host goes through its SSRF guard, and a card names the endpoints\
+        \ this machine will then talk to. Cached per §8.6 — an ETag is revalidated\
+        \ with `If-None-Match`, so `fresh: false` means the peer answered 304 and\
+        \ the card is unchanged. Plain HTTP is refused for a remote host; loopback\
+        \ is not."
+      operationId: a2a.card
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/a2a_card_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/a2a_card_200_response"
+          description: The card.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "Fetch a remote agent's card, revalidating the one already held."
+      tags:
+      - a2a
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.53.0
+      x-chatpanel-scope: the remote agent's origin
+  /a2a/message:
+    post:
+      description: "The reply is a TASK or a MESSAGE — an agent that can answer at\
+        \ once returns a message and no task is ever created, so `kind` says which.\
+        \ `text` and `needs` are derived here rather than by each caller: `needs`\
+        \ is `answer` for an input stop and `approval` for an authorization one, and\
+        \ telling a caller to send a message when approval is wanted is how a task\
+        \ sits forever with both ends waiting."
+      operationId: a2a.message
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/A2ASendRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/A2AResult"
+          description: The answer.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: Send a message to a remote agent and wait for the answer.
+      tags:
+      - a2a
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.53.0
+      x-chatpanel-scope: the remote agent's endpoint
+  /a2a/message/stream:
+    post:
+      description: "Server-sent events, one per protocol frame — `task`, `status`,\
+        \ `artifact`, `message`, then `done` with the final result (or `error`). Each\
+        \ event carries the task as it stands, so a chunked artifact arrives whole\
+        \ rather than as fragments the caller must reassemble. Requires the agent\
+        \ to advertise `capabilities.streaming`."
+      operationId: a2a.stream
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/A2ASendRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            text/event-stream:
+              schema:
+                type: string
+          description: An event stream.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: Send a message and stream the answer as it is produced.
+      tags:
+      - a2a
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.53.0
+      x-chatpanel-stream: sse
+      x-chatpanel-scope: the remote agent's endpoint
+  /a2a/task:
+    post:
+      operationId: a2a.task
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/a2a_task_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/A2AResult"
+          description: The task.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: Poll or cancel a task on a remote agent.
+      tags:
+      - a2a
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.53.0
+      x-chatpanel-scope: the remote agent's endpoint
+  /a2a/agents:
+    get:
+      description: What the audit lists — an agent a person connected is a host this
+        machine talks to.
+      operationId: a2a.agents
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/a2a_agents_200_response"
+          description: The agents.
+        "403":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: Every remote agent this gateway has spoken to.
+      tags:
+      - a2a
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.53.0
   /agent-defs:
     get:
       description: "`.claude/agents/*.md`, `.codex/agents/*.toml`, `~/.chatpanel/agents/*.json`\
@@ -5619,6 +5784,190 @@ components:
           - suspicious
           - dangerous
           type: string
+    AgentCard:
+      additionalProperties: {}
+      description: "An A2A Agent Card (protocol 1.0). Unknown fields are preserved,\
+        \ so a card from a later spec round-trips."
+      example:
+        name: name
+        description: description
+        version: version
+        supportedInterfaces:
+        - url: url
+          protocolBinding: protocolBinding
+          protocolVersion: protocolVersion
+          tenant: tenant
+        - url: url
+          protocolBinding: protocolBinding
+          protocolVersion: protocolVersion
+          tenant: tenant
+        provider:
+          organization: organization
+          url: url
+        capabilities:
+          streaming: true
+          pushNotifications: true
+          extendedAgentCard: true
+        defaultInputModes:
+        - defaultInputModes
+        - defaultInputModes
+        defaultOutputModes:
+        - defaultOutputModes
+        - defaultOutputModes
+        skills:
+        - key: ""
+        - key: ""
+        iconUrl: iconUrl
+        documentationUrl: documentationUrl
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        version:
+          type: string
+        supportedInterfaces:
+          items:
+            $ref: "#/components/schemas/AgentCard_supportedInterfaces_inner"
+          type: array
+          default: null
+        provider:
+          $ref: "#/components/schemas/AgentCard_provider"
+        capabilities:
+          $ref: "#/components/schemas/AgentCard_capabilities"
+        defaultInputModes:
+          items:
+            type: string
+          type: array
+          default: null
+        defaultOutputModes:
+          items:
+            type: string
+          type: array
+          default: null
+        skills:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          default: null
+        iconUrl:
+          type: string
+        documentationUrl:
+          type: string
+      required:
+      - description
+      - name
+      - version
+    A2ASendRequest:
+      description: Either `url` or `card` identifies the agent; either `text` or `message`
+        is what to say.
+      example:
+        url: url
+        card:
+          name: name
+          description: description
+          version: version
+          supportedInterfaces:
+          - url: url
+            protocolBinding: protocolBinding
+            protocolVersion: protocolVersion
+            tenant: tenant
+          - url: url
+            protocolBinding: protocolBinding
+            protocolVersion: protocolVersion
+            tenant: tenant
+          provider:
+            organization: organization
+            url: url
+          capabilities:
+            streaming: true
+            pushNotifications: true
+            extendedAgentCard: true
+          defaultInputModes:
+          - defaultInputModes
+          - defaultInputModes
+          defaultOutputModes:
+          - defaultOutputModes
+          - defaultOutputModes
+          skills:
+          - key: ""
+          - key: ""
+          iconUrl: iconUrl
+          documentationUrl: documentationUrl
+        text: text
+        message:
+          key: ""
+        contextId: contextId
+        taskId: taskId
+        returnImmediately: true
+        auth: auth
+      properties:
+        url:
+          type: string
+        card:
+          $ref: "#/components/schemas/AgentCard"
+        text:
+          description: Shorthand for a one-part text message.
+          type: string
+        message:
+          additionalProperties: true
+          description: A full A2A Message.
+          type: object
+        contextId:
+          description: Groups related interactions.
+          type: string
+        taskId:
+          description: Continues an existing task — how an input or auth stop is answered.
+          type: string
+        returnImmediately:
+          description: Do not wait for a terminal or interrupted state.
+          type: boolean
+        auth:
+          type: string
+    A2AResult:
+      description: "The reply, plus the two facts every caller derives — done, and\
+        \ what a person must do."
+      example:
+        ok: true
+        kind: task
+        task:
+          key: ""
+        message:
+          key: ""
+        text: text
+        done: true
+        needs: answer
+      properties:
+        ok:
+          type: boolean
+        kind:
+          description: A2A returns one or the other; an agent answering at once creates
+            no task.
+          enum:
+          - task
+          - message
+          type: string
+        task:
+          additionalProperties: true
+          type: object
+        message:
+          additionalProperties: true
+          type: object
+        text:
+          description: "The answer as text — artifacts first, then what the agent\
+            \ actually said."
+          type: string
+        done:
+          type: boolean
+        needs:
+          description: "`answer` for TASK_STATE_INPUT_REQUIRED, `approval` for TASK_STATE_AUTH_REQUIRED,\
+            \ null otherwise."
+          enum:
+          - answer
+          - approval
+          type: string
+          nullable: true
     AgentDef:
       additionalProperties: {}
       description: "An agent definition, read from whichever tool's dialect wrote\
@@ -6440,6 +6789,105 @@ components:
           default: null
       required:
       - quarantined
+    a2a_card_request:
+      properties:
+        url:
+          description: "The agent's origin, or a card URL outright."
+          type: string
+        force:
+          description: Skip the TTL and revalidate — the ETag is still sent.
+          type: boolean
+        forget:
+          description: Drop the cached card first.
+          type: boolean
+        auth:
+          description: An Authorization header value for agents that need one.
+          type: string
+      required:
+      - url
+    a2a_card_200_response:
+      example:
+        ok: true
+        card:
+          name: name
+          description: description
+          version: version
+          supportedInterfaces:
+          - url: url
+            protocolBinding: protocolBinding
+            protocolVersion: protocolVersion
+            tenant: tenant
+          - url: url
+            protocolBinding: protocolBinding
+            protocolVersion: protocolVersion
+            tenant: tenant
+          provider:
+            organization: organization
+            url: url
+          capabilities:
+            streaming: true
+            pushNotifications: true
+            extendedAgentCard: true
+          defaultInputModes:
+          - defaultInputModes
+          - defaultInputModes
+          defaultOutputModes:
+          - defaultOutputModes
+          - defaultOutputModes
+          skills:
+          - key: ""
+          - key: ""
+          iconUrl: iconUrl
+          documentationUrl: documentationUrl
+        fingerprint: fingerprint
+        fresh: true
+        changed: true
+        url: url
+      properties:
+        ok:
+          type: boolean
+        card:
+          $ref: "#/components/schemas/AgentCard"
+        fingerprint:
+          description: Changes when the card's content does.
+          type: string
+        fresh:
+          description: false when the peer answered 304.
+          type: boolean
+        changed:
+          type: boolean
+        url:
+          type: string
+    a2a_task_request:
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        card:
+          $ref: "#/components/schemas/AgentCard"
+        cancel:
+          description: Cancel instead of polling.
+          type: boolean
+        auth:
+          type: string
+      required:
+      - id
+    a2a_agents_200_response:
+      example:
+        agents:
+        - key: ""
+        - key: ""
+      properties:
+        agents:
+          items:
+            additionalProperties:
+              nullable: true
+            type: object
+          type: array
+          default: null
+      required:
+      - agents
     agents_listDefs_200_response:
       example:
         agents:
@@ -6504,8 +6952,7 @@ components:
         quarantined:
           description: Definitions the scanner refused.
           items:
-            additionalProperties:
-              nullable: true
+            additionalProperties: true
             type: object
           type: array
           default: null
@@ -6902,6 +7349,46 @@ components:
       required:
       - id
       - text
+    AgentCard_supportedInterfaces_inner:
+      example:
+        url: url
+        protocolBinding: protocolBinding
+        protocolVersion: protocolVersion
+        tenant: tenant
+      properties:
+        url:
+          type: string
+        protocolBinding:
+          description: "JSONRPC, GRPC, HTTP+JSON — an open string, so an unknown binding\
+            \ is carried."
+          type: string
+        protocolVersion:
+          type: string
+        tenant:
+          description: Echoed on every request to this interface when set.
+          type: string
+    AgentCard_provider:
+      example:
+        organization: organization
+        url: url
+      properties:
+        organization:
+          type: string
+        url:
+          type: string
+    AgentCard_capabilities:
+      additionalProperties: true
+      example:
+        streaming: true
+        pushNotifications: true
+        extendedAgentCard: true
+      properties:
+        streaming:
+          type: boolean
+        pushNotifications:
+          type: boolean
+        extendedAgentCard:
+          type: boolean
     AgentFidelity_dropped_inner:
       example:
         field: field

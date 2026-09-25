@@ -94,21 +94,20 @@ Please follow the [installation](#installation) instruction and execute the foll
 
 import net.chatpanel.sdk.*;
 import net.chatpanel.sdk.model.*;
-import net.chatpanel.sdk.api.AgentsApi;
+import net.chatpanel.sdk.api.A2aApi;
 
-public class AgentsApiExample {
+public class A2aApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
         // Configure clients using the `defaultClient` object, such as
         // overriding the host and port, timeout, etc.
-        AgentsApi apiInstance = new AgentsApi(defaultClient);
-        AgentExportRequest agentExportRequest = new AgentExportRequest(); // AgentExportRequest | 
+        A2aApi apiInstance = new A2aApi(defaultClient);
         try {
-            AgentsExportDef200Response result = apiInstance.agentsExportDef(agentExportRequest);
+            A2aAgents200Response result = apiInstance.a2aAgents();
             System.out.println(result);
         } catch (ApiException e) {
-            System.err.println("Exception when calling AgentsApi#agentsExportDef");
+            System.err.println("Exception when calling A2aApi#a2aAgents");
             System.err.println("Status code: " + e.getCode());
             System.err.println("Reason: " + e.getResponseBody());
             System.err.println("Response headers: " + e.getResponseHeaders());
@@ -125,6 +124,16 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*A2aApi* | [**a2aAgents**](docs/A2aApi.md#a2aAgents) | **GET** /a2a/agents | Every remote agent this gateway has spoken to.
+*A2aApi* | [**a2aAgentsWithHttpInfo**](docs/A2aApi.md#a2aAgentsWithHttpInfo) | **GET** /a2a/agents | Every remote agent this gateway has spoken to.
+*A2aApi* | [**a2aCard**](docs/A2aApi.md#a2aCard) | **POST** /a2a/card | Fetch a remote agent&#39;s card, revalidating the one already held.
+*A2aApi* | [**a2aCardWithHttpInfo**](docs/A2aApi.md#a2aCardWithHttpInfo) | **POST** /a2a/card | Fetch a remote agent&#39;s card, revalidating the one already held.
+*A2aApi* | [**a2aMessage**](docs/A2aApi.md#a2aMessage) | **POST** /a2a/message | Send a message to a remote agent and wait for the answer.
+*A2aApi* | [**a2aMessageWithHttpInfo**](docs/A2aApi.md#a2aMessageWithHttpInfo) | **POST** /a2a/message | Send a message to a remote agent and wait for the answer.
+*A2aApi* | [**a2aStream**](docs/A2aApi.md#a2aStream) | **POST** /a2a/message/stream | Send a message and stream the answer as it is produced.
+*A2aApi* | [**a2aStreamWithHttpInfo**](docs/A2aApi.md#a2aStreamWithHttpInfo) | **POST** /a2a/message/stream | Send a message and stream the answer as it is produced.
+*A2aApi* | [**a2aTask**](docs/A2aApi.md#a2aTask) | **POST** /a2a/task | Poll or cancel a task on a remote agent.
+*A2aApi* | [**a2aTaskWithHttpInfo**](docs/A2aApi.md#a2aTaskWithHttpInfo) | **POST** /a2a/task | Poll or cancel a task on a remote agent.
 *AgentsApi* | [**agentsExportDef**](docs/AgentsApi.md#agentsExportDef) | **POST** /agent-defs/export | Write an agent definition into another tool&#39;s folder.
 *AgentsApi* | [**agentsExportDefWithHttpInfo**](docs/AgentsApi.md#agentsExportDefWithHttpInfo) | **POST** /agent-defs/export | Write an agent definition into another tool&#39;s folder.
 *AgentsApi* | [**agentsExportPlan**](docs/AgentsApi.md#agentsExportPlan) | **POST** /agent-defs/export-plan | What an export would write, and what the target cannot carry — without writing it.
@@ -299,6 +308,16 @@ Class | Method | HTTP request | Description
 
 ## Documentation for Models
 
+ - [A2AResult](docs/A2AResult.md)
+ - [A2ASendRequest](docs/A2ASendRequest.md)
+ - [A2aAgents200Response](docs/A2aAgents200Response.md)
+ - [A2aCard200Response](docs/A2aCard200Response.md)
+ - [A2aCardRequest](docs/A2aCardRequest.md)
+ - [A2aTaskRequest](docs/A2aTaskRequest.md)
+ - [AgentCard](docs/AgentCard.md)
+ - [AgentCardCapabilities](docs/AgentCardCapabilities.md)
+ - [AgentCardProvider](docs/AgentCardProvider.md)
+ - [AgentCardSupportedInterfacesInner](docs/AgentCardSupportedInterfacesInner.md)
  - [AgentDef](docs/AgentDef.md)
  - [AgentExportPlan](docs/AgentExportPlan.md)
  - [AgentExportRequest](docs/AgentExportRequest.md)

@@ -43,6 +43,16 @@ namespace ChatPanel.Sdk.Client
             _jsonOptions.Converters.Add(new DateTimeNullableJsonConverter());
             _jsonOptions.Converters.Add(new DateOnlyJsonConverter());
             _jsonOptions.Converters.Add(new DateOnlyNullableJsonConverter());
+            _jsonOptions.Converters.Add(new A2AResultJsonConverter());
+            _jsonOptions.Converters.Add(new A2ASendRequestJsonConverter());
+            _jsonOptions.Converters.Add(new A2aAgents200ResponseJsonConverter());
+            _jsonOptions.Converters.Add(new A2aCard200ResponseJsonConverter());
+            _jsonOptions.Converters.Add(new A2aCardRequestJsonConverter());
+            _jsonOptions.Converters.Add(new A2aTaskRequestJsonConverter());
+            _jsonOptions.Converters.Add(new AgentCardJsonConverter());
+            _jsonOptions.Converters.Add(new AgentCardCapabilitiesJsonConverter());
+            _jsonOptions.Converters.Add(new AgentCardProviderJsonConverter());
+            _jsonOptions.Converters.Add(new AgentCardSupportedInterfacesInnerJsonConverter());
             _jsonOptions.Converters.Add(new AgentDefJsonConverter());
             _jsonOptions.Converters.Add(new AgentExportPlanJsonConverter());
             _jsonOptions.Converters.Add(new AgentExportRequestJsonConverter());
@@ -194,6 +204,7 @@ namespace ChatPanel.Sdk.Client
             JsonSerializerOptionsProvider jsonSerializerOptionsProvider = new(_jsonOptions);
             _services.AddSingleton(jsonSerializerOptionsProvider);
             _services.AddSingleton<IApiFactory, ApiFactory>();
+            _services.AddSingleton<A2aApiEvents>();
             _services.AddSingleton<AgentsApiEvents>();
             _services.AddSingleton<AudioApiEvents>();
             _services.AddSingleton<CapabilitiesApiEvents>();
@@ -257,6 +268,7 @@ namespace ChatPanel.Sdk.Client
 
             List<IHttpClientBuilder> builders = new List<IHttpClientBuilder>();
 
+            builders.Add(_services.AddHttpClient<IA2aApi, A2aApi>("ChatPanel.Sdk.Api.IA2aApi", client));
             builders.Add(_services.AddHttpClient<IAgentsApi, AgentsApi>("ChatPanel.Sdk.Api.IAgentsApi", client));
             builders.Add(_services.AddHttpClient<IAudioApi, AudioApi>("ChatPanel.Sdk.Api.IAudioApi", client));
             builders.Add(_services.AddHttpClient<ICapabilitiesApi, CapabilitiesApi>("ChatPanel.Sdk.Api.ICapabilitiesApi", client));

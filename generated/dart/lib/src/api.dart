@@ -9,6 +9,7 @@ import 'package:chatpanel/src/auth/api_key_auth.dart';
 import 'package:chatpanel/src/auth/basic_auth.dart';
 import 'package:chatpanel/src/auth/bearer_auth.dart';
 import 'package:chatpanel/src/auth/oauth.dart';
+import 'package:chatpanel/src/api/a2a_api.dart';
 import 'package:chatpanel/src/api/agents_api.dart';
 import 'package:chatpanel/src/api/audio_api.dart';
 import 'package:chatpanel/src/api/capabilities_api.dart';
@@ -120,6 +121,12 @@ class Chatpanel {
     if (this.dio.interceptors.any((i) => i is ApiKeyAuthInterceptor)) {
       (this.dio.interceptors.firstWhere((element) => element is ApiKeyAuthInterceptor) as ApiKeyAuthInterceptor).apiKeys.remove(name);
     }
+  }
+
+  /// Get A2aApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  A2aApi getA2aApi() {
+    return A2aApi(dio, serializers);
   }
 
   /// Get AgentsApi instance, base route and serializer can be overridden by a given but be careful,

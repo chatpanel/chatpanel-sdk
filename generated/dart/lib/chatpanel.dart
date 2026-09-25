@@ -10,6 +10,7 @@ export 'package:chatpanel/src/auth/oauth.dart';
 export 'package:chatpanel/src/serializers.dart';
 export 'package:chatpanel/src/model/date.dart';
 
+export 'package:chatpanel/src/api/a2a_api.dart';
 export 'package:chatpanel/src/api/agents_api.dart';
 export 'package:chatpanel/src/api/audio_api.dart';
 export 'package:chatpanel/src/api/capabilities_api.dart';
@@ -29,6 +30,16 @@ export 'package:chatpanel/src/api/runtime_api.dart';
 export 'package:chatpanel/src/api/skills_api.dart';
 export 'package:chatpanel/src/api/teams_api.dart';
 
+export 'package:chatpanel/src/model/a2_a_result.dart';
+export 'package:chatpanel/src/model/a2_a_send_request.dart';
+export 'package:chatpanel/src/model/a2a_agents200_response.dart';
+export 'package:chatpanel/src/model/a2a_card200_response.dart';
+export 'package:chatpanel/src/model/a2a_card_request.dart';
+export 'package:chatpanel/src/model/a2a_task_request.dart';
+export 'package:chatpanel/src/model/agent_card.dart';
+export 'package:chatpanel/src/model/agent_card_capabilities.dart';
+export 'package:chatpanel/src/model/agent_card_provider.dart';
+export 'package:chatpanel/src/model/agent_card_supported_interfaces_inner.dart';
 export 'package:chatpanel/src/model/agent_def.dart';
 export 'package:chatpanel/src/model/agent_export_plan.dart';
 export 'package:chatpanel/src/model/agent_export_request.dart';

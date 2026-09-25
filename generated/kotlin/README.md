@@ -63,6 +63,11 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 | Class | Method | HTTP request | Description |
 | ------------ | ------------- | ------------- | ------------- |
+| *A2aApi* | [**a2aAgents**](docs/A2aApi.md#a2aagents) | **GET** /a2a/agents | Every remote agent this gateway has spoken to. |
+| *A2aApi* | [**a2aCard**](docs/A2aApi.md#a2acard) | **POST** /a2a/card | Fetch a remote agent's card, revalidating the one already held. |
+| *A2aApi* | [**a2aMessage**](docs/A2aApi.md#a2amessage) | **POST** /a2a/message | Send a message to a remote agent and wait for the answer. |
+| *A2aApi* | [**a2aStream**](docs/A2aApi.md#a2astream) | **POST** /a2a/message/stream | Send a message and stream the answer as it is produced. |
+| *A2aApi* | [**a2aTask**](docs/A2aApi.md#a2atask) | **POST** /a2a/task | Poll or cancel a task on a remote agent. |
 | *AgentsApi* | [**agentsExportDef**](docs/AgentsApi.md#agentsexportdef) | **POST** /agent-defs/export | Write an agent definition into another tool's folder. |
 | *AgentsApi* | [**agentsExportPlan**](docs/AgentsApi.md#agentsexportplan) | **POST** /agent-defs/export-plan | What an export would write, and what the target cannot carry — without writing it. |
 | *AgentsApi* | [**agentsGetDef**](docs/AgentsApi.md#agentsgetdef) | **GET** /agent-defs/{agentId} | One agent definition, prompt included. |
@@ -153,6 +158,16 @@ All URIs are relative to *http://127.0.0.1:4320*
 <a id="documentation-for-models"></a>
 ## Documentation for Models
 
+ - [net.chatpanel.sdk.models.A2AResult](docs/A2AResult.md)
+ - [net.chatpanel.sdk.models.A2ASendRequest](docs/A2ASendRequest.md)
+ - [net.chatpanel.sdk.models.A2aAgents200Response](docs/A2aAgents200Response.md)
+ - [net.chatpanel.sdk.models.A2aCard200Response](docs/A2aCard200Response.md)
+ - [net.chatpanel.sdk.models.A2aCardRequest](docs/A2aCardRequest.md)
+ - [net.chatpanel.sdk.models.A2aTaskRequest](docs/A2aTaskRequest.md)
+ - [net.chatpanel.sdk.models.AgentCard](docs/AgentCard.md)
+ - [net.chatpanel.sdk.models.AgentCardCapabilities](docs/AgentCardCapabilities.md)
+ - [net.chatpanel.sdk.models.AgentCardProvider](docs/AgentCardProvider.md)
+ - [net.chatpanel.sdk.models.AgentCardSupportedInterfacesInner](docs/AgentCardSupportedInterfacesInner.md)
  - [net.chatpanel.sdk.models.AgentDef](docs/AgentDef.md)
  - [net.chatpanel.sdk.models.AgentExportPlan](docs/AgentExportPlan.md)
  - [net.chatpanel.sdk.models.AgentExportRequest](docs/AgentExportRequest.md)
