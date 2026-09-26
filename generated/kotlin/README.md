@@ -153,6 +153,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | *TeamsApi* | [**teamsRemoveThread**](docs/TeamsApi.md#teamsremovethread) | **DELETE** /v1/teams/runs/{runId}/threads/{threadId} | A person removes a thread from the board. |
 | *TeamsApi* | [**teamsRunEvents**](docs/TeamsApi.md#teamsrunevents) | **GET** /v1/teams/runs/{runId}/events | Tail a run — the record first, replay from `after`, then live. |
 | *TeamsApi* | [**teamsStopRun**](docs/TeamsApi.md#teamsstoprun) | **POST** /v1/teams/runs/{runId}/stop | Ask the running client to stop. |
+| *TeamsApi* | [**teamsStream**](docs/TeamsApi.md#teamsstream) | **GET** /v1/teams/stream | Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed. |
 
 
 <a id="documentation-for-models"></a>
@@ -309,6 +310,7 @@ All URIs are relative to *http://127.0.0.1:4320*
  - [net.chatpanel.sdk.models.TeamsHandoffRequest](docs/TeamsHandoffRequest.md)
  - [net.chatpanel.sdk.models.TeamsListRuns200Response](docs/TeamsListRuns200Response.md)
  - [net.chatpanel.sdk.models.TeamsPostRequest](docs/TeamsPostRequest.md)
+ - [net.chatpanel.sdk.models.TeamsStreamEvent](docs/TeamsStreamEvent.md)
  - [net.chatpanel.sdk.models.Transcription](docs/Transcription.md)
  - [net.chatpanel.sdk.models.TranscriptionSegmentsInner](docs/TranscriptionSegmentsInner.md)
  - [net.chatpanel.sdk.models.WebSearchRequest](docs/WebSearchRequest.md)

@@ -18,6 +18,7 @@ Method | HTTP request | Description
 [**teams_remove_thread**](TeamsApi.md#teams_remove_thread) | **DELETE** /v1/teams/runs/{runId}/threads/{threadId} | A person removes a thread from the board.
 [**teams_run_events**](TeamsApi.md#teams_run_events) | **GET** /v1/teams/runs/{runId}/events | Tail a run — the record first, replay from `after`, then live.
 [**teams_stop_run**](TeamsApi.md#teams_stop_run) | **POST** /v1/teams/runs/{runId}/stop | Ask the running client to stop.
+[**teams_stream**](TeamsApi.md#teams_stream) | **GET** /v1/teams/stream | Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed.
 
 
 
@@ -419,6 +420,33 @@ Name | Type | Description  | Required | Notes
 
 - **Content-Type**: Not defined
 - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## teams_stream
+
+> String teams_stream()
+Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed.
+
+A Runs or Board view listens here and re-reads a run (`GET /v1/teams/runs/{runId}`) or the list only when a notice names one, instead of polling. Facts only — a task's streamed text never produces a notice. Staleness is judged by the clock, not by an event, so a view keeps a slow re-read beside the stream. 
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+**String**
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: text/event-stream, application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

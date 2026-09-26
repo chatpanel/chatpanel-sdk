@@ -779,6 +779,28 @@ paths:
       responses:
         '200': { $ref: '#/components/responses/TeamRunResult' }
         '400': { $ref: '#/components/responses/Error' }
+  /v1/teams/stream:
+    get:
+      operationId: teams.stream
+      tags: [teams]
+      summary: Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed.
+      description: |
+        A Runs or Board view listens here and re-reads a run (`GET /v1/teams/runs/{runId}`) or the
+        list only when a notice names one, instead of polling. Facts only — a task's streamed
+        text never produces a notice. Staleness is judged by the clock, not by an event, so a
+        view keeps a slow re-read beside the stream.
+      x-chatpanel-auth: token
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      x-chatpanel-since: '0.55.0'
+      x-chatpanel-stream: sse
+      responses:
+        '200':
+          description: '`data: { type: hello, at }`, then `data: { type: run, id, removed }` per change; a comment ping every 25 s.'
+          content:
+            text/event-stream:
+              schema: { type: string }
+              x-chatpanel-frame: { $ref: '#/components/schemas/TeamsStreamEvent' }
+        '403': { $ref: '#/components/responses/Forbidden' }
   /v1/teams/runs/{runId}:
     parameters:
       - $ref: '#/components/parameters/RunId'
@@ -3101,6 +3123,14 @@ components:
         version: { type: string }
         ids: { type: array, items: { type: string } }
         at: { type: integer, format: int64 }
+    TeamsStreamEvent:
+      type: object
+      required: [type]
+      properties:
+        type: { type: string, enum: [hello, run] }
+        at: { type: integer, format: int64, description: On `hello`. }
+        id: { type: string, description: The run that changed. }
+        removed: { type: boolean, description: True when the run left the store. }
     PrefsEvent:
       type: object
       required: [type]

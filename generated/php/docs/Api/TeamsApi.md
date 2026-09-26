@@ -20,6 +20,7 @@ All URIs are relative to http://127.0.0.1:4320, except if the operation defines 
 | [**teamsRemoveThread()**](TeamsApi.md#teamsRemoveThread) | **DELETE** /v1/teams/runs/{runId}/threads/{threadId} | A person removes a thread from the board. |
 | [**teamsRunEvents()**](TeamsApi.md#teamsRunEvents) | **GET** /v1/teams/runs/{runId}/events | Tail a run — the record first, replay from &#x60;after&#x60;, then live. |
 | [**teamsStopRun()**](TeamsApi.md#teamsStopRun) | **POST** /v1/teams/runs/{runId}/stop | Ask the running client to stop. |
+| [**teamsStream()**](TeamsApi.md#teamsStream) | **GET** /v1/teams/stream | Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed. |
 
 
 ## `teamsAnswer()`
@@ -849,6 +850,68 @@ try {
 
 - **Content-Type**: Not defined
 - **Accept**: `application/json`
+
+[[Back to top]](#) [[Back to API list]](../../README.md#endpoints)
+[[Back to Model list]](../../README.md#models)
+[[Back to README]](../../README.md)
+
+## `teamsStream()`
+
+```php
+teamsStream(): string
+```
+
+Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed.
+
+A Runs or Board view listens here and re-reads a run (`GET /v1/teams/runs/{runId}`) or the list only when a notice names one, instead of polling. Facts only — a task's streamed text never produces a notice. Staleness is judged by the clock, not by an event, so a view keeps a slow re-read beside the stream.
+
+### Example
+
+```php
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+
+// Configure API key authorization: tokenHeader
+$config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setApiKey('X-ChatPanel-Token', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// $config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-ChatPanel-Token', 'Bearer');
+
+// Configure Bearer authorization: gatewayToken
+$config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setAccessToken('YOUR_ACCESS_TOKEN');
+
+
+$apiInstance = new ChatPanelSdk\Api\TeamsApi(
+    // If you want use custom http client, pass your client which implements `GuzzleHttp\ClientInterface`.
+    // This is optional, `GuzzleHttp\Client` will be used as default.
+    new GuzzleHttp\Client(),
+    $config
+);
+
+try {
+    $result = $apiInstance->teamsStream();
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling TeamsApi->teamsStream: ', $e->getMessage(), PHP_EOL;
+}
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+**string**
+
+### Authorization
+
+[tokenHeader](../../README.md#tokenHeader), [gatewayToken](../../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `text/event-stream`, `application/json`
 
 [[Back to top]](#) [[Back to API list]](../../README.md#endpoints)
 [[Back to Model list]](../../README.md#models)

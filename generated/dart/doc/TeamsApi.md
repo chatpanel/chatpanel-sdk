@@ -23,6 +23,7 @@ Method | HTTP request | Description
 [**teamsRemoveThread**](TeamsApi.md#teamsremovethread) | **DELETE** /v1/teams/runs/{runId}/threads/{threadId} | A person removes a thread from the board.
 [**teamsRunEvents**](TeamsApi.md#teamsrunevents) | **GET** /v1/teams/runs/{runId}/events | Tail a run — the record first, replay from &#x60;after&#x60;, then live.
 [**teamsStopRun**](TeamsApi.md#teamsstoprun) | **POST** /v1/teams/runs/{runId}/stop | Ask the running client to stop.
+[**teamsStream**](TeamsApi.md#teamsstream) | **GET** /v1/teams/stream | Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed.
 
 
 # **teamsAnswer**
@@ -616,6 +617,49 @@ Name | Type | Description  | Notes
 
  - **Content-Type**: Not defined
  - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **teamsStream**
+> String teamsStream()
+
+Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed.
+
+A Runs or Board view listens here and re-reads a run (`GET /v1/teams/runs/{runId}`) or the list only when a notice names one, instead of polling. Facts only — a task's streamed text never produces a notice. Staleness is judged by the clock, not by an event, so a view keeps a slow re-read beside the stream. 
+
+### Example
+```dart
+import 'package:chatpanel/api.dart';
+// TODO Configure API key authorization: tokenHeader
+//defaultApiClient.getAuthentication<ApiKeyAuth>('tokenHeader').apiKey = 'YOUR_API_KEY';
+// uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//defaultApiClient.getAuthentication<ApiKeyAuth>('tokenHeader').apiKeyPrefix = 'Bearer';
+
+final api = Chatpanel().getTeamsApi();
+
+try {
+    final response = api.teamsStream();
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling TeamsApi->teamsStream: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+**String**
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: text/event-stream, application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

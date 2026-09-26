@@ -18,6 +18,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | [**teams_remove_thread**](TeamsApi.md#teams_remove_thread) | **DELETE** /v1/teams/runs/{runId}/threads/{threadId} | A person removes a thread from the board. |
 | [**teams_run_events**](TeamsApi.md#teams_run_events) | **GET** /v1/teams/runs/{runId}/events | Tail a run — the record first, replay from &#x60;after&#x60;, then live. |
 | [**teams_stop_run**](TeamsApi.md#teams_stop_run) | **POST** /v1/teams/runs/{runId}/stop | Ask the running client to stop. |
+| [**teams_stream**](TeamsApi.md#teams_stream) | **GET** /v1/teams/stream | Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed. |
 
 
 ## teams_answer
@@ -982,4 +983,75 @@ end
 
 - **Content-Type**: Not defined
 - **Accept**: application/json
+
+
+## teams_stream
+
+> String teams_stream
+
+Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed.
+
+A Runs or Board view listens here and re-reads a run (`GET /v1/teams/runs/{runId}`) or the list only when a notice names one, instead of polling. Facts only — a task's streamed text never produces a notice. Staleness is judged by the clock, not by an event, so a view keeps a slow re-read beside the stream. 
+
+### Examples
+
+```ruby
+require 'time'
+require 'chatpanel'
+# setup authorization
+ChatPanel.configure do |config|
+  # Configure API key authorization: tokenHeader
+  config.api_key['X-ChatPanel-Token'] = 'YOUR API KEY'
+  # Uncomment the following line to set a prefix for the API key, e.g. 'Bearer' (defaults to nil)
+  # config.api_key_prefix['X-ChatPanel-Token'] = 'Bearer'
+
+  # Configure Bearer authorization: gatewayToken
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = ChatPanel::TeamsApi.new
+
+begin
+  # Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed.
+  result = api_instance.teams_stream
+  p result
+rescue ChatPanel::ApiError => e
+  puts "Error when calling TeamsApi->teams_stream: #{e}"
+end
+```
+
+#### Using the teams_stream_with_http_info variant
+
+This returns an Array which contains the response data, status code and headers.
+
+> <Array(String, Integer, Hash)> teams_stream_with_http_info
+
+```ruby
+begin
+  # Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed.
+  data, status_code, headers = api_instance.teams_stream_with_http_info
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => String
+rescue ChatPanel::ApiError => e
+  puts "Error when calling TeamsApi->teams_stream_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+**String**
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: text/event-stream, application/json
 

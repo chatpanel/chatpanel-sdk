@@ -788,6 +788,16 @@ export interface HistoryStreamEvent {
   at?: number;
 }
 
+export interface TeamsStreamEvent {
+  type: "hello" | "run";
+  /** On `hello`. */
+  at?: number;
+  /** The run that changed. */
+  id?: string;
+  /** True when the run left the store. */
+  removed?: boolean;
+}
+
 export interface PrefsEvent {
   type: "hello" | "changed";
   revision?: number;

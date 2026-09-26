@@ -32,6 +32,8 @@ All URIs are relative to *http://127.0.0.1:4320*
 | [**teamsRunEventsWithHttpInfo**](TeamsApi.md#teamsRunEventsWithHttpInfo) | **GET** /v1/teams/runs/{runId}/events | Tail a run — the record first, replay from &#x60;after&#x60;, then live. |
 | [**teamsStopRun**](TeamsApi.md#teamsStopRun) | **POST** /v1/teams/runs/{runId}/stop | Ask the running client to stop. |
 | [**teamsStopRunWithHttpInfo**](TeamsApi.md#teamsStopRunWithHttpInfo) | **POST** /v1/teams/runs/{runId}/stop | Ask the running client to stop. |
+| [**teamsStream**](TeamsApi.md#teamsStream) | **GET** /v1/teams/stream | Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed. |
+| [**teamsStreamWithHttpInfo**](TeamsApi.md#teamsStreamWithHttpInfo) | **GET** /v1/teams/stream | Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed. |
 
 
 
@@ -2057,4 +2059,154 @@ ApiResponse<[**InlineObject**](InlineObject.md)>
 |-------------|-------------|------------------|
 | **200** | The run as it now stands. |  -  |
 | **404** | An error, in the gateway&#39;s words. |  -  |
+
+
+## teamsStream
+
+> String teamsStream()
+
+Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed.
+
+A Runs or Board view listens here and re-reads a run (&#x60;GET /v1/teams/runs/{runId}&#x60;) or the list only when a notice names one, instead of polling. Facts only — a task&#39;s streamed text never produces a notice. Staleness is judged by the clock, not by an event, so a view keeps a slow re-read beside the stream. 
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.TeamsApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure API key authorization: tokenHeader
+        ApiKeyAuth tokenHeader = (ApiKeyAuth) defaultClient.getAuthentication("tokenHeader");
+        tokenHeader.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //tokenHeader.setApiKeyPrefix("Token");
+
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        TeamsApi apiInstance = new TeamsApi(defaultClient);
+        try {
+            String result = apiInstance.teamsStream();
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling TeamsApi#teamsStream");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+**String**
+
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: text/event-stream, application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | &#x60;data: { type: hello, at }&#x60;, then &#x60;data: { type: run, id, removed }&#x60; per change; a comment ping every 25 s. |  -  |
+| **403** | The caller lacks the token this route needs. |  -  |
+
+## teamsStreamWithHttpInfo
+
+> ApiResponse<String> teamsStreamWithHttpInfo()
+
+Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed.
+
+A Runs or Board view listens here and re-reads a run (&#x60;GET /v1/teams/runs/{runId}&#x60;) or the list only when a notice names one, instead of polling. Facts only — a task&#39;s streamed text never produces a notice. Staleness is judged by the clock, not by an event, so a view keeps a slow re-read beside the stream. 
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.ApiResponse;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.TeamsApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure API key authorization: tokenHeader
+        ApiKeyAuth tokenHeader = (ApiKeyAuth) defaultClient.getAuthentication("tokenHeader");
+        tokenHeader.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //tokenHeader.setApiKeyPrefix("Token");
+
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        TeamsApi apiInstance = new TeamsApi(defaultClient);
+        try {
+            ApiResponse<String> response = apiInstance.teamsStreamWithHttpInfo();
+            System.out.println("Status code: " + response.getStatusCode());
+            System.out.println("Response headers: " + response.getHeaders());
+            System.out.println("Response body: " + response.getData());
+        } catch (ApiException e) {
+            System.err.println("Exception when calling TeamsApi#teamsStream");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            System.err.println("Reason: " + e.getResponseBody());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+ApiResponse<**String**>
+
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: text/event-stream, application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | &#x60;data: { type: hello, at }&#x60;, then &#x60;data: { type: run, id, removed }&#x60; per change; a comment ping every 25 s. |  -  |
+| **403** | The caller lacks the token this route needs. |  -  |
 

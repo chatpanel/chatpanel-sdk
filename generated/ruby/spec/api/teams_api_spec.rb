@@ -196,4 +196,15 @@ describe 'TeamsApi' do
     end
   end
 
+  # unit tests for teams_stream
+  # Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed.
+  # A Runs or Board view listens here and re-reads a run (&#x60;GET /v1/teams/runs/{runId}&#x60;) or the list only when a notice names one, instead of polling. Facts only — a task&#39;s streamed text never produces a notice. Staleness is judged by the clock, not by an event, so a view keeps a slow re-read beside the stream. 
+  # @param [Hash] opts the optional parameters
+  # @return [String]
+  describe 'teams_stream test' do
+    it 'should work' do
+      # assertion here. ref: https://rspec.info/features/3-12/rspec-expectations/built-in-matchers/
+    end
+  end
+
 end

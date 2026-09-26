@@ -227,5 +227,16 @@ namespace ChatPanel.Sdk.Test.Api
             var model = response.Ok();
             Assert.IsType<ChatPanel.Sdk.Model.InlineObject>(model);
         }
+
+        /// <summary>
+        /// Test TeamsStream
+        /// </summary>
+        [Fact (Skip = "not implemented")]
+        public async Task TeamsStreamAsyncTest()
+        {
+            var response = await _instance.TeamsStreamAsync();
+            var model = response.Ok();
+            Assert.IsType<string>(model);
+        }
     }
 }

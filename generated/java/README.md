@@ -304,6 +304,8 @@ Class | Method | HTTP request | Description
 *TeamsApi* | [**teamsRunEventsWithHttpInfo**](docs/TeamsApi.md#teamsRunEventsWithHttpInfo) | **GET** /v1/teams/runs/{runId}/events | Tail a run — the record first, replay from &#x60;after&#x60;, then live.
 *TeamsApi* | [**teamsStopRun**](docs/TeamsApi.md#teamsStopRun) | **POST** /v1/teams/runs/{runId}/stop | Ask the running client to stop.
 *TeamsApi* | [**teamsStopRunWithHttpInfo**](docs/TeamsApi.md#teamsStopRunWithHttpInfo) | **POST** /v1/teams/runs/{runId}/stop | Ask the running client to stop.
+*TeamsApi* | [**teamsStream**](docs/TeamsApi.md#teamsStream) | **GET** /v1/teams/stream | Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed.
+*TeamsApi* | [**teamsStreamWithHttpInfo**](docs/TeamsApi.md#teamsStreamWithHttpInfo) | **GET** /v1/teams/stream | Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed.
 
 
 ## Documentation for Models
@@ -459,6 +461,7 @@ Class | Method | HTTP request | Description
  - [TeamsHandoffRequest](docs/TeamsHandoffRequest.md)
  - [TeamsListRuns200Response](docs/TeamsListRuns200Response.md)
  - [TeamsPostRequest](docs/TeamsPostRequest.md)
+ - [TeamsStreamEvent](docs/TeamsStreamEvent.md)
  - [Transcription](docs/Transcription.md)
  - [TranscriptionSegmentsInner](docs/TranscriptionSegmentsInner.md)
  - [WebSearchRequest](docs/WebSearchRequest.md)

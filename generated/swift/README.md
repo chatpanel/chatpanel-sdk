@@ -134,6 +134,7 @@ Class | Method | HTTP request | Description
 *TeamsAPI* | [**teamsRemoveThread**](docs/TeamsAPI.md#teamsremovethread) | **DELETE** /v1/teams/runs/{runId}/threads/{threadId} | A person removes a thread from the board.
 *TeamsAPI* | [**teamsRunEvents**](docs/TeamsAPI.md#teamsrunevents) | **GET** /v1/teams/runs/{runId}/events | Tail a run — the record first, replay from &#x60;after&#x60;, then live.
 *TeamsAPI* | [**teamsStopRun**](docs/TeamsAPI.md#teamsstoprun) | **POST** /v1/teams/runs/{runId}/stop | Ask the running client to stop.
+*TeamsAPI* | [**teamsStream**](docs/TeamsAPI.md#teamsstream) | **GET** /v1/teams/stream | Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed.
 
 
 ## Documentation For Models
@@ -289,6 +290,7 @@ Class | Method | HTTP request | Description
  - [TeamsHandoffRequest](docs/TeamsHandoffRequest.md)
  - [TeamsListRuns200Response](docs/TeamsListRuns200Response.md)
  - [TeamsPostRequest](docs/TeamsPostRequest.md)
+ - [TeamsStreamEvent](docs/TeamsStreamEvent.md)
  - [Transcription](docs/Transcription.md)
  - [TranscriptionSegmentsInner](docs/TranscriptionSegmentsInner.md)
  - [WebSearchRequest](docs/WebSearchRequest.md)

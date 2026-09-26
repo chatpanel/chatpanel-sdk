@@ -1024,6 +1024,36 @@ paths:
       - teams
       x-chatpanel-auth: open
       x-chatpanel-since: 0.6.78
+  /v1/teams/stream:
+    get:
+      description: |
+        A Runs or Board view listens here and re-reads a run (`GET /v1/teams/runs/{runId}`) or the
+        list only when a notice names one, instead of polling. Facts only — a task's streamed
+        text never produces a notice. Staleness is judged by the clock, not by an event, so a
+        view keeps a slow re-read beside the stream.
+      operationId: teams.stream
+      responses:
+        "200":
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              x-chatpanel-frame:
+                $ref: "#/components/schemas/TeamsStreamEvent"
+          description: "`data: { type: hello, at }`, then `data: { type: run, id,\
+            \ removed }` per change; a comment ping every 25 s."
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "Run changes, pushed — `hello` once, then a `run` notice whenever a\
+        \ run is created, moves or is removed."
+      tags:
+      - teams
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.55.0
+      x-chatpanel-stream: sse
   /v1/teams/runs/{runId}:
     delete:
       operationId: teams.deleteRun
@@ -5546,6 +5576,25 @@ components:
           type: integer
       required:
       - event
+    TeamsStreamEvent:
+      properties:
+        type:
+          enum:
+          - hello
+          - run
+          type: string
+        at:
+          description: On `hello`.
+          format: int64
+          type: integer
+        id:
+          description: The run that changed.
+          type: string
+        removed:
+          description: True when the run left the store.
+          type: boolean
+      required:
+      - type
     PrefsEvent:
       additionalProperties: {}
       properties:

@@ -39,6 +39,7 @@ export const OPERATIONS = {
   "prefs.events": { id: "prefs.events", method: "GET", path: "/v1/prefs/events", auth: "open", since: "0.6.77", stream: "sse", pathParams: [], queryParams: [] },
   "teams.listRuns": { id: "teams.listRuns", method: "GET", path: "/v1/teams/runs", auth: "open", since: "0.6.78", stream: null, pathParams: [], queryParams: ["limit","team"] },
   "teams.createRun": { id: "teams.createRun", method: "POST", path: "/v1/teams/runs", auth: "open", since: "0.6.78", stream: null, pathParams: [], queryParams: [] },
+  "teams.stream": { id: "teams.stream", method: "GET", path: "/v1/teams/stream", auth: "token", since: "0.55.0", stream: "sse", pathParams: [], queryParams: [] },
   "teams.getRun": { id: "teams.getRun", method: "GET", path: "/v1/teams/runs/{runId}", auth: "open", since: "0.6.78", stream: null, pathParams: ["runId"], queryParams: ["events"] },
   "teams.deleteRun": { id: "teams.deleteRun", method: "DELETE", path: "/v1/teams/runs/{runId}", auth: "open", since: "0.6.110", stream: null, pathParams: ["runId"], queryParams: [] },
   "teams.runEvents": { id: "teams.runEvents", method: "GET", path: "/v1/teams/runs/{runId}/events", auth: "open", since: "0.6.78", stream: "sse", pathParams: ["runId"], queryParams: ["after"] },
@@ -320,6 +321,10 @@ export class TeamsApi {
     run: T.TeamRun;
   }> {
     return this.rt.request(OPERATIONS["teams.createRun"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed. A Runs or Board view listens here and re-reads a run (`GET /v1/teams/runs/{runId}`) or the list only when a notice names one, instead of polling. Facts only — a task's streamed text never produces a notice. Staleness is judged by the clock, not by an event, so a view keeps a slow re-read beside the stream. — Requires the gateway token. Gateway 0.55.0+. */
+  stream(opts?: RequestOptions): AsyncIterable<SseFrame<T.TeamsStreamEvent>> {
+    return this.rt.stream<T.TeamsStreamEvent>(OPERATIONS["teams.stream"], { path: {  }, query: undefined, headers: opts?.headers, opts });
   }
   /** One run, optionally with its events. — Gateway 0.6.78+. */
   getRun(runId: string, query?: { events?: boolean }, opts?: RequestOptions): Promise<{

@@ -18,6 +18,7 @@ Method | HTTP request | Description
 [**TeamsRemoveThread**](TeamsAPI.md#TeamsRemoveThread) | **Delete** /v1/teams/runs/{runId}/threads/{threadId} | A person removes a thread from the board.
 [**TeamsRunEvents**](TeamsAPI.md#TeamsRunEvents) | **Get** /v1/teams/runs/{runId}/events | Tail a run — the record first, replay from &#x60;after&#x60;, then live.
 [**TeamsStopRun**](TeamsAPI.md#TeamsStopRun) | **Post** /v1/teams/runs/{runId}/stop | Ask the running client to stop.
+[**TeamsStream**](TeamsAPI.md#TeamsStream) | **Get** /v1/teams/stream | Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed.
 
 
 
@@ -980,6 +981,67 @@ Name | Type | Description  | Notes
 
 - **Content-Type**: Not defined
 - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
+
+
+## TeamsStream
+
+> string TeamsStream(ctx).Execute()
+
+Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed.
+
+
+
+### Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	openapiclient "github.com/chatpanel/chatpanel-sdk"
+)
+
+func main() {
+
+	configuration := openapiclient.NewConfiguration()
+	apiClient := openapiclient.NewAPIClient(configuration)
+	resp, r, err := apiClient.TeamsAPI.TeamsStream(context.Background()).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `TeamsAPI.TeamsStream``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `TeamsStream`: string
+	fmt.Fprintf(os.Stdout, "Response from `TeamsAPI.TeamsStream`: %v\n", resp)
+}
+```
+
+### Path Parameters
+
+This endpoint does not need any parameter.
+
+### Other Parameters
+
+Other parameters are passed through a pointer to a apiTeamsStreamRequest struct via the builder pattern
+
+
+### Return type
+
+**string**
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: text/event-stream, application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
 [[Back to Model list]](../README.md#documentation-for-models)

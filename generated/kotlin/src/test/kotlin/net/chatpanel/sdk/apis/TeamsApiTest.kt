@@ -167,5 +167,12 @@ class TeamsApiTest : ShouldSpec() {
             //result shouldBe ("TODO")
         }
 
+        // to test teamsStream
+        should("test teamsStream") {
+            // uncomment below to test teamsStream
+            //val result : kotlin.String = apiInstance.teamsStream()
+            //result shouldBe ("TODO")
+        }
+
     }
 }

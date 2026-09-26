@@ -300,6 +300,8 @@ pub mod teams_list_runs_200_response;
 pub use self::teams_list_runs_200_response::TeamsListRuns200Response;
 pub mod teams_post_request;
 pub use self::teams_post_request::TeamsPostRequest;
+pub mod teams_stream_event;
+pub use self::teams_stream_event::TeamsStreamEvent;
 pub mod transcription;
 pub use self::transcription::Transcription;
 pub mod transcription_segments_inner;

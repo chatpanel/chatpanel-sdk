@@ -39,6 +39,7 @@ OPERATIONS: Dict[str, Operation] = {
     "prefs.events": Operation(id="prefs.events", method="GET", path="/v1/prefs/events", auth="open", since="0.6.77", stream="sse", path_params=(), query_params=()),
     "teams.listRuns": Operation(id="teams.listRuns", method="GET", path="/v1/teams/runs", auth="open", since="0.6.78", stream=None, path_params=(), query_params=("limit", "team",)),
     "teams.createRun": Operation(id="teams.createRun", method="POST", path="/v1/teams/runs", auth="open", since="0.6.78", stream=None, path_params=(), query_params=()),
+    "teams.stream": Operation(id="teams.stream", method="GET", path="/v1/teams/stream", auth="token", since="0.55.0", stream="sse", path_params=(), query_params=()),
     "teams.getRun": Operation(id="teams.getRun", method="GET", path="/v1/teams/runs/{runId}", auth="open", since="0.6.78", stream=None, path_params=("runId",), query_params=("events",)),
     "teams.deleteRun": Operation(id="teams.deleteRun", method="DELETE", path="/v1/teams/runs/{runId}", auth="open", since="0.6.110", stream=None, path_params=("runId",), query_params=()),
     "teams.runEvents": Operation(id="teams.runEvents", method="GET", path="/v1/teams/runs/{runId}/events", auth="open", since="0.6.78", stream="sse", path_params=("runId",), query_params=("after",)),
@@ -297,6 +298,10 @@ class TeamsApi:
     def create_run(self, body: "T.TeamRunCreate", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
         """Open a run record. — Gateway 0.6.78+."""
         return self._rt.request(OPERATIONS["teams.createRun"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def stream(self, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Iterator[SseFrame["T.TeamsStreamEvent"]]:
+        """Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed. A Runs or Board view listens here and re-reads a run (`GET /v1/teams/runs/{runId}`) or the list only when a notice names one, instead of polling. Facts only — a task's streamed text never produces a notice. Staleness is judged by the clock, not by an event, so a view keeps a slow re-read beside the stream. — Requires the gateway token. Gateway 0.55.0+."""
+        return self._rt.stream(OPERATIONS["teams.stream"], path={}, query=None, headers=headers, timeout=timeout)
 
     def get_run(self, run_id: str, query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
         """One run, optionally with its events. — Gateway 0.6.78+."""

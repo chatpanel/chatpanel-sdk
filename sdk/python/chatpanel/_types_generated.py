@@ -625,6 +625,14 @@ class HistoryStreamEvent(TypedDict, total=False):
     at: NotRequired[int]
 
 
+class TeamsStreamEvent(TypedDict, total=False):
+    """TeamsStreamEvent"""
+    type: Literal["hello", "run"]
+    at: NotRequired[int]  # On `hello`.
+    id: NotRequired[str]  # The run that changed.
+    removed: NotRequired[bool]  # True when the run left the store.
+
+
 class PrefsEvent(TypedDict, total=False):
     """PrefsEvent"""
     type: Literal["hello", "changed"]

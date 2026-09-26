@@ -18,6 +18,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | [**TeamsRemoveThread**](TeamsApi.md#teamsremovethread) | **DELETE** /v1/teams/runs/{runId}/threads/{threadId} | A person removes a thread from the board. |
 | [**TeamsRunEvents**](TeamsApi.md#teamsrunevents) | **GET** /v1/teams/runs/{runId}/events | Tail a run — the record first, replay from &#x60;after&#x60;, then live. |
 | [**TeamsStopRun**](TeamsApi.md#teamsstoprun) | **POST** /v1/teams/runs/{runId}/stop | Ask the running client to stop. |
+| [**TeamsStream**](TeamsApi.md#teamsstream) | **GET** /v1/teams/stream | Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed. |
 
 <a id="teamsanswer"></a>
 # **TeamsAnswer**
@@ -514,6 +515,39 @@ Ask the running client to stop.
 |-------------|-------------|------------------|
 | **200** | The run as it now stands. |  -  |
 | **404** | An error, in the gateway&#39;s words. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
+
+<a id="teamsstream"></a>
+# **TeamsStream**
+> string TeamsStream ()
+
+Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed.
+
+A Runs or Board view listens here and re-reads a run (`GET /v1/teams/runs/{runId}`) or the list only when a notice names one, instead of polling. Facts only — a task's streamed text never produces a notice. Staleness is judged by the clock, not by an event, so a view keeps a slow re-read beside the stream. 
+
+
+### Parameters
+This endpoint does not need any parameter.
+### Return type
+
+**string**
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: text/event-stream, application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | &#x60;data: { type: hello, at }&#x60;, then &#x60;data: { type: run, id, removed }&#x60; per change; a comment ping every 25 s. |  -  |
+| **403** | The caller lacks the token this route needs. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
 

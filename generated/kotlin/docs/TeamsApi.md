@@ -18,6 +18,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | [**teamsRemoveThread**](TeamsApi.md#teamsRemoveThread) | **DELETE** /v1/teams/runs/{runId}/threads/{threadId} | A person removes a thread from the board. |
 | [**teamsRunEvents**](TeamsApi.md#teamsRunEvents) | **GET** /v1/teams/runs/{runId}/events | Tail a run — the record first, replay from &#x60;after&#x60;, then live. |
 | [**teamsStopRun**](TeamsApi.md#teamsStopRun) | **POST** /v1/teams/runs/{runId}/stop | Ask the running client to stop. |
+| [**teamsStream**](TeamsApi.md#teamsStream) | **GET** /v1/teams/stream | Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed. |
 
 
 <a id="teamsAnswer"></a>
@@ -754,6 +755,60 @@ try {
 ### Authorization
 
 
+Configure gatewayToken statically:
+```kotlin
+ApiClient.accessToken = ""
+```
+Configure gatewayToken dynamically:
+```kotlin
+apiInstance.accessTokenProvider = { "" }
+```
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+<a id="teamsStream"></a>
+# **teamsStream**
+> kotlin.String teamsStream()
+
+Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed.
+
+A Runs or Board view listens here and re-reads a run (&#x60;GET /v1/teams/runs/{runId}&#x60;) or the list only when a notice names one, instead of polling. Facts only — a task&#39;s streamed text never produces a notice. Staleness is judged by the clock, not by an event, so a view keeps a slow re-read beside the stream. 
+
+### Example
+```kotlin
+// Import classes:
+//import net.chatpanel.sdk.infrastructure.*
+//import net.chatpanel.sdk.models.*
+
+val apiInstance = TeamsApi()
+try {
+    val result : kotlin.String = apiInstance.teamsStream()
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling TeamsApi#teamsStream")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling TeamsApi#teamsStream")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+**kotlin.String**
+
+### Authorization
+
+
+Configure tokenHeader:
+    ApiClient.apiKey["X-ChatPanel-Token"] = ""
+    ApiClient.apiKeyPrefix["X-ChatPanel-Token"] = ""
 Configure gatewayToken statically:
 ```kotlin
 ApiClient.accessToken = ""

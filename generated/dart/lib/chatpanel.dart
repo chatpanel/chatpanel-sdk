@@ -181,6 +181,7 @@ export 'package:chatpanel/src/model/teams_decide_request.dart';
 export 'package:chatpanel/src/model/teams_handoff_request.dart';
 export 'package:chatpanel/src/model/teams_list_runs200_response.dart';
 export 'package:chatpanel/src/model/teams_post_request.dart';
+export 'package:chatpanel/src/model/teams_stream_event.dart';
 export 'package:chatpanel/src/model/transcription.dart';
 export 'package:chatpanel/src/model/transcription_segments_inner.dart';
 export 'package:chatpanel/src/model/web_search_request.dart';

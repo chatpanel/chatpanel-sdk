@@ -202,6 +202,8 @@ namespace ChatPanel.Sdk.Client
                 return RuntimeServiceRequest.ActionEnumToJsonValue(runtimeServiceRequestActionEnum);
             if (obj is TeamsDecideRequest.StatusEnum teamsDecideRequestStatusEnum)
                 return TeamsDecideRequest.StatusEnumToJsonValue(teamsDecideRequestStatusEnum);
+            if (obj is TeamsStreamEvent.TypeEnum teamsStreamEventTypeEnum)
+                return TeamsStreamEvent.TypeEnumToJsonValue(teamsStreamEventTypeEnum);
             if (obj is Transcription.TaskEnum transcriptionTaskEnum)
                 return Transcription.TaskEnumToJsonValue(transcriptionTaskEnum);
             if (obj is Transcription.ProviderEnum transcriptionProviderEnum)

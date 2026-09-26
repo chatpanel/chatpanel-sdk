@@ -165,6 +165,7 @@ import 'package:chatpanel/src/model/teams_decide_request.dart';
 import 'package:chatpanel/src/model/teams_handoff_request.dart';
 import 'package:chatpanel/src/model/teams_list_runs200_response.dart';
 import 'package:chatpanel/src/model/teams_post_request.dart';
+import 'package:chatpanel/src/model/teams_stream_event.dart';
 import 'package:chatpanel/src/model/transcription.dart';
 import 'package:chatpanel/src/model/transcription_segments_inner.dart';
 import 'package:chatpanel/src/model/web_search_request.dart';
@@ -326,6 +327,7 @@ part 'serializers.g.dart';
   TeamsHandoffRequest,
   TeamsListRuns200Response,
   TeamsPostRequest,
+  TeamsStreamEvent,
   Transcription,
   TranscriptionSegmentsInner,
   WebSearchRequest,

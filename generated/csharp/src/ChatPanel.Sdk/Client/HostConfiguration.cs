@@ -195,6 +195,7 @@ namespace ChatPanel.Sdk.Client
             _jsonOptions.Converters.Add(new TeamsHandoffRequestJsonConverter());
             _jsonOptions.Converters.Add(new TeamsListRuns200ResponseJsonConverter());
             _jsonOptions.Converters.Add(new TeamsPostRequestJsonConverter());
+            _jsonOptions.Converters.Add(new TeamsStreamEventJsonConverter());
             _jsonOptions.Converters.Add(new TranscriptionJsonConverter());
             _jsonOptions.Converters.Add(new TranscriptionSegmentsInnerJsonConverter());
             _jsonOptions.Converters.Add(new WebSearchRequestJsonConverter());

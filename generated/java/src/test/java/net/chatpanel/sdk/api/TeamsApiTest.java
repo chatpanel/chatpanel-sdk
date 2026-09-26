@@ -293,4 +293,20 @@ public class TeamsApiTest {
         // TODO: test validations
     }
     
+    /**
+     * Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed.
+     *
+     * A Runs or Board view listens here and re-reads a run (&#x60;GET /v1/teams/runs/{runId}&#x60;) or the list only when a notice names one, instead of polling. Facts only — a task&#39;s streamed text never produces a notice. Staleness is judged by the clock, not by an event, so a view keeps a slow re-read beside the stream. 
+     *
+     * @throws ApiException
+     *          if the Api call fails
+     */
+    @Test
+    public void teamsStreamTest() throws ApiException {
+        String response = 
+        api.teamsStream();
+        
+        // TODO: test validations
+    }
+    
 }

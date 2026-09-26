@@ -196,6 +196,7 @@ Class | Method | HTTP request | Description
 *ChatPanel::TeamsApi* | [**teams_remove_thread**](docs/TeamsApi.md#teams_remove_thread) | **DELETE** /v1/teams/runs/{runId}/threads/{threadId} | A person removes a thread from the board.
 *ChatPanel::TeamsApi* | [**teams_run_events**](docs/TeamsApi.md#teams_run_events) | **GET** /v1/teams/runs/{runId}/events | Tail a run — the record first, replay from `after`, then live.
 *ChatPanel::TeamsApi* | [**teams_stop_run**](docs/TeamsApi.md#teams_stop_run) | **POST** /v1/teams/runs/{runId}/stop | Ask the running client to stop.
+*ChatPanel::TeamsApi* | [**teams_stream**](docs/TeamsApi.md#teams_stream) | **GET** /v1/teams/stream | Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed.
 
 
 ## Documentation for Models
@@ -351,6 +352,7 @@ Class | Method | HTTP request | Description
  - [ChatPanel::TeamsHandoffRequest](docs/TeamsHandoffRequest.md)
  - [ChatPanel::TeamsListRuns200Response](docs/TeamsListRuns200Response.md)
  - [ChatPanel::TeamsPostRequest](docs/TeamsPostRequest.md)
+ - [ChatPanel::TeamsStreamEvent](docs/TeamsStreamEvent.md)
  - [ChatPanel::Transcription](docs/Transcription.md)
  - [ChatPanel::TranscriptionSegmentsInner](docs/TranscriptionSegmentsInner.md)
  - [ChatPanel::WebSearchRequest](docs/WebSearchRequest.md)

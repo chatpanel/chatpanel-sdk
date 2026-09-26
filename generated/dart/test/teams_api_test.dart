@@ -105,5 +105,14 @@ void main() {
       // TODO
     });
 
+    // Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed.
+    //
+    // A Runs or Board view listens here and re-reads a run (`GET /v1/teams/runs/{runId}`) or the list only when a notice names one, instead of polling. Facts only — a task's streamed text never produces a notice. Staleness is judged by the clock, not by an event, so a view keeps a slow re-read beside the stream. 
+    //
+    //Future<String> teamsStream() async
+    test('test teamsStream', () async {
+      // TODO
+    });
+
   });
 }

@@ -238,4 +238,16 @@ class TeamsApiTest extends TestCase
         // TODO: implement
         self::markTestIncomplete('Not implemented');
     }
+
+    /**
+     * Test case for teamsStream
+     *
+     * Run changes, pushed — `hello` once, then a `run` notice whenever a run is created, moves or is removed..
+     *
+     */
+    public function testTeamsStream()
+    {
+        // TODO: implement
+        self::markTestIncomplete('Not implemented');
+    }
 }
