@@ -99,4 +99,12 @@ class RuntimeDocumentTest {
         // TODO: test services
     }
 
+    /**
+     * Test the property 'inProcess'
+     */
+    @Test
+    void inProcessTest() {
+        // TODO: test inProcess
+    }
+
 }

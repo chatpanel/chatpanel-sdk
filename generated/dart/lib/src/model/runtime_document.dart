@@ -22,6 +22,7 @@ part 'runtime_document.g.dart';
 /// * [bridge] 
 /// * [engines] - podman/docker: { installed, version?, running?, machine? }; preferred; install? { command, url, note }
 /// * [services] - Per catalogue service (searxng · reranker · opendecision): { id, label, image, container, port, blurb, provides, engine, state, url, configured, answering } — a capability container also { model, default, models: [{ id, label, lang, tier, approxMB, ramMB, licence, recommended, installed, note, unavailable?, ramNote? }], machine: { engineRamMB } } (gateway 0.22+).
+/// * [inProcess] - rerank and decide answered by the gateway itself, the default since gateway 0.57.0 (a container service above is the alternative): per capability { provider (embedded | container | remote | none — who serves it now), model (when embedded), models: [{ id, label, mb, languages, note }] (the curated list a person may pick; the first is the default), threads, state (idle | downloading | loading | ready | down), progress?, error? }. Pick one with POST /config capabilities.<id> { provider: 'embedded', model } or turn it off with { provider: 'none' }.
 @BuiltValue()
 abstract class RuntimeDocument implements Built<RuntimeDocument, RuntimeDocumentBuilder> {
   /// the bridge's /health.sandbox: enabled, mode, runtime, reason?, extras, ownSessions, refused[] (names only), provisioned? (Windows)
@@ -49,6 +50,10 @@ abstract class RuntimeDocument implements Built<RuntimeDocument, RuntimeDocument
   /// Per catalogue service (searxng · reranker · opendecision): { id, label, image, container, port, blurb, provides, engine, state, url, configured, answering } — a capability container also { model, default, models: [{ id, label, lang, tier, approxMB, ramMB, licence, recommended, installed, note, unavailable?, ramNote? }], machine: { engineRamMB } } (gateway 0.22+).
   @BuiltValueField(wireName: r'services')
   BuiltMap<String, JsonObject?>? get services;
+
+  /// rerank and decide answered by the gateway itself, the default since gateway 0.57.0 (a container service above is the alternative): per capability { provider (embedded | container | remote | none — who serves it now), model (when embedded), models: [{ id, label, mb, languages, note }] (the curated list a person may pick; the first is the default), threads, state (idle | downloading | loading | ready | down), progress?, error? }. Pick one with POST /config capabilities.<id> { provider: 'embedded', model } or turn it off with { provider: 'none' }.
+  @BuiltValueField(wireName: r'inProcess')
+  BuiltMap<String, JsonObject?>? get inProcess;
 
   RuntimeDocument._();
 
@@ -119,6 +124,13 @@ class _$RuntimeDocumentSerializer implements PrimitiveSerializer<RuntimeDocument
       yield r'services';
       yield serializers.serialize(
         object.services,
+        specifiedType: const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
+      );
+    }
+    if (object.inProcess != null) {
+      yield r'inProcess';
+      yield serializers.serialize(
+        object.inProcess,
         specifiedType: const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
       );
     }
@@ -200,6 +212,14 @@ class _$RuntimeDocumentSerializer implements PrimitiveSerializer<RuntimeDocument
           ) as BuiltMap<String, JsonObject?>?;
           if (valueDes == null) continue;
           result.services.replace(valueDes);
+          break;
+        case r'inProcess':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
+          ) as BuiltMap<String, JsonObject?>?;
+          if (valueDes == null) continue;
+          result.inProcess.replace(valueDes);
           break;
         default:
           unhandled.add(key);

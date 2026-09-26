@@ -45,7 +45,8 @@ import net.chatpanel.sdk.ApiClient;
   RuntimeDocument.JSON_PROPERTY_REFUSED,
   RuntimeDocument.JSON_PROPERTY_BRIDGE,
   RuntimeDocument.JSON_PROPERTY_ENGINES,
-  RuntimeDocument.JSON_PROPERTY_SERVICES
+  RuntimeDocument.JSON_PROPERTY_SERVICES,
+  RuntimeDocument.JSON_PROPERTY_IN_PROCESS
 })
 @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.25.0")
 public class RuntimeDocument {
@@ -76,6 +77,10 @@ public class RuntimeDocument {
   public static final String JSON_PROPERTY_SERVICES = "services";
   @jakarta.annotation.Nullable
   private Map<String, Object> services;
+
+  public static final String JSON_PROPERTY_IN_PROCESS = "inProcess";
+  @jakarta.annotation.Nullable
+  private Map<String, Object> inProcess;
 
   public RuntimeDocument() { 
   }
@@ -288,6 +293,38 @@ public class RuntimeDocument {
   }
 
 
+  public RuntimeDocument inProcess(@jakarta.annotation.Nullable Map<String, Object> inProcess) {
+    this.inProcess = inProcess;
+    return this;
+  }
+
+  public RuntimeDocument putInProcessItem(String key, Object inProcessItem) {
+    if (this.inProcess == null) {
+      this.inProcess = new HashMap<>();
+    }
+    this.inProcess.put(key, inProcessItem);
+    return this;
+  }
+
+  /**
+   * rerank and decide answered by the gateway itself, the default since gateway 0.57.0 (a container service above is the alternative): per capability { provider (embedded | container | remote | none — who serves it now), model (when embedded), models: [{ id, label, mb, languages, note }] (the curated list a person may pick; the first is the default), threads, state (idle | downloading | loading | ready | down), progress?, error? }. Pick one with POST /config capabilities.&lt;id&gt; { provider: &#39;embedded&#39;, model } or turn it off with { provider: &#39;none&#39; }.
+   * @return inProcess
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_IN_PROCESS, required = false)
+  @JsonInclude(content = JsonInclude.Include.ALWAYS, value = JsonInclude.Include.USE_DEFAULTS)
+  public Map<String, Object> getInProcess() {
+    return inProcess;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_IN_PROCESS, required = false)
+  @JsonInclude(content = JsonInclude.Include.ALWAYS, value = JsonInclude.Include.USE_DEFAULTS)
+  public void setInProcess(@jakarta.annotation.Nullable Map<String, Object> inProcess) {
+    this.inProcess = inProcess;
+  }
+
+
   /**
    * Return true if this RuntimeDocument object is equal to o.
    */
@@ -306,12 +343,13 @@ public class RuntimeDocument {
         Objects.equals(this.refused, runtimeDocument.refused) &&
         Objects.equals(this.bridge, runtimeDocument.bridge) &&
         Objects.equals(this.engines, runtimeDocument.engines) &&
-        Objects.equals(this.services, runtimeDocument.services);
+        Objects.equals(this.services, runtimeDocument.services) &&
+        Objects.equals(this.inProcess, runtimeDocument.inProcess);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(sandbox, processes, containers, refused, bridge, engines, services);
+    return Objects.hash(sandbox, processes, containers, refused, bridge, engines, services, inProcess);
   }
 
   @Override
@@ -325,6 +363,7 @@ public class RuntimeDocument {
     sb.append("    bridge: ").append(toIndentedString(bridge)).append("\n");
     sb.append("    engines: ").append(toIndentedString(engines)).append("\n");
     sb.append("    services: ").append(toIndentedString(services)).append("\n");
+    sb.append("    inProcess: ").append(toIndentedString(inProcess)).append("\n");
     sb.append("}");
     return sb.toString();
   }
@@ -421,6 +460,15 @@ public class RuntimeDocument {
         joiner.add(String.format(java.util.Locale.ROOT, "%sservices%s%s=%s", prefix, suffix,
             "".equals(suffix) ? "" : String.format(java.util.Locale.ROOT, "%s%d%s", containerPrefix, _key, containerSuffix),
             getServices().get(_key), ApiClient.urlEncode(ApiClient.valueToString(getServices().get(_key)))));
+      }
+    }
+
+    // add `inProcess` to the URL query string
+    if (getInProcess() != null) {
+      for (String _key : getInProcess().keySet()) {
+        joiner.add(String.format(java.util.Locale.ROOT, "%sinProcess%s%s=%s", prefix, suffix,
+            "".equals(suffix) ? "" : String.format(java.util.Locale.ROOT, "%s%d%s", containerPrefix, _key, containerSuffix),
+            getInProcess().get(_key), ApiClient.urlEncode(ApiClient.valueToString(getInProcess().get(_key)))));
       }
     }
 

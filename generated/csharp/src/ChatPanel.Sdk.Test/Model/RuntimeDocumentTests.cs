@@ -115,5 +115,14 @@ namespace ChatPanel.Sdk.Test.Model
         {
             // TODO unit test for the property 'Services'
         }
+
+        /// <summary>
+        /// Test the property 'InProcess'
+        /// </summary>
+        [Fact]
+        public void InProcessTest()
+        {
+            // TODO unit test for the property 'InProcess'
+        }
     }
 }

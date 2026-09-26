@@ -40,8 +40,9 @@ namespace ChatPanel.Sdk.Model
         /// <param name="bridge">bridge</param>
         /// <param name="engines">podman/docker: { installed, version?, running?, machine? }; preferred; install? { command, url, note }</param>
         /// <param name="services">Per catalogue service (searxng · reranker · opendecision): { id, label, image, container, port, blurb, provides, engine, state, url, configured, answering } — a capability container also { model, default, models: [{ id, label, lang, tier, approxMB, ramMB, licence, recommended, installed, note, unavailable?, ramNote? }], machine: { engineRamMB } } (gateway 0.22+).</param>
+        /// <param name="inProcess">rerank and decide answered by the gateway itself, the default since gateway 0.57.0 (a container service above is the alternative): per capability { provider (embedded | container | remote | none — who serves it now), model (when embedded), models: [{ id, label, mb, languages, note }] (the curated list a person may pick; the first is the default), threads, state (idle | downloading | loading | ready | down), progress?, error? }. Pick one with POST /config capabilities.&lt;id&gt; { provider: &#39;embedded&#39;, model } or turn it off with { provider: &#39;none&#39; }.</param>
         [JsonConstructor]
-        public RuntimeDocument(Option<Dictionary<string, Object>?> sandbox = default, Option<RuntimeDocumentProcesses?> processes = default, Option<List<Dictionary<string, Object>>?> containers = default, Option<List<Dictionary<string, Object>>?> refused = default, Option<RuntimeDocumentBridge?> bridge = default, Option<Dictionary<string, Object>?> engines = default, Option<Dictionary<string, Object>?> services = default)
+        public RuntimeDocument(Option<Dictionary<string, Object>?> sandbox = default, Option<RuntimeDocumentProcesses?> processes = default, Option<List<Dictionary<string, Object>>?> containers = default, Option<List<Dictionary<string, Object>>?> refused = default, Option<RuntimeDocumentBridge?> bridge = default, Option<Dictionary<string, Object>?> engines = default, Option<Dictionary<string, Object>?> services = default, Option<Dictionary<string, Object>?> inProcess = default)
         {
             SandboxOption = sandbox;
             ProcessesOption = processes;
@@ -50,6 +51,7 @@ namespace ChatPanel.Sdk.Model
             BridgeOption = bridge;
             EnginesOption = engines;
             ServicesOption = services;
+            InProcessOption = inProcess;
             OnCreated();
         }
 
@@ -152,6 +154,20 @@ namespace ChatPanel.Sdk.Model
         public Dictionary<string, Object>? Services { get { return this.ServicesOption.Value; } set { this.ServicesOption = new(value); } }
 
         /// <summary>
+        /// Used to track the state of InProcess
+        /// </summary>
+        [JsonIgnore]
+        [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
+        public Option<Dictionary<string, Object>?> InProcessOption { get; private set; }
+
+        /// <summary>
+        /// rerank and decide answered by the gateway itself, the default since gateway 0.57.0 (a container service above is the alternative): per capability { provider (embedded | container | remote | none — who serves it now), model (when embedded), models: [{ id, label, mb, languages, note }] (the curated list a person may pick; the first is the default), threads, state (idle | downloading | loading | ready | down), progress?, error? }. Pick one with POST /config capabilities.&lt;id&gt; { provider: &#39;embedded&#39;, model } or turn it off with { provider: &#39;none&#39; }.
+        /// </summary>
+        /// <value>rerank and decide answered by the gateway itself, the default since gateway 0.57.0 (a container service above is the alternative): per capability { provider (embedded | container | remote | none — who serves it now), model (when embedded), models: [{ id, label, mb, languages, note }] (the curated list a person may pick; the first is the default), threads, state (idle | downloading | loading | ready | down), progress?, error? }. Pick one with POST /config capabilities.&lt;id&gt; { provider: &#39;embedded&#39;, model } or turn it off with { provider: &#39;none&#39; }.</value>
+        [JsonPropertyName("inProcess")]
+        public Dictionary<string, Object>? InProcess { get { return this.InProcessOption.Value; } set { this.InProcessOption = new(value); } }
+
+        /// <summary>
         /// Returns the string presentation of the object
         /// </summary>
         /// <returns>String presentation of the object</returns>
@@ -166,6 +182,7 @@ namespace ChatPanel.Sdk.Model
             sb.Append("  Bridge: ").Append(Bridge).Append("\n");
             sb.Append("  Engines: ").Append(Engines).Append("\n");
             sb.Append("  Services: ").Append(Services).Append("\n");
+            sb.Append("  InProcess: ").Append(InProcess).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }
@@ -220,6 +237,7 @@ namespace ChatPanel.Sdk.Model
             Option<RuntimeDocumentBridge?> bridge = default;
             Option<Dictionary<string, Object>?> engines = default;
             Option<Dictionary<string, Object>?> services = default;
+            Option<Dictionary<string, Object>?> inProcess = default;
 
             while (utf8JsonReader.Read())
             {
@@ -257,6 +275,9 @@ namespace ChatPanel.Sdk.Model
                         case "services":
                             services = new Option<Dictionary<string, Object>?>(JsonSerializer.Deserialize<Dictionary<string, Object>>(ref utf8JsonReader, jsonSerializerOptions)!);
                             break;
+                        case "inProcess":
+                            inProcess = new Option<Dictionary<string, Object>?>(JsonSerializer.Deserialize<Dictionary<string, Object>>(ref utf8JsonReader, jsonSerializerOptions)!);
+                            break;
                         default:
                             break;
                     }
@@ -284,7 +305,10 @@ namespace ChatPanel.Sdk.Model
             if (services.IsSet && services.Value == null)
                 throw new ArgumentNullException(nameof(services), "Property is not nullable for class RuntimeDocument.");
 
-            return new RuntimeDocument(sandbox, processes, containers, refused, bridge, engines, services);
+            if (inProcess.IsSet && inProcess.Value == null)
+                throw new ArgumentNullException(nameof(inProcess), "Property is not nullable for class RuntimeDocument.");
+
+            return new RuntimeDocument(sandbox, processes, containers, refused, bridge, engines, services, inProcess);
         }
 
         /// <summary>
@@ -332,6 +356,9 @@ namespace ChatPanel.Sdk.Model
             if (runtimeDocument.ServicesOption.IsSet && runtimeDocument.Services == null)
                 throw new ArgumentNullException(nameof(runtimeDocument.Services), "Property is required for class RuntimeDocument.");
 
+            if (runtimeDocument.InProcessOption.IsSet && runtimeDocument.InProcess == null)
+                throw new ArgumentNullException(nameof(runtimeDocument.InProcess), "Property is required for class RuntimeDocument.");
+
             if (runtimeDocument.SandboxOption.IsSet)
             {
                 writer.WritePropertyName("sandbox");
@@ -366,6 +393,11 @@ namespace ChatPanel.Sdk.Model
             {
                 writer.WritePropertyName("services");
                 JsonSerializer.Serialize(writer, runtimeDocument.Services, jsonSerializerOptions);
+            }
+            if (runtimeDocument.InProcessOption.IsSet)
+            {
+                writer.WritePropertyName("inProcess");
+                JsonSerializer.Serialize(writer, runtimeDocument.InProcess, jsonSerializerOptions);
             }
         }
     }

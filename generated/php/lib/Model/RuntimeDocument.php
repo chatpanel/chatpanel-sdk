@@ -64,7 +64,8 @@ class RuntimeDocument implements ModelInterface, ArrayAccess, \JsonSerializable
         'refused' => 'array[]',
         'bridge' => '\ChatPanelSdk\Model\RuntimeDocumentBridge',
         'engines' => 'array<string,mixed>',
-        'services' => 'array<string,mixed>'
+        'services' => 'array<string,mixed>',
+        'in_process' => 'array<string,mixed>'
     ];
 
     /**
@@ -81,7 +82,8 @@ class RuntimeDocument implements ModelInterface, ArrayAccess, \JsonSerializable
         'refused' => null,
         'bridge' => null,
         'engines' => null,
-        'services' => null
+        'services' => null,
+        'in_process' => null
     ];
 
     /**
@@ -96,7 +98,8 @@ class RuntimeDocument implements ModelInterface, ArrayAccess, \JsonSerializable
         'refused' => false,
         'bridge' => false,
         'engines' => false,
-        'services' => false
+        'services' => false,
+        'in_process' => false
     ];
 
     /**
@@ -191,7 +194,8 @@ class RuntimeDocument implements ModelInterface, ArrayAccess, \JsonSerializable
         'refused' => 'refused',
         'bridge' => 'bridge',
         'engines' => 'engines',
-        'services' => 'services'
+        'services' => 'services',
+        'in_process' => 'inProcess'
     ];
 
     /**
@@ -206,7 +210,8 @@ class RuntimeDocument implements ModelInterface, ArrayAccess, \JsonSerializable
         'refused' => 'setRefused',
         'bridge' => 'setBridge',
         'engines' => 'setEngines',
-        'services' => 'setServices'
+        'services' => 'setServices',
+        'in_process' => 'setInProcess'
     ];
 
     /**
@@ -221,7 +226,8 @@ class RuntimeDocument implements ModelInterface, ArrayAccess, \JsonSerializable
         'refused' => 'getRefused',
         'bridge' => 'getBridge',
         'engines' => 'getEngines',
-        'services' => 'getServices'
+        'services' => 'getServices',
+        'in_process' => 'getInProcess'
     ];
 
     /**
@@ -288,6 +294,7 @@ class RuntimeDocument implements ModelInterface, ArrayAccess, \JsonSerializable
         $this->setIfExists('bridge', $data ?? [], null);
         $this->setIfExists('engines', $data ?? [], null);
         $this->setIfExists('services', $data ?? [], null);
+        $this->setIfExists('in_process', $data ?? [], null);
     }
 
     /**
@@ -517,6 +524,33 @@ class RuntimeDocument implements ModelInterface, ArrayAccess, \JsonSerializable
             throw new \InvalidArgumentException('non-nullable services cannot be null');
         }
         $this->container['services'] = $services;
+
+        return $this;
+    }
+
+    /**
+     * Gets in_process
+     *
+     * @return array<string,mixed>|null
+     */
+    public function getInProcess()
+    {
+        return $this->container['in_process'];
+    }
+
+    /**
+     * Sets in_process
+     *
+     * @param array<string,mixed>|null $in_process rerank and decide answered by the gateway itself, the default since gateway 0.57.0 (a container service above is the alternative): per capability { provider (embedded | container | remote | none — who serves it now), model (when embedded), models: [{ id, label, mb, languages, note }] (the curated list a person may pick; the first is the default), threads, state (idle | downloading | loading | ready | down), progress?, error? }. Pick one with POST /config capabilities.<id> { provider: 'embedded', model } or turn it off with { provider: 'none' }.
+     *
+     * @return self
+     */
+    public function setInProcess($in_process)
+    {
+        if (is_null($in_process)) {
+            throw new \InvalidArgumentException('non-nullable in_process cannot be null');
+        }
+        $this->container['in_process'] = $in_process;
 
         return $this;
     }

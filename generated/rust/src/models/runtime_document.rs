@@ -33,6 +33,9 @@ pub struct RuntimeDocument {
     /// Per catalogue service (searxng · reranker · opendecision): { id, label, image, container, port, blurb, provides, engine, state, url, configured, answering } — a capability container also { model, default, models: [{ id, label, lang, tier, approxMB, ramMB, licence, recommended, installed, note, unavailable?, ramNote? }], machine: { engineRamMB } } (gateway 0.22+).
     #[serde(rename = "services", skip_serializing_if = "Option::is_none")]
     pub services: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// rerank and decide answered by the gateway itself, the default since gateway 0.57.0 (a container service above is the alternative): per capability { provider (embedded | container | remote | none — who serves it now), model (when embedded), models: [{ id, label, mb, languages, note }] (the curated list a person may pick; the first is the default), threads, state (idle | downloading | loading | ready | down), progress?, error? }. Pick one with POST /config capabilities.<id> { provider: 'embedded', model } or turn it off with { provider: 'none' }.
+    #[serde(rename = "inProcess", skip_serializing_if = "Option::is_none")]
+    pub in_process: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 impl RuntimeDocument {
@@ -46,6 +49,7 @@ impl RuntimeDocument {
             bridge: None,
             engines: None,
             services: None,
+            in_process: None,
         }
     }
 }

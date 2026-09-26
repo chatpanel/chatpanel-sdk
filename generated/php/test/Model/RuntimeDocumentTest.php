@@ -141,4 +141,13 @@ class RuntimeDocumentTest extends TestCase
         // TODO: implement
         self::markTestIncomplete('Not implemented');
     }
+
+    /**
+     * Test attribute "in_process"
+     */
+    public function testPropertyInProcess()
+    {
+        // TODO: implement
+        self::markTestIncomplete('Not implemented');
+    }
 }

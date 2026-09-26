@@ -31,6 +31,8 @@ type RuntimeDocument struct {
 	Engines map[string]interface{} `json:"engines,omitempty"`
 	// Per catalogue service (searxng · reranker · opendecision): { id, label, image, container, port, blurb, provides, engine, state, url, configured, answering } — a capability container also { model, default, models: [{ id, label, lang, tier, approxMB, ramMB, licence, recommended, installed, note, unavailable?, ramNote? }], machine: { engineRamMB } } (gateway 0.22+).
 	Services map[string]interface{} `json:"services,omitempty"`
+	// rerank and decide answered by the gateway itself, the default since gateway 0.57.0 (a container service above is the alternative): per capability { provider (embedded | container | remote | none — who serves it now), model (when embedded), models: [{ id, label, mb, languages, note }] (the curated list a person may pick; the first is the default), threads, state (idle | downloading | loading | ready | down), progress?, error? }. Pick one with POST /config capabilities.<id> { provider: 'embedded', model } or turn it off with { provider: 'none' }.
+	InProcess map[string]interface{} `json:"inProcess,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -277,6 +279,38 @@ func (o *RuntimeDocument) SetServices(v map[string]interface{}) {
 	o.Services = v
 }
 
+// GetInProcess returns the InProcess field value if set, zero value otherwise.
+func (o *RuntimeDocument) GetInProcess() map[string]interface{} {
+	if o == nil || IsNil(o.InProcess) {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.InProcess
+}
+
+// GetInProcessOk returns a tuple with the InProcess field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RuntimeDocument) GetInProcessOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.InProcess) {
+		return map[string]interface{}{}, false
+	}
+	return o.InProcess, true
+}
+
+// HasInProcess returns a boolean if a field has been set.
+func (o *RuntimeDocument) HasInProcess() bool {
+	if o != nil && !IsNil(o.InProcess) {
+		return true
+	}
+
+	return false
+}
+
+// SetInProcess gets a reference to the given map[string]interface{} and assigns it to the InProcess field.
+func (o *RuntimeDocument) SetInProcess(v map[string]interface{}) {
+	o.InProcess = v
+}
+
 func (o RuntimeDocument) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -308,6 +342,9 @@ func (o RuntimeDocument) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Services) {
 		toSerialize["services"] = o.Services
 	}
+	if !IsNil(o.InProcess) {
+		toSerialize["inProcess"] = o.InProcess
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -337,6 +374,7 @@ func (o *RuntimeDocument) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "bridge")
 		delete(additionalProperties, "engines")
 		delete(additionalProperties, "services")
+		delete(additionalProperties, "inProcess")
 		o.AdditionalProperties = additionalProperties
 	}
 

@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **Bridge** | Pointer to [**RuntimeDocumentBridge**](RuntimeDocumentBridge.md) |  | [optional] 
 **Engines** | Pointer to **map[string]interface{}** | podman/docker: { installed, version?, running?, machine? }; preferred; install? { command, url, note } | [optional] 
 **Services** | Pointer to **map[string]interface{}** | Per catalogue service (searxng · reranker · opendecision): { id, label, image, container, port, blurb, provides, engine, state, url, configured, answering } — a capability container also { model, default, models: [{ id, label, lang, tier, approxMB, ramMB, licence, recommended, installed, note, unavailable?, ramNote? }], machine: { engineRamMB } } (gateway 0.22+). | [optional] 
+**InProcess** | Pointer to **map[string]interface{}** | rerank and decide answered by the gateway itself, the default since gateway 0.57.0 (a container service above is the alternative): per capability { provider (embedded | container | remote | none — who serves it now), model (when embedded), models: [{ id, label, mb, languages, note }] (the curated list a person may pick; the first is the default), threads, state (idle | downloading | loading | ready | down), progress?, error? }. Pick one with POST /config capabilities.&lt;id&gt; { provider: &#39;embedded&#39;, model } or turn it off with { provider: &#39;none&#39; }. | [optional] 
 
 ## Methods
 
@@ -205,6 +206,31 @@ SetServices sets Services field to given value.
 `func (o *RuntimeDocument) HasServices() bool`
 
 HasServices returns a boolean if a field has been set.
+
+### GetInProcess
+
+`func (o *RuntimeDocument) GetInProcess() map[string]interface{}`
+
+GetInProcess returns the InProcess field if non-nil, zero value otherwise.
+
+### GetInProcessOk
+
+`func (o *RuntimeDocument) GetInProcessOk() (*map[string]interface{}, bool)`
+
+GetInProcessOk returns a tuple with the InProcess field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetInProcess
+
+`func (o *RuntimeDocument) SetInProcess(v map[string]interface{})`
+
+SetInProcess sets InProcess field to given value.
+
+### HasInProcess
+
+`func (o *RuntimeDocument) HasInProcess() bool`
+
+HasInProcess returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

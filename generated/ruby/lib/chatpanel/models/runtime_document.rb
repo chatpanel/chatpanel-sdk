@@ -35,6 +35,9 @@ module ChatPanel
     # Per catalogue service (searxng · reranker · opendecision): { id, label, image, container, port, blurb, provides, engine, state, url, configured, answering } — a capability container also { model, default, models: [{ id, label, lang, tier, approxMB, ramMB, licence, recommended, installed, note, unavailable?, ramNote? }], machine: { engineRamMB } } (gateway 0.22+).
     attr_accessor :services
 
+    # rerank and decide answered by the gateway itself, the default since gateway 0.57.0 (a container service above is the alternative): per capability { provider (embedded | container | remote | none — who serves it now), model (when embedded), models: [{ id, label, mb, languages, note }] (the curated list a person may pick; the first is the default), threads, state (idle | downloading | loading | ready | down), progress?, error? }. Pick one with POST /config capabilities.<id> { provider: 'embedded', model } or turn it off with { provider: 'none' }.
+    attr_accessor :in_process
+
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
@@ -44,7 +47,8 @@ module ChatPanel
         :'refused' => :'refused',
         :'bridge' => :'bridge',
         :'engines' => :'engines',
-        :'services' => :'services'
+        :'services' => :'services',
+        :'in_process' => :'inProcess'
       }
     end
 
@@ -67,7 +71,8 @@ module ChatPanel
         :'refused' => :'Array<Hash>',
         :'bridge' => :'RuntimeDocumentBridge',
         :'engines' => :'Hash<String, Object>',
-        :'services' => :'Hash<String, Object>'
+        :'services' => :'Hash<String, Object>',
+        :'in_process' => :'Hash<String, Object>'
       }
     end
 
@@ -130,6 +135,12 @@ module ChatPanel
           self.services = value
         end
       end
+
+      if attributes.key?(:'in_process')
+        if (value = attributes[:'in_process']).is_a?(Hash)
+          self.in_process = value
+        end
+      end
     end
 
     # Show invalid properties with the reasons. Usually used together with valid?
@@ -158,7 +169,8 @@ module ChatPanel
           refused == o.refused &&
           bridge == o.bridge &&
           engines == o.engines &&
-          services == o.services
+          services == o.services &&
+          in_process == o.in_process
     end
 
     # @see the `==` method
@@ -170,7 +182,7 @@ module ChatPanel
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [sandbox, processes, containers, refused, bridge, engines, services].hash
+      [sandbox, processes, containers, refused, bridge, engines, services, in_process].hash
     end
 
     # Builds the object from hash

@@ -22,8 +22,10 @@ public struct RuntimeDocument: Sendable, Codable, Hashable {
     public var engines: [String: JSONValue]?
     /** Per catalogue service (searxng · reranker · opendecision): { id, label, image, container, port, blurb, provides, engine, state, url, configured, answering } — a capability container also { model, default, models: [{ id, label, lang, tier, approxMB, ramMB, licence, recommended, installed, note, unavailable?, ramNote? }], machine: { engineRamMB } } (gateway 0.22+). */
     public var services: [String: JSONValue]?
+    /** rerank and decide answered by the gateway itself, the default since gateway 0.57.0 (a container service above is the alternative): per capability { provider (embedded | container | remote | none — who serves it now), model (when embedded), models: [{ id, label, mb, languages, note }] (the curated list a person may pick; the first is the default), threads, state (idle | downloading | loading | ready | down), progress?, error? }. Pick one with POST /config capabilities.<id> { provider: 'embedded', model } or turn it off with { provider: 'none' }. */
+    public var inProcess: [String: JSONValue]?
 
-    public init(sandbox: [String: JSONValue]? = nil, processes: RuntimeDocumentProcesses? = nil, containers: [Dictionary]? = nil, refused: [Dictionary]? = nil, bridge: RuntimeDocumentBridge? = nil, engines: [String: JSONValue]? = nil, services: [String: JSONValue]? = nil) {
+    public init(sandbox: [String: JSONValue]? = nil, processes: RuntimeDocumentProcesses? = nil, containers: [Dictionary]? = nil, refused: [Dictionary]? = nil, bridge: RuntimeDocumentBridge? = nil, engines: [String: JSONValue]? = nil, services: [String: JSONValue]? = nil, inProcess: [String: JSONValue]? = nil) {
         self.sandbox = sandbox
         self.processes = processes
         self.containers = containers
@@ -31,6 +33,7 @@ public struct RuntimeDocument: Sendable, Codable, Hashable {
         self.bridge = bridge
         self.engines = engines
         self.services = services
+        self.inProcess = inProcess
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -41,6 +44,7 @@ public struct RuntimeDocument: Sendable, Codable, Hashable {
         case bridge
         case engines
         case services
+        case inProcess
     }
 
     // Encodable protocol methods
@@ -54,6 +58,7 @@ public struct RuntimeDocument: Sendable, Codable, Hashable {
         try container.encodeIfPresent(bridge, forKey: .bridge)
         try container.encodeIfPresent(engines, forKey: .engines)
         try container.encodeIfPresent(services, forKey: .services)
+        try container.encodeIfPresent(inProcess, forKey: .inProcess)
     }
 }
 
