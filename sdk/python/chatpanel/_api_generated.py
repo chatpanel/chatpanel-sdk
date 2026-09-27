@@ -95,6 +95,11 @@ OPERATIONS: Dict[str, Operation] = {
     "skills.list": Operation(id="skills.list", method="GET", path="/skills", auth="open", since="0.6.64", stream=None, path_params=(), query_params=("workdir",)),
     "skills.get": Operation(id="skills.get", method="GET", path="/skills/{skillId}", auth="open", since="0.6.67", stream=None, path_params=("skillId",), query_params=("workdir",)),
     "fusions.list": Operation(id="fusions.list", method="GET", path="/v1/fusions", auth="open", since="0.33.0", stream=None, path_params=(), query_params=()),
+    "browser.status": Operation(id="browser.status", method="GET", path="/v1/browser", auth="token", since="0.59.0", stream=None, path_params=(), query_params=()),
+    "browser.call": Operation(id="browser.call", method="POST", path="/v1/browser/call", auth="token", since="0.59.0", stream=None, path_params=(), query_params=()),
+    "browser.stream": Operation(id="browser.stream", method="GET", path="/v1/browser/stream", auth="token", since="0.59.0", stream="sse", path_params=(), query_params=()),
+    "browser.announce": Operation(id="browser.announce", method="POST", path="/v1/browser/announce", auth="token", since="0.59.0", stream=None, path_params=(), query_params=()),
+    "browser.result": Operation(id="browser.result", method="POST", path="/v1/browser/result", auth="token", since="0.59.0", stream=None, path_params=(), query_params=()),
 }
 """Every operation in the contract, keyed by operationId — the route table the runtime executes."""
 
@@ -588,6 +593,33 @@ class FusionsApi:
         return self._rt.request(OPERATIONS["fusions.list"], path={}, query=None, headers=headers, body=None, timeout=timeout)
 
 
+class BrowserApi:
+    """A local client using the person's own browser through the ChatPanel extension — the browser holds a stream, a client's page-tool call is carried to it and its result back. Every action still passes the extension's site grant, its commit confirmation and its bot-check hand-off."""
+
+    def __init__(self, rt: Runtime) -> None:
+        self._rt = rt
+
+    def status(self, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.BrowserStatus":
+        """Is a browser connected, which one, and the page tool it offers. The spec and guidance are the extension's own — a client hands them to its model as they are. — Requires the gateway token. Gateway 0.59.0+."""
+        return self._rt.request(OPERATIONS["browser.status"], path={}, query=None, headers=headers, body=None, timeout=timeout)
+
+    def call(self, body: "T.BrowserCall", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.BrowserCallResult":
+        """Run one page action in the person's browser and wait for its result. Carried to the connected browser, which runs it on the task's own tab through the same guards as its own page actions — the first call of a panel session asks the person, and anything that submits, pays or books is confirmed by them. Waits up to `timeoutMs` (default 120 s) because a confirmation is a person deciding. — Requires the gateway token. Gateway 0.59.0+."""
+        return self._rt.request(OPERATIONS["browser.call"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def stream(self, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Iterator[SseFrame["T.BrowserStreamEvent"]]:
+        """The browser's end — `hello` with its session, then a `call` frame per action to run. — Requires the gateway token. Gateway 0.59.0+."""
+        return self._rt.stream(OPERATIONS["browser.stream"], path={}, query=None, headers=headers, timeout=timeout)
+
+    def announce(self, body: "T.BrowserAnnounce", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """The browser says what it offers — its page tool spec and guidance. — Requires the gateway token. Gateway 0.59.0+."""
+        return self._rt.request(OPERATIONS["browser.announce"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def result(self, body: "T.BrowserResult", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """The browser answers a call it ran. Only the session the call went to may answer it. — Requires the gateway token. Gateway 0.59.0+."""
+        return self._rt.request(OPERATIONS["browser.result"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+
 class Api:
     """The namespaces a client exposes, built on one runtime."""
 
@@ -610,3 +642,4 @@ class Api:
         self.skills = SkillsApi(rt)
         self.a2a = A2aApi(rt)
         self.fusions = FusionsApi(rt)
+        self.browser = BrowserApi(rt)

@@ -36,6 +36,18 @@ import 'package:chatpanel/src/model/agents_rate_request.dart';
 import 'package:chatpanel/src/model/agents_scorecards200_response.dart';
 import 'package:chatpanel/src/model/audio_speech_request.dart';
 import 'package:chatpanel/src/model/audit.dart';
+import 'package:chatpanel/src/model/browser_announce.dart';
+import 'package:chatpanel/src/model/browser_announce200_response.dart';
+import 'package:chatpanel/src/model/browser_call.dart';
+import 'package:chatpanel/src/model/browser_call_result.dart';
+import 'package:chatpanel/src/model/browser_call_result_result.dart';
+import 'package:chatpanel/src/model/browser_call_result_result_one_of.dart';
+import 'package:chatpanel/src/model/browser_info.dart';
+import 'package:chatpanel/src/model/browser_result.dart';
+import 'package:chatpanel/src/model/browser_result_result.dart';
+import 'package:chatpanel/src/model/browser_result_result_one_of.dart';
+import 'package:chatpanel/src/model/browser_status.dart';
+import 'package:chatpanel/src/model/browser_stream_event.dart';
 import 'package:chatpanel/src/model/capabilities_document.dart';
 import 'package:chatpanel/src/model/capabilities_document_server.dart';
 import 'package:chatpanel/src/model/capability.dart';
@@ -207,6 +219,18 @@ part 'serializers.g.dart';
   AgentsScorecards200Response,
   AudioSpeechRequest,
   Audit,
+  BrowserAnnounce,
+  BrowserAnnounce200Response,
+  BrowserCall,
+  BrowserCallResult,
+  BrowserCallResultResult,
+  BrowserCallResultResultOneOf,
+  BrowserInfo,
+  BrowserResult,
+  BrowserResultResult,
+  BrowserResultResultOneOf,
+  BrowserStatus,
+  BrowserStreamEvent,
   CapabilitiesDocument,
   CapabilitiesDocumentServer,
   Capability,

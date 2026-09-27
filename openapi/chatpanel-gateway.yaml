@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.35.0
+  version: 0.36.0
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -96,6 +96,8 @@ tags:
     description: Web retrieval — search through the provider the user chose, and a page as LLM-ready Markdown, cited where it landed, with its sections (docs/web-retrieval.md).
   - name: runtime
     description: What runs processes for the user and how — the process sandbox (through the bridge), the container engine on this machine, and the services the gateway runs for the user (docs/sandboxing.md S1).
+  - name: browser
+    description: A local client using the person's own browser through the ChatPanel extension — the browser holds a stream, a client's page-tool call is carried to it and its result back. Every action still passes the extension's site grant, its commit confirmation and its bot-check hand-off.
   - name: events
     description: The durable event log, merged across every client and served as one CloudEvents 1.0 stream — metadata only (refs and counts, never content), ordered by `(host, seq)` and `causes`, never by clock (docs/event-stream-sync.md E1).
 
@@ -2293,6 +2295,114 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/FusionList' }
 
+  # ------------------------------------------------------------------ browser
+  /v1/browser:
+    get:
+      operationId: browser.status
+      tags: [browser]
+      summary: Is a browser connected, which one, and the page tool it offers.
+      description: The spec and guidance are the extension's own — a client hands them to its model as they are.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.59.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      responses:
+        '200':
+          description: The connected browser, or `connected false`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BrowserStatus' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /v1/browser/call:
+    post:
+      operationId: browser.call
+      tags: [browser]
+      summary: Run one page action in the person's browser and wait for its result.
+      description: |
+        Carried to the connected browser, which runs it on the task's own tab through the same
+        guards as its own page actions — the first call of a panel session asks the person, and
+        anything that submits, pays or books is confirmed by them. Waits up to `timeoutMs`
+        (default 120 s) because a confirmation is a person deciding.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.59.0'
+      x-chatpanel-scope: the person's browser
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BrowserCall' }
+      responses:
+        '200':
+          description: What the page action returned.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BrowserCallResult' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Error' }
+        '504': { $ref: '#/components/responses/Error' }
+  /v1/browser/stream:
+    get:
+      operationId: browser.stream
+      tags: [browser]
+      summary: The browser's end — `hello` with its session, then a `call` frame per action to run.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.59.0'
+      x-chatpanel-stream: sse
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      responses:
+        '200':
+          description: '`event: hello` `{ session, version }`, then `event: call` `{ id, action, args, task }`, `event: cancel` `{ id }` when a call timed out, `event: replaced` when a newer browser connected; a comment ping every 25 s.'
+          content:
+            text/event-stream:
+              schema: { type: string }
+              x-chatpanel-frame: { $ref: '#/components/schemas/BrowserStreamEvent' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /v1/browser/announce:
+    post:
+      operationId: browser.announce
+      tags: [browser]
+      summary: The browser says what it offers — its page tool spec and guidance.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.59.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BrowserAnnounce' }
+      responses:
+        '200':
+          description: Accepted.
+          content:
+            application/json:
+              schema: { type: object, required: [ok], properties: { ok: { type: boolean } } }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Error' }
+  /v1/browser/result:
+    post:
+      operationId: browser.result
+      tags: [browser]
+      summary: The browser answers a call it ran. Only the session the call went to may answer it.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.59.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BrowserResult' }
+      responses:
+        '200':
+          description: Accepted.
+          content:
+            application/json:
+              schema: { type: object, required: [ok], properties: { ok: { type: boolean } } }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/Error' }
+
 components:
   securitySchemes:
     gatewayToken:
@@ -3541,3 +3651,76 @@ components:
               source: { type: string, description: 'For a derived one: ner, or the runtime service.' }
               running: { type: boolean }
               describe: { type: string, description: 'The fusion in a sentence.' }
+    BrowserInfo:
+      type: object
+      required: [kind]
+      properties:
+        kind: { type: string, enum: [chrome, edge, firefox, brave, opera, chromium, other] }
+        version: { type: string }
+    BrowserStatus:
+      type: object
+      required: [connected, pending]
+      properties:
+        connected: { type: boolean }
+        pending: { type: integer, description: Calls waiting on the browser. }
+        waiting: { type: boolean, description: A browser holds the stream but has not announced yet. }
+        browser: { $ref: '#/components/schemas/BrowserInfo' }
+        extension: { type: string, description: The extension's version. }
+        spec: { type: object, additionalProperties: true, description: 'The page tool: { name, description, parameters } — hand it to a model as it is.' }
+        system: { type: string, description: The guidance that goes with the tool. }
+    BrowserCall:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, pattern: '^[a-z][a-z0-9_]{0,63}$', description: 'A page action: open_tab, navigate, read_page, inspect_page, fill_form, click_by_text, screenshot, describe…' }
+        args: { type: object, additionalProperties: true }
+        task: { type: string, maxLength: 200, description: What the person asked for — shown to them when the browser asks to be used. }
+        timeoutMs: { type: integer, minimum: 1, maximum: 600000 }
+    BrowserCallResult:
+      type: object
+      required: [ok, result]
+      properties:
+        ok: { type: boolean }
+        result:
+          description: The page action's result — its text, or text with a screenshot.
+          oneOf:
+            - { type: string }
+            - type: object
+              required: [text]
+              properties:
+                text: { type: string }
+                image: { type: string, description: A data URL. }
+    BrowserStreamEvent:
+      type: object
+      required: [event]
+      properties:
+        event: { type: string, enum: [hello, call, cancel, replaced] }
+        session: { type: string, description: On `hello`. }
+        version: { type: string, description: On `hello` — the gateway's. }
+        id: { type: string, description: On `call` and `cancel`. }
+        action: { type: string }
+        args: { type: object, additionalProperties: true }
+        task: { type: string }
+    BrowserAnnounce:
+      type: object
+      required: [session, spec]
+      properties:
+        session: { type: string }
+        browser: { $ref: '#/components/schemas/BrowserInfo' }
+        extension: { type: string }
+        spec: { type: object, additionalProperties: true }
+        system: { type: string }
+    BrowserResult:
+      type: object
+      required: [session, id, result]
+      properties:
+        session: { type: string }
+        id: { type: string }
+        result:
+          oneOf:
+            - { type: string }
+            - type: object
+              required: [text]
+              properties:
+                text: { type: string }
+                image: { type: string }

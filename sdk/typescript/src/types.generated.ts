@@ -1162,3 +1162,80 @@ export interface FusionList {
   }>;
 }
 
+export interface BrowserInfo {
+  kind: "chrome" | "edge" | "firefox" | "brave" | "opera" | "chromium" | "other";
+  version?: string;
+}
+
+export interface BrowserStatus {
+  connected: boolean;
+  /** Calls waiting on the browser. */
+  pending: number;
+  /** A browser holds the stream but has not announced yet. */
+  waiting?: boolean;
+  browser?: BrowserInfo;
+  /** The extension's version. */
+  extension?: string;
+  /** The page tool: { name, description, parameters } — hand it to a model as it is. */
+  spec?: {
+    [key: string]: unknown;
+  };
+  /** The guidance that goes with the tool. */
+  system?: string;
+}
+
+export interface BrowserCall {
+  /** A page action: open_tab, navigate, read_page, inspect_page, fill_form, click_by_text, screenshot, describe… */
+  action: string;
+  args?: {
+    [key: string]: unknown;
+  };
+  /** What the person asked for — shown to them when the browser asks to be used. */
+  task?: string;
+  timeoutMs?: number;
+}
+
+export interface BrowserCallResult {
+  ok: boolean;
+  /** The page action's result — its text, or text with a screenshot. */
+  result: string | {
+    text: string;
+    /** A data URL. */
+    image?: string;
+  };
+}
+
+export interface BrowserStreamEvent {
+  event: "hello" | "call" | "cancel" | "replaced";
+  /** On `hello`. */
+  session?: string;
+  /** On `hello` — the gateway's. */
+  version?: string;
+  /** On `call` and `cancel`. */
+  id?: string;
+  action?: string;
+  args?: {
+    [key: string]: unknown;
+  };
+  task?: string;
+}
+
+export interface BrowserAnnounce {
+  session: string;
+  browser?: BrowserInfo;
+  extension?: string;
+  spec: {
+    [key: string]: unknown;
+  };
+  system?: string;
+}
+
+export interface BrowserResult {
+  session: string;
+  id: string;
+  result: string | {
+    text: string;
+    image?: string;
+  };
+}
+

@@ -2,7 +2,7 @@
 
 ChatPanel Gateway API
 
-- API version: 0.35.0
+- API version: 0.36.0
 
 - Generator version: 7.25.0
 
@@ -60,7 +60,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>net.chatpanel</groupId>
   <artifactId>chatpanel-sdk</artifactId>
-  <version>0.35.0</version>
+  <version>0.36.0</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -70,7 +70,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "net.chatpanel:chatpanel-sdk:0.35.0"
+compile "net.chatpanel:chatpanel-sdk:0.36.0"
 ```
 
 ### Others
@@ -83,7 +83,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/chatpanel-sdk-0.35.0.jar`
+- `target/chatpanel-sdk-0.36.0.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -152,6 +152,16 @@ Class | Method | HTTP request | Description
 *AudioApi* | [**audioSpeechWithHttpInfo**](docs/AudioApi.md#audioSpeechWithHttpInfo) | **POST** /v1/audio/speech | Text to speech (OpenAI-compatible) — a WAV back.
 *AudioApi* | [**audioTranscribe**](docs/AudioApi.md#audioTranscribe) | **POST** /v1/audio/transcriptions | Transcribe an audio file (OpenAI-compatible).
 *AudioApi* | [**audioTranscribeWithHttpInfo**](docs/AudioApi.md#audioTranscribeWithHttpInfo) | **POST** /v1/audio/transcriptions | Transcribe an audio file (OpenAI-compatible).
+*BrowserApi* | [**browserAnnounce**](docs/BrowserApi.md#browserAnnounce) | **POST** /v1/browser/announce | The browser says what it offers — its page tool spec and guidance.
+*BrowserApi* | [**browserAnnounceWithHttpInfo**](docs/BrowserApi.md#browserAnnounceWithHttpInfo) | **POST** /v1/browser/announce | The browser says what it offers — its page tool spec and guidance.
+*BrowserApi* | [**browserCall**](docs/BrowserApi.md#browserCall) | **POST** /v1/browser/call | Run one page action in the person&#39;s browser and wait for its result.
+*BrowserApi* | [**browserCallWithHttpInfo**](docs/BrowserApi.md#browserCallWithHttpInfo) | **POST** /v1/browser/call | Run one page action in the person&#39;s browser and wait for its result.
+*BrowserApi* | [**browserResult**](docs/BrowserApi.md#browserResult) | **POST** /v1/browser/result | The browser answers a call it ran. Only the session the call went to may answer it.
+*BrowserApi* | [**browserResultWithHttpInfo**](docs/BrowserApi.md#browserResultWithHttpInfo) | **POST** /v1/browser/result | The browser answers a call it ran. Only the session the call went to may answer it.
+*BrowserApi* | [**browserStatus**](docs/BrowserApi.md#browserStatus) | **GET** /v1/browser | Is a browser connected, which one, and the page tool it offers.
+*BrowserApi* | [**browserStatusWithHttpInfo**](docs/BrowserApi.md#browserStatusWithHttpInfo) | **GET** /v1/browser | Is a browser connected, which one, and the page tool it offers.
+*BrowserApi* | [**browserStream**](docs/BrowserApi.md#browserStream) | **GET** /v1/browser/stream | The browser&#39;s end — &#x60;hello&#x60; with its session, then a &#x60;call&#x60; frame per action to run.
+*BrowserApi* | [**browserStreamWithHttpInfo**](docs/BrowserApi.md#browserStreamWithHttpInfo) | **GET** /v1/browser/stream | The browser&#39;s end — &#x60;hello&#x60; with its session, then a &#x60;call&#x60; frame per action to run.
 *CapabilitiesApi* | [**capabilitiesDecide**](docs/CapabilitiesApi.md#capabilitiesDecide) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
 *CapabilitiesApi* | [**capabilitiesDecideWithHttpInfo**](docs/CapabilitiesApi.md#capabilitiesDecideWithHttpInfo) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
 *CapabilitiesApi* | [**capabilitiesDetect**](docs/CapabilitiesApi.md#capabilitiesDetect) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores.
@@ -334,6 +344,18 @@ Class | Method | HTTP request | Description
  - [AgentsScorecards200Response](docs/AgentsScorecards200Response.md)
  - [AudioSpeechRequest](docs/AudioSpeechRequest.md)
  - [Audit](docs/Audit.md)
+ - [BrowserAnnounce](docs/BrowserAnnounce.md)
+ - [BrowserAnnounce200Response](docs/BrowserAnnounce200Response.md)
+ - [BrowserCall](docs/BrowserCall.md)
+ - [BrowserCallResult](docs/BrowserCallResult.md)
+ - [BrowserCallResultResult](docs/BrowserCallResultResult.md)
+ - [BrowserCallResultResultOneOf](docs/BrowserCallResultResultOneOf.md)
+ - [BrowserInfo](docs/BrowserInfo.md)
+ - [BrowserResult](docs/BrowserResult.md)
+ - [BrowserResultResult](docs/BrowserResultResult.md)
+ - [BrowserResultResultOneOf](docs/BrowserResultResultOneOf.md)
+ - [BrowserStatus](docs/BrowserStatus.md)
+ - [BrowserStreamEvent](docs/BrowserStreamEvent.md)
  - [CapabilitiesDocument](docs/CapabilitiesDocument.md)
  - [CapabilitiesDocumentServer](docs/CapabilitiesDocumentServer.md)
  - [Capability](docs/Capability.md)

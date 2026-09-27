@@ -12,6 +12,7 @@ import 'package:chatpanel/src/auth/oauth.dart';
 import 'package:chatpanel/src/api/a2a_api.dart';
 import 'package:chatpanel/src/api/agents_api.dart';
 import 'package:chatpanel/src/api/audio_api.dart';
+import 'package:chatpanel/src/api/browser_api.dart';
 import 'package:chatpanel/src/api/capabilities_api.dart';
 import 'package:chatpanel/src/api/chat_api.dart';
 import 'package:chatpanel/src/api/engines_api.dart';
@@ -139,6 +140,12 @@ class Chatpanel {
   /// by doing that all interceptors will not be executed
   AudioApi getAudioApi() {
     return AudioApi(dio, serializers);
+  }
+
+  /// Get BrowserApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  BrowserApi getBrowserApi() {
+    return BrowserApi(dio, serializers);
   }
 
   /// Get CapabilitiesApi instance, base route and serializer can be overridden by a given but be careful,

@@ -95,6 +95,11 @@ export const OPERATIONS = {
   "skills.list": { id: "skills.list", method: "GET", path: "/skills", auth: "open", since: "0.6.64", stream: null, pathParams: [], queryParams: ["workdir"] },
   "skills.get": { id: "skills.get", method: "GET", path: "/skills/{skillId}", auth: "open", since: "0.6.67", stream: null, pathParams: ["skillId"], queryParams: ["workdir"] },
   "fusions.list": { id: "fusions.list", method: "GET", path: "/v1/fusions", auth: "open", since: "0.33.0", stream: null, pathParams: [], queryParams: [] },
+  "browser.status": { id: "browser.status", method: "GET", path: "/v1/browser", auth: "token", since: "0.59.0", stream: null, pathParams: [], queryParams: [] },
+  "browser.call": { id: "browser.call", method: "POST", path: "/v1/browser/call", auth: "token", since: "0.59.0", stream: null, pathParams: [], queryParams: [] },
+  "browser.stream": { id: "browser.stream", method: "GET", path: "/v1/browser/stream", auth: "token", since: "0.59.0", stream: "sse", pathParams: [], queryParams: [] },
+  "browser.announce": { id: "browser.announce", method: "POST", path: "/v1/browser/announce", auth: "token", since: "0.59.0", stream: null, pathParams: [], queryParams: [] },
+  "browser.result": { id: "browser.result", method: "POST", path: "/v1/browser/result", auth: "token", since: "0.59.0", stream: null, pathParams: [], queryParams: [] },
 } as const satisfies Record<string, Operation>;
 
 export type OperationId = keyof typeof OPERATIONS;
@@ -793,6 +798,36 @@ export class FusionsApi {
   }
 }
 
+/** A local client using the person's own browser through the ChatPanel extension — the browser holds a stream, a client's page-tool call is carried to it and its result back. Every action still passes the extension's site grant, its commit confirmation and its bot-check hand-off. */
+export class BrowserApi {
+  private readonly rt: Runtime;
+  constructor(rt: Runtime) { this.rt = rt; }
+  /** Is a browser connected, which one, and the page tool it offers. The spec and guidance are the extension's own — a client hands them to its model as they are. — Requires the gateway token. Gateway 0.59.0+. */
+  status(opts?: RequestOptions): Promise<T.BrowserStatus> {
+    return this.rt.request(OPERATIONS["browser.status"], { path: {  }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+  /** Run one page action in the person's browser and wait for its result. Carried to the connected browser, which runs it on the task's own tab through the same guards as its own page actions — the first call of a panel session asks the person, and anything that submits, pays or books is confirmed by them. Waits up to `timeoutMs` (default 120 s) because a confirmation is a person deciding. — Requires the gateway token. Gateway 0.59.0+. */
+  call(body: T.BrowserCall, opts?: RequestOptions): Promise<T.BrowserCallResult> {
+    return this.rt.request(OPERATIONS["browser.call"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** The browser's end — `hello` with its session, then a `call` frame per action to run. — Requires the gateway token. Gateway 0.59.0+. */
+  stream(opts?: RequestOptions): AsyncIterable<SseFrame<T.BrowserStreamEvent>> {
+    return this.rt.stream<T.BrowserStreamEvent>(OPERATIONS["browser.stream"], { path: {  }, query: undefined, headers: opts?.headers, opts });
+  }
+  /** The browser says what it offers — its page tool spec and guidance. — Requires the gateway token. Gateway 0.59.0+. */
+  announce(body: T.BrowserAnnounce, opts?: RequestOptions): Promise<{
+    ok: boolean;
+  }> {
+    return this.rt.request(OPERATIONS["browser.announce"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** The browser answers a call it ran. Only the session the call went to may answer it. — Requires the gateway token. Gateway 0.59.0+. */
+  result(body: T.BrowserResult, opts?: RequestOptions): Promise<{
+    ok: boolean;
+  }> {
+    return this.rt.request(OPERATIONS["browser.result"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+}
+
 /** The namespaces a client exposes, built on one runtime. */
 export function buildApi(rt: Runtime) {
   return {
@@ -814,5 +849,6 @@ export function buildApi(rt: Runtime) {
     skills: new SkillsApi(rt),
     a2a: new A2aApi(rt),
     fusions: new FusionsApi(rt),
+    browser: new BrowserApi(rt),
   };
 }

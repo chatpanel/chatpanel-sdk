@@ -874,3 +874,61 @@ class FusionList(TypedDict, total=False):
     fusions: List[Dict[str, Any]]
 
 
+class BrowserInfo(TypedDict, total=False):
+    """BrowserInfo"""
+    kind: Literal["chrome", "edge", "firefox", "brave", "opera", "chromium", "other"]
+    version: NotRequired[str]
+
+
+class BrowserStatus(TypedDict, total=False):
+    """BrowserStatus"""
+    connected: bool
+    pending: int  # Calls waiting on the browser.
+    waiting: NotRequired[bool]  # A browser holds the stream but has not announced yet.
+    browser: NotRequired["BrowserInfo"]
+    extension: NotRequired[str]  # The extension's version.
+    spec: NotRequired[Dict[str, Any]]  # The page tool: { name, description, parameters } — hand it to a model as it is.
+    system: NotRequired[str]  # The guidance that goes with the tool.
+
+
+class BrowserCall(TypedDict, total=False):
+    """BrowserCall"""
+    action: str  # A page action: open_tab, navigate, read_page, inspect_page, fill_form, click_by_text, screenshot, describe…
+    args: NotRequired[Dict[str, Any]]
+    task: NotRequired[str]  # What the person asked for — shown to them when the browser asks to be used.
+    timeoutMs: NotRequired[int]
+
+
+class BrowserCallResult(TypedDict, total=False):
+    """BrowserCallResult"""
+    ok: bool
+    result: Union[str, Dict[str, Any]]  # The page action's result — its text, or text with a screenshot.
+
+
+class BrowserStreamEvent(TypedDict, total=False):
+    """BrowserStreamEvent"""
+    event: Literal["hello", "call", "cancel", "replaced"]
+    session: NotRequired[str]  # On `hello`.
+    version: NotRequired[str]  # On `hello` — the gateway's.
+    id: NotRequired[str]  # On `call` and `cancel`.
+    action: NotRequired[str]
+    args: NotRequired[Dict[str, Any]]
+    task: NotRequired[str]
+
+
+class BrowserAnnounce(TypedDict, total=False):
+    """BrowserAnnounce"""
+    session: str
+    browser: NotRequired["BrowserInfo"]
+    extension: NotRequired[str]
+    spec: Dict[str, Any]
+    system: NotRequired[str]
+
+
+class BrowserResult(TypedDict, total=False):
+    """BrowserResult"""
+    session: str
+    id: str
+    result: Union[str, Dict[str, Any]]
+
+
