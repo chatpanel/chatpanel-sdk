@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.36.0
+  version: 0.36.1
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -3668,6 +3668,10 @@ components:
         extension: { type: string, description: The extension's version. }
         spec: { type: object, additionalProperties: true, description: 'The page tool: { name, description, parameters } — hand it to a model as it is.' }
         system: { type: string, description: The guidance that goes with the tool. }
+        actions:
+          type: array
+          description: The full specs behind the dispatcher (gateway 0.59.1+) — a hub lists each action with its own arguments.
+          items: { type: object, additionalProperties: true }
     BrowserCall:
       type: object
       required: [action]
@@ -3710,6 +3714,7 @@ components:
         extension: { type: string }
         spec: { type: object, additionalProperties: true }
         system: { type: string }
+        actions: { type: array, items: { type: object, additionalProperties: true }, description: Optional — the full specs behind the dispatcher. }
     BrowserResult:
       type: object
       required: [session, id, result]

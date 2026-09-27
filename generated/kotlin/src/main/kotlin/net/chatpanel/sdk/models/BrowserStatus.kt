@@ -38,6 +38,7 @@ import com.squareup.moshi.JsonClass
  * @param extension The extension's version.
  * @param spec The page tool: { name, description, parameters } — hand it to a model as it is.
  * @param system The guidance that goes with the tool.
+ * @param actions The full specs behind the dispatcher (gateway 0.59.1+) — a hub lists each action with its own arguments.
  */
 
 
@@ -67,7 +68,11 @@ data class BrowserStatus (
 
     /* The guidance that goes with the tool. */
     @Json(name = "system")
-    val system: kotlin.String? = null
+    val system: kotlin.String? = null,
+
+    /* The full specs behind the dispatcher (gateway 0.59.1+) — a hub lists each action with its own arguments. */
+    @Json(name = "actions")
+    val actions: kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.Any>>? = null
 
 ) {
 

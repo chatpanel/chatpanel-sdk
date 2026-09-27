@@ -36,6 +36,7 @@ import com.squareup.moshi.JsonClass
  * @param browser 
  * @param extension 
  * @param system 
+ * @param actions Optional — the full specs behind the dispatcher.
  */
 
 
@@ -54,7 +55,11 @@ data class BrowserAnnounce (
     val extension: kotlin.String? = null,
 
     @Json(name = "system")
-    val system: kotlin.String? = null
+    val system: kotlin.String? = null,
+
+    /* Optional — the full specs behind the dispatcher. */
+    @Json(name = "actions")
+    val actions: kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.Any>>? = null
 
 ) {
 

@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **_extension** | **String** | The extension&#39;s version. | [optional] 
 **spec** | **[String: JSONValue]** | The page tool: { name, description, parameters } — hand it to a model as it is. | [optional] 
 **system** | **String** | The guidance that goes with the tool. | [optional] 
+**actions** | [[String: JSONValue]] | The full specs behind the dispatcher (gateway 0.59.1+) — a hub lists each action with its own arguments. | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

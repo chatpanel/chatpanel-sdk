@@ -32,5 +32,11 @@ void main() {
       // TODO
     });
 
+    // Optional — the full specs behind the dispatcher.
+    // BuiltList<BuiltMap<String, JsonObject>> actions
+    test('to test the property `actions`', () async {
+      // TODO
+    });
+
   });
 }

@@ -15,6 +15,7 @@ Name | Type | Description | Notes
 **extension_** | **String** | The extension's version. | [optional] 
 **spec** | [**BuiltMap&lt;String, JsonObject&gt;**](JsonObject.md) | The page tool: { name, description, parameters } — hand it to a model as it is. | [optional] 
 **system** | **String** | The guidance that goes with the tool. | [optional] 
+**actions** | [**BuiltList&lt;BuiltMap&lt;String, JsonObject&gt;&gt;**](BuiltMap.md) | The full specs behind the dispatcher (gateway 0.59.1+) — a hub lists each action with its own arguments. | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

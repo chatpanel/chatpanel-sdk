@@ -76,5 +76,11 @@ class BrowserStatusTest : ShouldSpec() {
             //modelInstance.system shouldBe ("TODO")
         }
 
+        // to test the property `actions` - The full specs behind the dispatcher (gateway 0.59.1+) — a hub lists each action with its own arguments.
+        should("test actions") {
+            // uncomment below to test the property
+            //modelInstance.actions shouldBe ("TODO")
+        }
+
     }
 }

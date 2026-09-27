@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **extension** | Option<**String**> |  | [optional]
 **spec** | **std::collections::HashMap<String, serde_json::Value>** |  | 
 **system** | Option<**String**> |  | [optional]
+**actions** | Option<**Vec<std::collections::HashMap<String, serde_json::Value>>**> | Optional — the full specs behind the dispatcher. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

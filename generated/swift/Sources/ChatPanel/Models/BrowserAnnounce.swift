@@ -14,13 +14,16 @@ public struct BrowserAnnounce: Sendable, Codable, Hashable {
     public var _extension: String?
     public var spec: [String: JSONValue]
     public var system: String?
+    /** Optional — the full specs behind the dispatcher. */
+    public var actions: [[String: JSONValue]]?
 
-    public init(session: String, browser: BrowserInfo? = nil, _extension: String? = nil, spec: [String: JSONValue], system: String? = nil) {
+    public init(session: String, browser: BrowserInfo? = nil, _extension: String? = nil, spec: [String: JSONValue], system: String? = nil, actions: [[String: JSONValue]]? = nil) {
         self.session = session
         self.browser = browser
         self._extension = _extension
         self.spec = spec
         self.system = system
+        self.actions = actions
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -29,6 +32,7 @@ public struct BrowserAnnounce: Sendable, Codable, Hashable {
         case _extension = "extension"
         case spec
         case system
+        case actions
     }
 
     // Encodable protocol methods
@@ -40,6 +44,7 @@ public struct BrowserAnnounce: Sendable, Codable, Hashable {
         try container.encodeIfPresent(_extension, forKey: ._extension)
         try container.encode(spec, forKey: .spec)
         try container.encodeIfPresent(system, forKey: .system)
+        try container.encodeIfPresent(actions, forKey: .actions)
     }
 }
 

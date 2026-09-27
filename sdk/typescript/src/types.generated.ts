@@ -1182,6 +1182,10 @@ export interface BrowserStatus {
   };
   /** The guidance that goes with the tool. */
   system?: string;
+  /** The full specs behind the dispatcher (gateway 0.59.1+) — a hub lists each action with its own arguments. */
+  actions?: Array<{
+    [key: string]: unknown;
+  }>;
 }
 
 export interface BrowserCall {
@@ -1228,6 +1232,10 @@ export interface BrowserAnnounce {
     [key: string]: unknown;
   };
   system?: string;
+  /** Optional — the full specs behind the dispatcher. */
+  actions?: Array<{
+    [key: string]: unknown;
+  }>;
 }
 
 export interface BrowserResult {

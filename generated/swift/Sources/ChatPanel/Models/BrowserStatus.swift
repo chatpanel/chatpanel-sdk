@@ -21,8 +21,10 @@ public struct BrowserStatus: Sendable, Codable, Hashable {
     public var spec: [String: JSONValue]?
     /** The guidance that goes with the tool. */
     public var system: String?
+    /** The full specs behind the dispatcher (gateway 0.59.1+) — a hub lists each action with its own arguments. */
+    public var actions: [[String: JSONValue]]?
 
-    public init(connected: Bool, pending: Int, waiting: Bool? = nil, browser: BrowserInfo? = nil, _extension: String? = nil, spec: [String: JSONValue]? = nil, system: String? = nil) {
+    public init(connected: Bool, pending: Int, waiting: Bool? = nil, browser: BrowserInfo? = nil, _extension: String? = nil, spec: [String: JSONValue]? = nil, system: String? = nil, actions: [[String: JSONValue]]? = nil) {
         self.connected = connected
         self.pending = pending
         self.waiting = waiting
@@ -30,6 +32,7 @@ public struct BrowserStatus: Sendable, Codable, Hashable {
         self._extension = _extension
         self.spec = spec
         self.system = system
+        self.actions = actions
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -40,6 +43,7 @@ public struct BrowserStatus: Sendable, Codable, Hashable {
         case _extension = "extension"
         case spec
         case system
+        case actions
     }
 
     // Encodable protocol methods
@@ -53,6 +57,7 @@ public struct BrowserStatus: Sendable, Codable, Hashable {
         try container.encodeIfPresent(_extension, forKey: ._extension)
         try container.encodeIfPresent(spec, forKey: .spec)
         try container.encodeIfPresent(system, forKey: .system)
+        try container.encodeIfPresent(actions, forKey: .actions)
     }
 }
 

@@ -24,7 +24,7 @@ info:
   license:
     name: Apache-2.0
   title: ChatPanel Gateway API
-  version: 0.36.0
+  version: 0.36.1
 servers:
 - description: The local gateway. Loopback only.
   url: http://127.0.0.1:4320
@@ -7136,6 +7136,9 @@ components:
         spec:
           key: ""
         system: system
+        actions:
+        - key: ""
+        - key: ""
       properties:
         connected:
           type: boolean
@@ -7158,6 +7161,14 @@ components:
         system:
           description: The guidance that goes with the tool.
           type: string
+        actions:
+          description: The full specs behind the dispatcher (gateway 0.59.1+) — a
+            hub lists each action with its own arguments.
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          default: null
       required:
       - connected
       - pending
@@ -7237,6 +7248,9 @@ components:
         spec:
           key: ""
         system: system
+        actions:
+        - key: ""
+        - key: ""
       properties:
         session:
           type: string
@@ -7249,6 +7263,13 @@ components:
           type: object
         system:
           type: string
+        actions:
+          description: Optional — the full specs behind the dispatcher.
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          default: null
       required:
       - session
       - spec

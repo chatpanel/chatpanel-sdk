@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **Extension** | **string** | The extension&#39;s version. | [optional] 
 **Spec** | **Dictionary&lt;string, Object&gt;** | The page tool: { name, description, parameters } — hand it to a model as it is. | [optional] 
 **System** | **string** | The guidance that goes with the tool. | [optional] 
+**Actions** | **List&lt;Dictionary&lt;string, Object&gt;&gt;** | The full specs behind the dispatcher (gateway 0.59.1+) — a hub lists each action with its own arguments. | [optional] 
 
 [[Back to Model list]](../../README.md#documentation-for-models) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to README]](../../README.md)
 

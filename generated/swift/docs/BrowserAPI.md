@@ -23,7 +23,7 @@ The browser says what it offers — its page tool spec and guidance.
 // The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
 import ChatPanel
 
-let browserAnnounce = BrowserAnnounce(session: "session_example", browser: BrowserInfo(kind: "kind_example", version: "version_example"), _extension: "_extension_example", spec: "TODO", system: "system_example") // BrowserAnnounce | 
+let browserAnnounce = BrowserAnnounce(session: "session_example", browser: BrowserInfo(kind: "kind_example", version: "version_example"), _extension: "_extension_example", spec: "TODO", system: "system_example", actions: ["TODO"]) // BrowserAnnounce | 
 
 // The browser says what it offers — its page tool spec and guidance.
 BrowserAPI.browserAnnounce(browserAnnounce: browserAnnounce) { (response, error) in

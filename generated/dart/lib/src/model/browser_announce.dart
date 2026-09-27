@@ -19,6 +19,7 @@ part 'browser_announce.g.dart';
 /// * [extension_] 
 /// * [spec] 
 /// * [system] 
+/// * [actions] - Optional — the full specs behind the dispatcher.
 @BuiltValue()
 abstract class BrowserAnnounce implements Built<BrowserAnnounce, BrowserAnnounceBuilder> {
   @BuiltValueField(wireName: r'session')
@@ -35,6 +36,10 @@ abstract class BrowserAnnounce implements Built<BrowserAnnounce, BrowserAnnounce
 
   @BuiltValueField(wireName: r'system')
   String? get system;
+
+  /// Optional — the full specs behind the dispatcher.
+  @BuiltValueField(wireName: r'actions')
+  BuiltList<BuiltMap<String, JsonObject?>>? get actions;
 
   BrowserAnnounce._();
 
@@ -88,6 +93,13 @@ class _$BrowserAnnounceSerializer implements PrimitiveSerializer<BrowserAnnounce
       yield serializers.serialize(
         object.system,
         specifiedType: const FullType(String),
+      );
+    }
+    if (object.actions != null) {
+      yield r'actions';
+      yield serializers.serialize(
+        object.actions,
+        specifiedType: const FullType(BuiltList, [FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)])]),
       );
     }
   }
@@ -150,6 +162,14 @@ class _$BrowserAnnounceSerializer implements PrimitiveSerializer<BrowserAnnounce
           ) as String?;
           if (valueDes == null) continue;
           result.system = valueDes;
+          break;
+        case r'actions':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(BuiltList, [FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)])]),
+          ) as BuiltList<BuiltMap<String, JsonObject?>>?;
+          if (valueDes == null) continue;
+          result.actions.replace(valueDes);
           break;
         default:
           unhandled.add(key);

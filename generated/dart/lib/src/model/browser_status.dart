@@ -21,6 +21,7 @@ part 'browser_status.g.dart';
 /// * [extension_] - The extension's version.
 /// * [spec] - The page tool: { name, description, parameters } — hand it to a model as it is.
 /// * [system] - The guidance that goes with the tool.
+/// * [actions] - The full specs behind the dispatcher (gateway 0.59.1+) — a hub lists each action with its own arguments.
 @BuiltValue()
 abstract class BrowserStatus implements Built<BrowserStatus, BrowserStatusBuilder> {
   @BuiltValueField(wireName: r'connected')
@@ -48,6 +49,10 @@ abstract class BrowserStatus implements Built<BrowserStatus, BrowserStatusBuilde
   /// The guidance that goes with the tool.
   @BuiltValueField(wireName: r'system')
   String? get system;
+
+  /// The full specs behind the dispatcher (gateway 0.59.1+) — a hub lists each action with its own arguments.
+  @BuiltValueField(wireName: r'actions')
+  BuiltList<BuiltMap<String, JsonObject?>>? get actions;
 
   BrowserStatus._();
 
@@ -115,6 +120,13 @@ class _$BrowserStatusSerializer implements PrimitiveSerializer<BrowserStatus> {
       yield serializers.serialize(
         object.system,
         specifiedType: const FullType(String),
+      );
+    }
+    if (object.actions != null) {
+      yield r'actions';
+      yield serializers.serialize(
+        object.actions,
+        specifiedType: const FullType(BuiltList, [FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)])]),
       );
     }
   }
@@ -193,6 +205,14 @@ class _$BrowserStatusSerializer implements PrimitiveSerializer<BrowserStatus> {
           ) as String?;
           if (valueDes == null) continue;
           result.system = valueDes;
+          break;
+        case r'actions':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(BuiltList, [FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)])]),
+          ) as BuiltList<BuiltMap<String, JsonObject?>>?;
+          if (valueDes == null) continue;
+          result.actions.replace(valueDes);
           break;
         default:
           unhandled.add(key);

@@ -47,5 +47,11 @@ void main() {
       // TODO
     });
 
+    // The full specs behind the dispatcher (gateway 0.59.1+) — a hub lists each action with its own arguments.
+    // BuiltList<BuiltMap<String, JsonObject>> actions
+    test('to test the property `actions`', () async {
+      // TODO
+    });
+
   });
 }

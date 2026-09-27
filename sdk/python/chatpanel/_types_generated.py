@@ -889,6 +889,7 @@ class BrowserStatus(TypedDict, total=False):
     extension: NotRequired[str]  # The extension's version.
     spec: NotRequired[Dict[str, Any]]  # The page tool: { name, description, parameters } — hand it to a model as it is.
     system: NotRequired[str]  # The guidance that goes with the tool.
+    actions: NotRequired[List[Dict[str, Any]]]  # The full specs behind the dispatcher (gateway 0.59.1+) — a hub lists each action with its own arguments.
 
 
 class BrowserCall(TypedDict, total=False):
@@ -923,6 +924,7 @@ class BrowserAnnounce(TypedDict, total=False):
     extension: NotRequired[str]
     spec: Dict[str, Any]
     system: NotRequired[str]
+    actions: NotRequired[List[Dict[str, Any]]]  # Optional — the full specs behind the dispatcher.
 
 
 class BrowserResult(TypedDict, total=False):

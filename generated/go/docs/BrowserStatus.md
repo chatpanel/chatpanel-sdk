@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **Extension** | Pointer to **string** | The extension&#39;s version. | [optional] 
 **Spec** | Pointer to **map[string]interface{}** | The page tool: { name, description, parameters } — hand it to a model as it is. | [optional] 
 **System** | Pointer to **string** | The guidance that goes with the tool. | [optional] 
+**Actions** | Pointer to **[]map[string]interface{}** | The full specs behind the dispatcher (gateway 0.59.1+) — a hub lists each action with its own arguments. | [optional] 
 
 ## Methods
 
@@ -195,6 +196,31 @@ SetSystem sets System field to given value.
 `func (o *BrowserStatus) HasSystem() bool`
 
 HasSystem returns a boolean if a field has been set.
+
+### GetActions
+
+`func (o *BrowserStatus) GetActions() []map[string]interface{}`
+
+GetActions returns the Actions field if non-nil, zero value otherwise.
+
+### GetActionsOk
+
+`func (o *BrowserStatus) GetActionsOk() (*[]map[string]interface{}, bool)`
+
+GetActionsOk returns a tuple with the Actions field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetActions
+
+`func (o *BrowserStatus) SetActions(v []map[string]interface{})`
+
+SetActions sets Actions field to given value.
+
+### HasActions
+
+`func (o *BrowserStatus) HasActions() bool`
+
+HasActions returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

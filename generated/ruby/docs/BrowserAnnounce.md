@@ -9,6 +9,7 @@
 | **extension** | **String** |  | [optional] |
 | **spec** | **Hash&lt;String, Object&gt;** |  |  |
 | **system** | **String** |  | [optional] |
+| **actions** | **Array&lt;Hash&lt;String, Object&gt;&gt;** | Optional — the full specs behind the dispatcher. | [optional] |
 
 ## Example
 
@@ -20,7 +21,8 @@ instance = ChatPanel::BrowserAnnounce.new(
   browser: null,
   extension: null,
   spec: null,
-  system: null
+  system: null,
+  actions: null
 )
 ```
 

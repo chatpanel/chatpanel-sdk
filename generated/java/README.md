@@ -2,7 +2,7 @@
 
 ChatPanel Gateway API
 
-- API version: 0.36.0
+- API version: 0.36.1
 
 - Generator version: 7.25.0
 
@@ -60,7 +60,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>net.chatpanel</groupId>
   <artifactId>chatpanel-sdk</artifactId>
-  <version>0.36.0</version>
+  <version>0.36.1</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -70,7 +70,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "net.chatpanel:chatpanel-sdk:0.36.0"
+compile "net.chatpanel:chatpanel-sdk:0.36.1"
 ```
 
 ### Others
@@ -83,7 +83,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/chatpanel-sdk-0.36.0.jar`
+- `target/chatpanel-sdk-0.36.1.jar`
 - `target/lib/*.jar`
 
 ## Getting Started

@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **Extension** | Pointer to **string** |  | [optional] 
 **Spec** | **map[string]interface{}** |  | 
 **System** | Pointer to **string** |  | [optional] 
+**Actions** | Pointer to **[]map[string]interface{}** | Optional — the full specs behind the dispatcher. | [optional] 
 
 ## Methods
 
@@ -143,6 +144,31 @@ SetSystem sets System field to given value.
 `func (o *BrowserAnnounce) HasSystem() bool`
 
 HasSystem returns a boolean if a field has been set.
+
+### GetActions
+
+`func (o *BrowserAnnounce) GetActions() []map[string]interface{}`
+
+GetActions returns the Actions field if non-nil, zero value otherwise.
+
+### GetActionsOk
+
+`func (o *BrowserAnnounce) GetActionsOk() (*[]map[string]interface{}, bool)`
+
+GetActionsOk returns a tuple with the Actions field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetActions
+
+`func (o *BrowserAnnounce) SetActions(v []map[string]interface{})`
+
+SetActions sets Actions field to given value.
+
+### HasActions
+
+`func (o *BrowserAnnounce) HasActions() bool`
+
+HasActions returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

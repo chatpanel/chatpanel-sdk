@@ -64,5 +64,11 @@ class BrowserAnnounceTest : ShouldSpec() {
             //modelInstance.system shouldBe ("TODO")
         }
 
+        // to test the property `actions` - Optional — the full specs behind the dispatcher.
+        should("test actions") {
+            // uncomment below to test the property
+            //modelInstance.actions shouldBe ("TODO")
+        }
+
     }
 }
