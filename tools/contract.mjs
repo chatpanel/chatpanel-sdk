@@ -26,6 +26,8 @@ const NOT_IN_SDK = {
   '/admin/token': 'the extension\'s Origin→token handshake; an SDK holds the token already',
   '/config': 'rewrites the gateway\'s routing/redaction config — admin UI, not an app',
   '/channels': 'Telegram/WhatsApp setup — bot tokens and pairing, admin-gated like /config (0.11.5)',
+  '/v1/link': 'lists the phones paired to this gateway — the local settings page, admin-gated (gateway 0.60.0)',
+  '/v1/link/pair': 'mints a one-time pairing code for a phone — the local settings page, admin-gated (gateway 0.60.0)',
   '/logs': 'in-memory request traces — admin UI',
   '/update': 'installs software',
   '/status': 'the extension\'s Gateway tab; /health carries what an app needs',
