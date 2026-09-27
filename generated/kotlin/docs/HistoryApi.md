@@ -10,6 +10,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | [**historyPutRecords**](HistoryApi.md#historyPutRecords) | **PUT** /v1/history/records | Push whole records; the gateway derives the searchable text itself. |
 | [**historyRecords**](HistoryApi.md#historyRecords) | **GET** /v1/history/records | WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included. |
 | [**historyRelated**](HistoryApi.md#historyRelated) | **GET** /v1/history/related | The records most connected to one record. |
+| [**historyResearch**](HistoryApi.md#historyResearch) | **POST** /v1/research | A question about the person&#39;s own data, researched over the whole store. |
 | [**historySearch**](HistoryApi.md#historySearch) | **POST** /v1/history/search | One keyword query over the warm index. |
 | [**historySmartSearch**](HistoryApi.md#historySmartSearch) | **POST** /v1/history/smart-search | Several phrasings at once, rank-fused; briefs lead. |
 | [**historyStatus**](HistoryApi.md#historyStatus) | **GET** /v1/history/status | Size and freshness of the warm index (and the lossless tier from 0.10.0). |
@@ -350,6 +351,60 @@ apiInstance.accessTokenProvider = { "" }
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+<a id="historyResearch"></a>
+# **historyResearch**
+> ResearchResponse historyResearch(researchRequest)
+
+A question about the person&#39;s own data, researched over the whole store.
+
+The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+
+### Example
+```kotlin
+// Import classes:
+//import net.chatpanel.sdk.infrastructure.*
+//import net.chatpanel.sdk.models.*
+
+val apiInstance = HistoryApi()
+val researchRequest : ResearchRequest =  // ResearchRequest | 
+try {
+    val result : ResearchResponse = apiInstance.historyResearch(researchRequest)
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling HistoryApi#historyResearch")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling HistoryApi#historyResearch")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **researchRequest** | [**ResearchRequest**](ResearchRequest.md)|  | |
+
+### Return type
+
+[**ResearchResponse**](ResearchResponse.md)
+
+### Authorization
+
+
+Configure gatewayToken statically:
+```kotlin
+ApiClient.accessToken = ""
+```
+Configure gatewayToken dynamically:
+```kotlin
+apiInstance.accessTokenProvider = { "" }
+```
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 <a id="historySearch"></a>

@@ -315,6 +315,36 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/SmartSearchResponse' }
         '400': { $ref: '#/components/responses/Error' }
+  /v1/research:
+    post:
+      operationId: history.research
+      tags: [history]
+      summary: A question about the person's own data, researched over the whole store.
+      description: |
+        The shared bounded loop over the warm store: the question is framed (kind of record,
+        people named, dates, the latest or the first, a count, counts per person or per
+        month/week/day), every matching record is queried — sorted by date when it asks for the
+        last one, counted when it asks how many — the top records are read in full, and the
+        result carries what was searched, found and read, plus `attachment`: one block to hand
+        a model, with record ids to cite. Pass `next` back as `previous` to continue the question
+        ("no, even later", "what was it about"). Open like the other history reads; naming a
+        `model` (to condense long records and check the evidence) runs a model on the caller's
+        behalf and needs the gateway token.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.58.0'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResearchRequest' }
+      responses:
+        '200':
+          description: What was searched, found and read, and the block for a model.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResearchResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
   /v1/history/related:
     get:
       operationId: history.related
@@ -2837,6 +2867,105 @@ components:
             question: { type: string, description: "The natural-language question." }
             queries: { type: array, items: { type: string }, description: "2–4 keyword phrasings of your own; they lead." }
             maxQueries: { type: integer, minimum: 1, maximum: 6, default: 4 }
+    ResearchPlan:
+      type: object
+      description: How the question was framed — the typed plan the store was queried with.
+      additionalProperties: true
+      properties:
+        intent: { type: string, enum: [find, latest, earliest, count, group, people, list, detail] }
+        kind: { type: string, description: "meeting, note, chat — or empty for every kind." }
+        names: { type: array, items: { type: string } }
+        terms: { type: array, items: { type: string } }
+        sort: { type: string, enum: [relevance, newest, oldest] }
+        limit: { type: integer }
+        since: { type: integer, format: int64 }
+        after: { type: integer, format: int64 }
+        before: { type: integer, format: int64 }
+        group: { type: string, description: "person, month, week, day — or empty." }
+        readFull: { type: boolean }
+        followUp: { type: boolean }
+        target: { type: [string, 'null'] }
+    ResearchFollowUp:
+      type: object
+      description: What a follow-up continues — the `next` of the previous answer, passed back as `previous`.
+      required: [plan]
+      properties:
+        plan: { $ref: '#/components/schemas/ResearchPlan' }
+        top: { type: [string, 'null'], description: "The record the answer pointed at." }
+        answer: { type: string, description: "What the answer said (a date in it bounds \"even later\")." }
+    ResearchRequest:
+      type: object
+      required: [question]
+      properties:
+        question: { type: string, description: "The person's question, in their words." }
+        previous: { $ref: '#/components/schemas/ResearchFollowUp' }
+        model: { type: string, description: "A model id to read with (condense long records, check the evidence). Needs the gateway token; without one the parts are quoted as they are." }
+        excludeId: { type: string, description: "A record that is not evidence — the conversation asking." }
+    ResearchResponse:
+      type: object
+      required: [ok, plan, how, rows, read, next]
+      properties:
+        ok: { type: boolean }
+        question: { type: string }
+        plan: { $ref: '#/components/schemas/ResearchPlan' }
+        how: { type: string, description: "How the store was searched, in words." }
+        framedBy: { type: string, enum: [rules, model] }
+        count: { type: [integer, 'null'], description: "Every match in the store, not the rows returned." }
+        rows:
+          type: array
+          items:
+            type: object
+            required: [id]
+            additionalProperties: true
+            properties:
+              id: { type: string }
+              kind: { type: string }
+              title: { type: string }
+              date: { type: integer, format: int64 }
+              snippet: { type: string }
+        groups:
+          type: [array, 'null']
+          items:
+            type: object
+            required: [key, count]
+            properties:
+              key: { type: string }
+              count: { type: integer }
+        read:
+          type: array
+          items:
+            type: object
+            required: [id]
+            properties:
+              id: { type: string }
+              title: { type: string }
+              date: { type: integer, format: int64 }
+              parts: { type: integer }
+              of: { type: integer }
+              speakers:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name: { type: string }
+                    lines: { type: integer }
+              notes: { type: array, items: { type: string } }
+        memory: { type: array, items: { type: string } }
+        rounds: { type: integer }
+        verdict: { type: [string, 'null'] }
+        ms: { type: integer }
+        next: { $ref: '#/components/schemas/ResearchFollowUp' }
+        attachment:
+          description: The block to hand a model — null when nothing was found anywhere.
+          oneOf:
+            - type: object
+              required: [title, text]
+              properties:
+                title: { type: string }
+                text: { type: string }
+            - type: 'null'
+        size: { type: integer }
+        newest: { type: [integer, 'null'], format: int64 }
     SearchHit:
       type: object
       required: [id]

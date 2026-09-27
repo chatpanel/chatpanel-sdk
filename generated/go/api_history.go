@@ -96,6 +96,29 @@ type HistoryAPI interface {
 	HistoryRelatedExecute(r ApiHistoryRelatedRequest) (*HistoryRelated200Response, *http.Response, error)
 
 	/*
+	HistoryResearch A question about the person's own data, researched over the whole store.
+
+	The shared bounded loop over the warm store: the question is framed (kind of record,
+people named, dates, the latest or the first, a count, counts per person or per
+month/week/day), every matching record is queried — sorted by date when it asks for the
+last one, counted when it asks how many — the top records are read in full, and the
+result carries what was searched, found and read, plus `attachment`: one block to hand
+a model, with record ids to cite. Pass `next` back as `previous` to continue the question
+("no, even later", "what was it about"). Open like the other history reads; naming a
+`model` (to condense long records and check the evidence) runs a model on the caller's
+behalf and needs the gateway token.
+
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiHistoryResearchRequest
+	*/
+	HistoryResearch(ctx context.Context) ApiHistoryResearchRequest
+
+	// HistoryResearchExecute executes the request
+	//  @return ResearchResponse
+	HistoryResearchExecute(r ApiHistoryResearchRequest) (*ResearchResponse, *http.Response, error)
+
+	/*
 	HistorySearch One keyword query over the warm index.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -975,6 +998,146 @@ func (a *HistoryAPIService) HistoryRelatedExecute(r ApiHistoryRelatedRequest) (*
 		newErr := &GenericOpenAPIError{
 			body:  localVarBody,
 			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiHistoryResearchRequest struct {
+	ctx context.Context
+	ApiService HistoryAPI
+	researchRequest *ResearchRequest
+}
+
+func (r ApiHistoryResearchRequest) ResearchRequest(researchRequest ResearchRequest) ApiHistoryResearchRequest {
+	r.researchRequest = &researchRequest
+	return r
+}
+
+func (r ApiHistoryResearchRequest) Execute() (*ResearchResponse, *http.Response, error) {
+	return r.ApiService.HistoryResearchExecute(r)
+}
+
+/*
+HistoryResearch A question about the person's own data, researched over the whole store.
+
+The shared bounded loop over the warm store: the question is framed (kind of record,
+people named, dates, the latest or the first, a count, counts per person or per
+month/week/day), every matching record is queried — sorted by date when it asks for the
+last one, counted when it asks how many — the top records are read in full, and the
+result carries what was searched, found and read, plus `attachment`: one block to hand
+a model, with record ids to cite. Pass `next` back as `previous` to continue the question
+("no, even later", "what was it about"). Open like the other history reads; naming a
+`model` (to condense long records and check the evidence) runs a model on the caller's
+behalf and needs the gateway token.
+
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiHistoryResearchRequest
+*/
+func (a *HistoryAPIService) HistoryResearch(ctx context.Context) ApiHistoryResearchRequest {
+	return ApiHistoryResearchRequest{
+		ApiService: a,
+		ctx: ctx,
+	}
+}
+
+// Execute executes the request
+//  @return ResearchResponse
+func (a *HistoryAPIService) HistoryResearchExecute(r ApiHistoryResearchRequest) (*ResearchResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *ResearchResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "HistoryAPIService.HistoryResearch")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/v1/research"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.researchRequest == nil {
+		return localVarReturnValue, nil, reportError("researchRequest is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.researchRequest
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 403 {
+			var v ErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

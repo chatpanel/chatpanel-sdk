@@ -518,6 +518,92 @@ export type SmartSearchRequest = (SearchFilters) & ({
   maxQueries?: number;
 });
 
+/** How the question was framed — the typed plan the store was queried with. */
+export interface ResearchPlan {
+  intent?: "find" | "latest" | "earliest" | "count" | "group" | "people" | "list" | "detail";
+  /** meeting, note, chat — or empty for every kind. */
+  kind?: string;
+  names?: Array<string>;
+  terms?: Array<string>;
+  sort?: "relevance" | "newest" | "oldest";
+  limit?: number;
+  since?: number;
+  after?: number;
+  before?: number;
+  /** person, month, week, day — or empty. */
+  group?: string;
+  readFull?: boolean;
+  followUp?: boolean;
+  target?: string | null;
+  [key: string]: unknown;
+}
+
+/** What a follow-up continues — the `next` of the previous answer, passed back as `previous`. */
+export interface ResearchFollowUp {
+  plan: ResearchPlan;
+  /** The record the answer pointed at. */
+  top?: string | null;
+  /** What the answer said (a date in it bounds "even later"). */
+  answer?: string;
+}
+
+export interface ResearchRequest {
+  /** The person's question, in their words. */
+  question: string;
+  previous?: ResearchFollowUp;
+  /** A model id to read with (condense long records, check the evidence). Needs the gateway token; without one the parts are quoted as they are. */
+  model?: string;
+  /** A record that is not evidence — the conversation asking. */
+  excludeId?: string;
+}
+
+export interface ResearchResponse {
+  ok: boolean;
+  question?: string;
+  plan: ResearchPlan;
+  /** How the store was searched, in words. */
+  how: string;
+  framedBy?: "rules" | "model";
+  /** Every match in the store, not the rows returned. */
+  count?: number | null;
+  rows: Array<{
+    id: string;
+    kind?: string;
+    title?: string;
+    date?: number;
+    snippet?: string;
+    [key: string]: unknown;
+  }>;
+  groups?: Array<{
+    key: string;
+    count: number;
+  }> | null;
+  read: Array<{
+    id: string;
+    title?: string;
+    date?: number;
+    parts?: number;
+    of?: number;
+    speakers?: Array<{
+      name?: string;
+      lines?: number;
+    }>;
+    notes?: Array<string>;
+  }>;
+  memory?: Array<string>;
+  rounds?: number;
+  verdict?: string | null;
+  ms?: number;
+  next: ResearchFollowUp;
+  /** The block to hand a model — null when nothing was found anywhere. */
+  attachment?: {
+    title: string;
+    text: string;
+  } | null;
+  size?: number;
+  newest?: number | null;
+}
+
 export interface SearchHit {
   id: string;
   score?: number;

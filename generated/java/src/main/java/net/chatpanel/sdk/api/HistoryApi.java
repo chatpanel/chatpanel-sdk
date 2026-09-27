@@ -29,6 +29,8 @@ import net.chatpanel.sdk.model.PutRecordsRequest;
 import net.chatpanel.sdk.model.PutRecordsResponse;
 import net.chatpanel.sdk.model.RecordType;
 import net.chatpanel.sdk.model.RecordsPage;
+import net.chatpanel.sdk.model.ResearchRequest;
+import net.chatpanel.sdk.model.ResearchResponse;
 import net.chatpanel.sdk.model.SearchRequest;
 import net.chatpanel.sdk.model.SearchResponse;
 import net.chatpanel.sdk.model.SmartSearchRequest;
@@ -985,6 +987,129 @@ public class HistoryApi {
     localVarRequestBuilder.header("Accept", "application/json");
 
     localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+    if (memberVarReadTimeout != null) {
+      localVarRequestBuilder.timeout(memberVarReadTimeout);
+    }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
+    if (memberVarInterceptor != null) {
+      memberVarInterceptor.accept(localVarRequestBuilder);
+    }
+    return localVarRequestBuilder;
+  }
+
+  /**
+   * A question about the person&#39;s own data, researched over the whole store.
+   * The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+   * @param researchRequest  (required)
+   * @return ResearchResponse
+   * @throws ApiException if fails to make API call
+   */
+  public ResearchResponse historyResearch(@jakarta.annotation.Nonnull ResearchRequest researchRequest) throws ApiException {
+    return historyResearch(researchRequest, null);
+  }
+
+  /**
+   * A question about the person&#39;s own data, researched over the whole store.
+   * The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+   * @param researchRequest  (required)
+   * @param headers Optional headers to include in the request
+   * @return ResearchResponse
+   * @throws ApiException if fails to make API call
+   */
+  public ResearchResponse historyResearch(@jakarta.annotation.Nonnull ResearchRequest researchRequest, Map<String, String> headers) throws ApiException {
+    ApiResponse<ResearchResponse> localVarResponse = historyResearchWithHttpInfo(researchRequest, headers);
+    return localVarResponse.getData();
+  }
+
+  /**
+   * A question about the person&#39;s own data, researched over the whole store.
+   * The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+   * @param researchRequest  (required)
+   * @return ApiResponse&lt;ResearchResponse&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<ResearchResponse> historyResearchWithHttpInfo(@jakarta.annotation.Nonnull ResearchRequest researchRequest) throws ApiException {
+    return historyResearchWithHttpInfo(researchRequest, null);
+  }
+
+  /**
+   * A question about the person&#39;s own data, researched over the whole store.
+   * The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+   * @param researchRequest  (required)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;ResearchResponse&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<ResearchResponse> historyResearchWithHttpInfo(@jakarta.annotation.Nonnull ResearchRequest researchRequest, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = historyResearchRequestBuilder(researchRequest, headers);
+    try {
+      HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
+          localVarRequestBuilder.build(),
+          HttpResponse.BodyHandlers.ofInputStream());
+      if (memberVarResponseInterceptor != null) {
+        memberVarResponseInterceptor.accept(localVarResponse);
+      }
+      InputStream localVarResponseBody = null;
+      try {
+        if (localVarResponse.statusCode()/ 100 != 2) {
+          throw getApiException("historyResearch", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
+          return new ApiResponse<ResearchResponse>(
+              localVarResponse.statusCode(),
+              localVarResponse.headers().map(),
+              null
+          );
+        }
+
+        
+        
+        String responseBody = new String(localVarResponseBody.readAllBytes());
+        ResearchResponse responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<ResearchResponse>() {});
+        
+
+        return new ApiResponse<ResearchResponse>(
+            localVarResponse.statusCode(),
+            localVarResponse.headers().map(),
+            responseValue
+        );
+      } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
+      }
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(e);
+    }
+  }
+
+  private HttpRequest.Builder historyResearchRequestBuilder(@jakarta.annotation.Nonnull ResearchRequest researchRequest, Map<String, String> headers) throws ApiException {
+    // verify the required parameter 'researchRequest' is set
+    if (researchRequest == null) {
+      throw new ApiException(400, "Missing the required parameter 'researchRequest' when calling historyResearch");
+    }
+
+    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+    String localVarPath = "/v1/research";
+
+    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+    localVarRequestBuilder.header("Content-Type", "application/json");
+    localVarRequestBuilder.header("Accept", "application/json");
+
+    try {
+      byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(researchRequest);
+      localVarRequestBuilder.method("POST", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }

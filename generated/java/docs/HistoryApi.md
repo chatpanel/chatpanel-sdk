@@ -16,6 +16,8 @@ All URIs are relative to *http://127.0.0.1:4320*
 | [**historyRecordsWithHttpInfo**](HistoryApi.md#historyRecordsWithHttpInfo) | **GET** /v1/history/records | WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included. |
 | [**historyRelated**](HistoryApi.md#historyRelated) | **GET** /v1/history/related | The records most connected to one record. |
 | [**historyRelatedWithHttpInfo**](HistoryApi.md#historyRelatedWithHttpInfo) | **GET** /v1/history/related | The records most connected to one record. |
+| [**historyResearch**](HistoryApi.md#historyResearch) | **POST** /v1/research | A question about the person&#39;s own data, researched over the whole store. |
+| [**historyResearchWithHttpInfo**](HistoryApi.md#historyResearchWithHttpInfo) | **POST** /v1/research | A question about the person&#39;s own data, researched over the whole store. |
 | [**historySearch**](HistoryApi.md#historySearch) | **POST** /v1/history/search | One keyword query over the warm index. |
 | [**historySearchWithHttpInfo**](HistoryApi.md#historySearchWithHttpInfo) | **POST** /v1/history/search | One keyword query over the warm index. |
 | [**historySmartSearch**](HistoryApi.md#historySmartSearch) | **POST** /v1/history/smart-search | Several phrasings at once, rank-fused; briefs lead. |
@@ -939,6 +941,154 @@ ApiResponse<[**HistoryRelated200Response**](HistoryRelated200Response.md)>
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | Neighbours. |  -  |
+
+
+## historyResearch
+
+> ResearchResponse historyResearch(researchRequest)
+
+A question about the person&#39;s own data, researched over the whole store.
+
+The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.HistoryApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        HistoryApi apiInstance = new HistoryApi(defaultClient);
+        ResearchRequest researchRequest = new ResearchRequest(); // ResearchRequest | 
+        try {
+            ResearchResponse result = apiInstance.historyResearch(researchRequest);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling HistoryApi#historyResearch");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **researchRequest** | [**ResearchRequest**](ResearchRequest.md)|  | |
+
+### Return type
+
+[**ResearchResponse**](ResearchResponse.md)
+
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | What was searched, found and read, and the block for a model. |  -  |
+| **400** | An error, in the gateway&#39;s words. |  -  |
+| **403** | An error, in the gateway&#39;s words. |  -  |
+
+## historyResearchWithHttpInfo
+
+> ApiResponse<ResearchResponse> historyResearchWithHttpInfo(researchRequest)
+
+A question about the person&#39;s own data, researched over the whole store.
+
+The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.ApiResponse;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.HistoryApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        HistoryApi apiInstance = new HistoryApi(defaultClient);
+        ResearchRequest researchRequest = new ResearchRequest(); // ResearchRequest | 
+        try {
+            ApiResponse<ResearchResponse> response = apiInstance.historyResearchWithHttpInfo(researchRequest);
+            System.out.println("Status code: " + response.getStatusCode());
+            System.out.println("Response headers: " + response.getHeaders());
+            System.out.println("Response body: " + response.getData());
+        } catch (ApiException e) {
+            System.err.println("Exception when calling HistoryApi#historyResearch");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            System.err.println("Reason: " + e.getResponseBody());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **researchRequest** | [**ResearchRequest**](ResearchRequest.md)|  | |
+
+### Return type
+
+ApiResponse<[**ResearchResponse**](ResearchResponse.md)>
+
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | What was searched, found and read, and the block for a model. |  -  |
+| **400** | An error, in the gateway&#39;s words. |  -  |
+| **403** | An error, in the gateway&#39;s words. |  -  |
 
 
 ## historySearch

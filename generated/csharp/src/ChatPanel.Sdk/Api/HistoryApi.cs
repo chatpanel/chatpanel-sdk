@@ -193,6 +193,29 @@ namespace ChatPanel.Sdk.Api
         Task<IHistoryRelatedApiResponse?> HistoryRelatedOrDefaultAsync(string id, Option<int> limit = default, System.Threading.CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// A question about the person&#39;s own data, researched over the whole store.
+        /// </summary>
+        /// <remarks>
+        /// The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+        /// </remarks>
+        /// <exception cref="ApiException">Thrown when fails to make API call</exception>
+        /// <param name="researchRequest"></param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="IHistoryResearchApiResponse"/>&gt;</returns>
+        Task<IHistoryResearchApiResponse> HistoryResearchAsync(ResearchRequest researchRequest, System.Threading.CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// A question about the person&#39;s own data, researched over the whole store.
+        /// </summary>
+        /// <remarks>
+        /// The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+        /// </remarks>
+        /// <param name="researchRequest"></param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="IHistoryResearchApiResponse"/>?&gt;</returns>
+        Task<IHistoryResearchApiResponse?> HistoryResearchOrDefaultAsync(ResearchRequest researchRequest, System.Threading.CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// One keyword query over the warm index.
         /// </summary>
         /// <remarks>
@@ -396,6 +419,30 @@ namespace ChatPanel.Sdk.Api
     }
 
     /// <summary>
+    /// The <see cref="IHistoryResearchApiResponse"/>
+    /// </summary>
+    public interface IHistoryResearchApiResponse : ChatPanel.Sdk.Client.IApiResponse, IOk<ChatPanel.Sdk.Model.ResearchResponse?>, IBadRequest<ChatPanel.Sdk.Model.ErrorResponse?>, IForbidden<ChatPanel.Sdk.Model.ErrorResponse?>
+    {
+        /// <summary>
+        /// Returns true if the response is 200 Ok
+        /// </summary>
+        /// <returns></returns>
+        bool IsOk { get; }
+
+        /// <summary>
+        /// Returns true if the response is 400 BadRequest
+        /// </summary>
+        /// <returns></returns>
+        bool IsBadRequest { get; }
+
+        /// <summary>
+        /// Returns true if the response is 403 Forbidden
+        /// </summary>
+        /// <returns></returns>
+        bool IsForbidden { get; }
+    }
+
+    /// <summary>
     /// The <see cref="IHistorySearchApiResponse"/>
     /// </summary>
     public interface IHistorySearchApiResponse : ChatPanel.Sdk.Client.IApiResponse, IOk<ChatPanel.Sdk.Model.SearchResponse?>, IBadRequest<ChatPanel.Sdk.Model.ErrorResponse?>
@@ -584,6 +631,26 @@ namespace ChatPanel.Sdk.Api
         internal void ExecuteOnErrorHistoryRelated(Exception exception)
         {
             OnErrorHistoryRelated?.Invoke(this, new ExceptionEventArgs(exception));
+        }
+
+        /// <summary>
+        /// The event raised after the server response
+        /// </summary>
+        public event EventHandler<ApiResponseEventArgs>? OnHistoryResearch;
+
+        /// <summary>
+        /// The event raised after an error querying the server
+        /// </summary>
+        public event EventHandler<ExceptionEventArgs>? OnErrorHistoryResearch;
+
+        internal void ExecuteOnHistoryResearch(HistoryApi.HistoryResearchApiResponse apiResponse)
+        {
+            OnHistoryResearch?.Invoke(this, new ApiResponseEventArgs(apiResponse));
+        }
+
+        internal void ExecuteOnErrorHistoryResearch(Exception exception)
+        {
+            OnErrorHistoryResearch?.Invoke(this, new ExceptionEventArgs(exception));
         }
 
         /// <summary>
@@ -2750,6 +2817,382 @@ namespace ChatPanel.Sdk.Api
                 } catch (Exception e)
                 {
                     OnDeserializationErrorDefaultImplementation(e, (HttpStatusCode)200);
+                }
+
+                return result != null;
+            }
+
+            private void OnDeserializationErrorDefaultImplementation(Exception exception, HttpStatusCode httpStatusCode)
+            {
+                bool suppressDefaultLog = false;
+                OnDeserializationError(ref suppressDefaultLog, exception, httpStatusCode);
+                if (!suppressDefaultLog)
+                    Logger.LogError(RestLogEvents.ApiDeserializationFailed, exception, "An error occurred while deserializing the {code} response.", httpStatusCode);
+            }
+
+            partial void OnDeserializationError(ref bool suppressDefaultLog, Exception exception, HttpStatusCode httpStatusCode);
+        }
+
+        partial void FormatHistoryResearch(ResearchRequest researchRequest);
+
+        /// <summary>
+        /// Validates the request parameters
+        /// </summary>
+        /// <param name="researchRequest"></param>
+        /// <returns></returns>
+        private void ValidateHistoryResearch(ResearchRequest researchRequest)
+        {
+            if (researchRequest == null)
+                throw new ArgumentNullException(nameof(researchRequest));
+        }
+
+        /// <summary>
+        /// Processes the server response
+        /// </summary>
+        /// <param name="apiResponseLocalVar"></param>
+        /// <param name="researchRequest"></param>
+        private void AfterHistoryResearchDefaultImplementation(IHistoryResearchApiResponse apiResponseLocalVar, ResearchRequest researchRequest)
+        {
+            bool suppressDefaultLog = false;
+            AfterHistoryResearch(ref suppressDefaultLog, apiResponseLocalVar, researchRequest);
+            if (!suppressDefaultLog)
+                Logger.LogInformation(RestLogEvents.ApiRequestCompleted, "{0,-9} | {1} | {2}", (apiResponseLocalVar.DownloadedAt - apiResponseLocalVar.RequestedAt).TotalSeconds, apiResponseLocalVar.StatusCode, apiResponseLocalVar.Path);
+        }
+
+        /// <summary>
+        /// Processes the server response
+        /// </summary>
+        /// <param name="suppressDefaultLog"></param>
+        /// <param name="apiResponseLocalVar"></param>
+        /// <param name="researchRequest"></param>
+        partial void AfterHistoryResearch(ref bool suppressDefaultLog, IHistoryResearchApiResponse apiResponseLocalVar, ResearchRequest researchRequest);
+
+        /// <summary>
+        /// Logs exceptions that occur while retrieving the server response
+        /// </summary>
+        /// <param name="exceptionLocalVar"></param>
+        /// <param name="pathFormatLocalVar"></param>
+        /// <param name="pathLocalVar"></param>
+        /// <param name="researchRequest"></param>
+        private void OnErrorHistoryResearchDefaultImplementation(Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, ResearchRequest researchRequest)
+        {
+            bool suppressDefaultLogLocalVar = false;
+            OnErrorHistoryResearch(ref suppressDefaultLogLocalVar, exceptionLocalVar, pathFormatLocalVar, pathLocalVar, researchRequest);
+            if (!suppressDefaultLogLocalVar)
+                Logger.LogError(RestLogEvents.ApiRequestFailed, exceptionLocalVar, "An error occurred while sending the request to the server.");
+        }
+
+        /// <summary>
+        /// A partial method that gives developers a way to provide customized exception handling
+        /// </summary>
+        /// <param name="suppressDefaultLogLocalVar"></param>
+        /// <param name="exceptionLocalVar"></param>
+        /// <param name="pathFormatLocalVar"></param>
+        /// <param name="pathLocalVar"></param>
+        /// <param name="researchRequest"></param>
+        partial void OnErrorHistoryResearch(ref bool suppressDefaultLogLocalVar, Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, ResearchRequest researchRequest);
+
+        /// <summary>
+        /// A question about the person&#39;s own data, researched over the whole store. The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+        /// </summary>
+        /// <param name="researchRequest"></param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="IHistoryResearchApiResponse"/>&gt;</returns>
+        public async Task<IHistoryResearchApiResponse?> HistoryResearchOrDefaultAsync(ResearchRequest researchRequest, System.Threading.CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                return await HistoryResearchAsync(researchRequest, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// A question about the person&#39;s own data, researched over the whole store. The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+        /// </summary>
+        /// <exception cref="ApiException">Thrown when fails to make API call</exception>
+        /// <param name="researchRequest"></param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="IHistoryResearchApiResponse"/>&gt;</returns>
+        public async Task<IHistoryResearchApiResponse> HistoryResearchAsync(ResearchRequest researchRequest, System.Threading.CancellationToken cancellationToken = default)
+        {
+            UriBuilder uriBuilderLocalVar = new UriBuilder();
+
+            try
+            {
+                ValidateHistoryResearch(researchRequest);
+
+                FormatHistoryResearch(researchRequest);
+
+                using (HttpRequestMessage httpRequestMessageLocalVar = new HttpRequestMessage())
+                {
+                    uriBuilderLocalVar.Host = HttpClient.BaseAddress!.Host;
+                    uriBuilderLocalVar.Port = HttpClient.BaseAddress.Port;
+                    uriBuilderLocalVar.Scheme = HttpClient.BaseAddress.Scheme;
+                    uriBuilderLocalVar.Path = HttpClient.BaseAddress.AbsolutePath == "/"
+                        ? "/v1/research"
+                        : string.Concat(HttpClient.BaseAddress.AbsolutePath.TrimEnd('/'), "/v1/research");
+
+                    httpRequestMessageLocalVar.Content = (researchRequest as object) is ChatPanel.Sdk.Client.FileParameter fileParameterLocalVar
+                        ? httpRequestMessageLocalVar.Content = new StreamContent(fileParameterLocalVar.Content)
+                        : httpRequestMessageLocalVar.Content = new StringContent(JsonSerializer.Serialize(researchRequest, _jsonSerializerOptions));
+
+                    List<TokenBase> tokenBaseLocalVars = new List<TokenBase>();
+                    httpRequestMessageLocalVar.RequestUri = uriBuilderLocalVar.Uri;
+
+                    BearerToken bearerTokenLocalVar1 = (BearerToken) await BearerTokenProvider.GetAsync(cancellation: cancellationToken).ConfigureAwait(false);
+
+                    tokenBaseLocalVars.Add(bearerTokenLocalVar1);
+
+                    bearerTokenLocalVar1.UseInHeader(httpRequestMessageLocalVar, "");
+
+                    string[] contentTypes = new string[] {
+                        "application/json"
+                    };
+
+                    string? contentTypeLocalVar = ClientUtils.SelectHeaderContentType(contentTypes);
+
+                    if (contentTypeLocalVar != null && httpRequestMessageLocalVar.Content != null)
+                        httpRequestMessageLocalVar.Content.Headers.ContentType = new MediaTypeHeaderValue(contentTypeLocalVar);
+
+                    string[] acceptLocalVars = new string[] {
+                        "application/json"
+                    };
+
+                    IEnumerable<MediaTypeWithQualityHeaderValue> acceptHeaderValuesLocalVar = ClientUtils.SelectHeaderAcceptArray(acceptLocalVars);
+
+                    foreach (var acceptLocalVar in acceptHeaderValuesLocalVar)
+                        httpRequestMessageLocalVar.Headers.Accept.Add(acceptLocalVar);
+
+                    httpRequestMessageLocalVar.Method = HttpMethod.Post;
+
+                    DateTime requestedAtLocalVar = DateTime.UtcNow;
+
+                    using (HttpResponseMessage httpResponseMessageLocalVar = await HttpClient.SendAsync(httpRequestMessageLocalVar, cancellationToken).ConfigureAwait(false))
+                    {
+                        HistoryResearchApiResponse apiResponseLocalVar;
+
+                        switch ((int)httpResponseMessageLocalVar.StatusCode) {
+                            default: {
+                                string responseContentLocalVar = await httpResponseMessageLocalVar.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                                apiResponseLocalVar = new(Logger, httpRequestMessageLocalVar, httpResponseMessageLocalVar, responseContentLocalVar, "/v1/research", requestedAtLocalVar, _jsonSerializerOptions);
+
+                                break;
+                            }
+                        }
+
+                        AfterHistoryResearchDefaultImplementation(apiResponseLocalVar, researchRequest);
+
+                        Events.ExecuteOnHistoryResearch(apiResponseLocalVar);
+
+                        if (apiResponseLocalVar.StatusCode == (HttpStatusCode) 429)
+                            foreach(TokenBase tokenBaseLocalVar in tokenBaseLocalVars)
+                                tokenBaseLocalVar.BeginRateLimit();
+
+                        return apiResponseLocalVar;
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                OnErrorHistoryResearchDefaultImplementation(e, "/v1/research", uriBuilderLocalVar.Path, researchRequest);
+                Events.ExecuteOnErrorHistoryResearch(e);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="HistoryResearchApiResponse"/>
+        /// </summary>
+        public partial class HistoryResearchApiResponse : ChatPanel.Sdk.Client.ApiResponse, IHistoryResearchApiResponse
+        {
+            /// <summary>
+            /// The logger
+            /// </summary>
+            public ILogger<HistoryApi> Logger { get; }
+
+            /// <summary>
+            /// The <see cref="HistoryResearchApiResponse"/>
+            /// </summary>
+            /// <param name="logger"></param>
+            /// <param name="httpRequestMessage"></param>
+            /// <param name="httpResponseMessage"></param>
+            /// <param name="rawContent"></param>
+            /// <param name="path"></param>
+            /// <param name="requestedAt"></param>
+            /// <param name="jsonSerializerOptions"></param>
+            public HistoryResearchApiResponse(ILogger<HistoryApi> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, string rawContent, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, rawContent, path, requestedAt, jsonSerializerOptions)
+            {
+                Logger = logger;
+                OnCreated(httpRequestMessage, httpResponseMessage);
+            }
+
+            /// <summary>
+            /// The <see cref="HistoryResearchApiResponse"/>
+            /// </summary>
+            /// <param name="logger"></param>
+            /// <param name="httpRequestMessage"></param>
+            /// <param name="httpResponseMessage"></param>
+            /// <param name="contentStream"></param>
+            /// <param name="path"></param>
+            /// <param name="requestedAt"></param>
+            /// <param name="jsonSerializerOptions"></param>
+            public HistoryResearchApiResponse(ILogger<HistoryApi> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, System.IO.Stream contentStream, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, contentStream, path, requestedAt, jsonSerializerOptions)
+            {
+                Logger = logger;
+                OnCreated(httpRequestMessage, httpResponseMessage);
+            }
+
+            partial void OnCreated(global::System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage);
+
+            /// <summary>
+            /// Returns true if the response is 200 Ok
+            /// </summary>
+            /// <returns></returns>
+            public bool IsOk => 200 == (int)StatusCode;
+
+            /// <summary>
+            /// Deserializes the response if the response is 200 Ok
+            /// </summary>
+            /// <returns></returns>
+            public ChatPanel.Sdk.Model.ResearchResponse? Ok()
+            {
+                bool suppressDefault = false;
+                ChatPanel.Sdk.Model.ResearchResponse? result = null;
+                OnOk(ref suppressDefault, ref result);
+                if (!suppressDefault)
+                    result = DefaultOk();
+                return result;
+            }
+
+            private ChatPanel.Sdk.Model.ResearchResponse? DefaultOk()
+            {
+                // NOTICE: Consider this AsModel template deprecated. Implement the appropriate partial method instead
+                return IsOk
+                    ? System.Text.Json.JsonSerializer.Deserialize<ChatPanel.Sdk.Model.ResearchResponse>(RawContent, _jsonSerializerOptions)
+                    : null;
+            }
+
+            partial void OnOk(ref bool suppressDefault, ref ChatPanel.Sdk.Model.ResearchResponse? result);
+
+            /// <summary>
+            /// Returns true if the response is 200 Ok and the deserialized response is not null
+            /// </summary>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public bool TryOk([NotNullWhen(true)]out ChatPanel.Sdk.Model.ResearchResponse? result)
+            {
+                result = null;
+
+                try
+                {
+                    result = Ok();
+                } catch (Exception e)
+                {
+                    OnDeserializationErrorDefaultImplementation(e, (HttpStatusCode)200);
+                }
+
+                return result != null;
+            }
+
+            /// <summary>
+            /// Returns true if the response is 400 BadRequest
+            /// </summary>
+            /// <returns></returns>
+            public bool IsBadRequest => 400 == (int)StatusCode;
+
+            /// <summary>
+            /// Deserializes the response if the response is 400 BadRequest
+            /// </summary>
+            /// <returns></returns>
+            public ChatPanel.Sdk.Model.ErrorResponse? BadRequest()
+            {
+                bool suppressDefault = false;
+                ChatPanel.Sdk.Model.ErrorResponse? result = null;
+                OnBadRequest(ref suppressDefault, ref result);
+                if (!suppressDefault)
+                    result = DefaultBadRequest();
+                return result;
+            }
+
+            private ChatPanel.Sdk.Model.ErrorResponse? DefaultBadRequest()
+            {
+                // NOTICE: Consider this AsModel template deprecated. Implement the appropriate partial method instead
+                return IsBadRequest
+                    ? System.Text.Json.JsonSerializer.Deserialize<ChatPanel.Sdk.Model.ErrorResponse>(RawContent, _jsonSerializerOptions)
+                    : null;
+            }
+
+            partial void OnBadRequest(ref bool suppressDefault, ref ChatPanel.Sdk.Model.ErrorResponse? result);
+
+            /// <summary>
+            /// Returns true if the response is 400 BadRequest and the deserialized response is not null
+            /// </summary>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public bool TryBadRequest([NotNullWhen(true)]out ChatPanel.Sdk.Model.ErrorResponse? result)
+            {
+                result = null;
+
+                try
+                {
+                    result = BadRequest();
+                } catch (Exception e)
+                {
+                    OnDeserializationErrorDefaultImplementation(e, (HttpStatusCode)400);
+                }
+
+                return result != null;
+            }
+
+            /// <summary>
+            /// Returns true if the response is 403 Forbidden
+            /// </summary>
+            /// <returns></returns>
+            public bool IsForbidden => 403 == (int)StatusCode;
+
+            /// <summary>
+            /// Deserializes the response if the response is 403 Forbidden
+            /// </summary>
+            /// <returns></returns>
+            public ChatPanel.Sdk.Model.ErrorResponse? Forbidden()
+            {
+                bool suppressDefault = false;
+                ChatPanel.Sdk.Model.ErrorResponse? result = null;
+                OnForbidden(ref suppressDefault, ref result);
+                if (!suppressDefault)
+                    result = DefaultForbidden();
+                return result;
+            }
+
+            private ChatPanel.Sdk.Model.ErrorResponse? DefaultForbidden()
+            {
+                // NOTICE: Consider this AsModel template deprecated. Implement the appropriate partial method instead
+                return IsForbidden
+                    ? System.Text.Json.JsonSerializer.Deserialize<ChatPanel.Sdk.Model.ErrorResponse>(RawContent, _jsonSerializerOptions)
+                    : null;
+            }
+
+            partial void OnForbidden(ref bool suppressDefault, ref ChatPanel.Sdk.Model.ErrorResponse? result);
+
+            /// <summary>
+            /// Returns true if the response is 403 Forbidden and the deserialized response is not null
+            /// </summary>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public bool TryForbidden([NotNullWhen(true)]out ChatPanel.Sdk.Model.ErrorResponse? result)
+            {
+                result = null;
+
+                try
+                {
+                    result = Forbidden();
+                } catch (Exception e)
+                {
+                    OnDeserializationErrorDefaultImplementation(e, (HttpStatusCode)403);
                 }
 
                 return result != null;

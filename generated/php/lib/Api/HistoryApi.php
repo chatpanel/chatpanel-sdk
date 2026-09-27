@@ -92,6 +92,9 @@ class HistoryApi
         'historyRelated' => [
             'application/json',
         ],
+        'historyResearch' => [
+            'application/json',
+        ],
         'historySearch' => [
             'application/json',
         ],
@@ -2055,6 +2058,313 @@ class HistoryApi
         $query = ObjectSerializer::buildQuery($queryParams);
         return new Request(
             'GET',
+            $operationHost . $resourcePath . ($query ? "?{$query}" : ''),
+            $headers,
+            $httpBody
+        );
+    }
+
+    /**
+     * Operation historyResearch
+     *
+     * A question about the person&#39;s own data, researched over the whole store.
+     *
+     * @param  \ChatPanelSdk\Model\ResearchRequest $research_request research_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['historyResearch'] to see the possible values for this operation
+     *
+     * @throws \ChatPanelSdk\ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws \InvalidArgumentException
+     * @return \ChatPanelSdk\Model\ResearchResponse|\ChatPanelSdk\Model\ErrorResponse|\ChatPanelSdk\Model\ErrorResponse
+     */
+    public function historyResearch($research_request, string $contentType = self::contentTypes['historyResearch'][0])
+    {
+        list($response) = $this->historyResearchWithHttpInfo($research_request, $contentType);
+        return $response;
+    }
+
+    /**
+     * Operation historyResearchWithHttpInfo
+     *
+     * A question about the person&#39;s own data, researched over the whole store.
+     *
+     * @param  \ChatPanelSdk\Model\ResearchRequest $research_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['historyResearch'] to see the possible values for this operation
+     *
+     * @throws \ChatPanelSdk\ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws \InvalidArgumentException
+     * @return array of \ChatPanelSdk\Model\ResearchResponse|\ChatPanelSdk\Model\ErrorResponse|\ChatPanelSdk\Model\ErrorResponse, HTTP status code, HTTP response headers (array of strings)
+     */
+    public function historyResearchWithHttpInfo($research_request, string $contentType = self::contentTypes['historyResearch'][0])
+    {
+        $request = $this->historyResearchRequest($research_request, $contentType);
+
+        try {
+            $options = $this->createHttpClientOption();
+            try {
+                $response = $this->client->send($request, $options);
+            } catch (RequestException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    $e->getResponse() ? $e->getResponse()->getHeaders() : null,
+                    $e->getResponse() ? (string) $e->getResponse()->getBody() : null
+                );
+            } catch (ConnectException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    null,
+                    null
+                );
+            }
+
+            $statusCode = $response->getStatusCode();
+
+
+            switch($statusCode) {
+                case 200:
+                    return $this->handleResponseWithDataType(
+                        '\ChatPanelSdk\Model\ResearchResponse',
+                        $request,
+                        $response,
+                    );
+                case 400:
+                    return $this->handleResponseWithDataType(
+                        '\ChatPanelSdk\Model\ErrorResponse',
+                        $request,
+                        $response,
+                    );
+                case 403:
+                    return $this->handleResponseWithDataType(
+                        '\ChatPanelSdk\Model\ErrorResponse',
+                        $request,
+                        $response,
+                    );
+            }
+
+            
+
+            if ($statusCode < 200 || $statusCode > 299) {
+                throw new ApiException(
+                    sprintf(
+                        '[%d] Error connecting to the API (%s)',
+                        $statusCode,
+                        (string) $request->getUri()
+                    ),
+                    $statusCode,
+                    $response->getHeaders(),
+                    (string) $response->getBody()
+                );
+            }
+
+            return $this->handleResponseWithDataType(
+                '\ChatPanelSdk\Model\ResearchResponse',
+                $request,
+                $response,
+            );
+        } catch (ApiException $e) {
+            switch ($e->getCode()) {
+                case 200:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\ChatPanelSdk\Model\ResearchResponse',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 400:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\ChatPanelSdk\Model\ErrorResponse',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 403:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\ChatPanelSdk\Model\ErrorResponse',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+            }
+        
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Operation historyResearchAsync
+     *
+     * A question about the person&#39;s own data, researched over the whole store.
+     *
+     * @param  \ChatPanelSdk\Model\ResearchRequest $research_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['historyResearch'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     */
+    public function historyResearchAsync($research_request, string $contentType = self::contentTypes['historyResearch'][0])
+    {
+        return $this->historyResearchAsyncWithHttpInfo($research_request, $contentType)
+            ->then(
+                function ($response) {
+                    return $response[0];
+                }
+            );
+    }
+
+    /**
+     * Operation historyResearchAsyncWithHttpInfo
+     *
+     * A question about the person&#39;s own data, researched over the whole store.
+     *
+     * @param  \ChatPanelSdk\Model\ResearchRequest $research_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['historyResearch'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     */
+    public function historyResearchAsyncWithHttpInfo($research_request, string $contentType = self::contentTypes['historyResearch'][0])
+    {
+        $returnType = '\ChatPanelSdk\Model\ResearchResponse';
+        $request = $this->historyResearchRequest($research_request, $contentType);
+
+        return $this->client
+            ->sendAsync($request, $this->createHttpClientOption())
+            ->then(
+                function ($response) use ($returnType) {
+                    if ($returnType === '\SplFileObject') {
+                        $content = $response->getBody(); //stream goes to serializer
+                    } else {
+                        $content = (string) $response->getBody();
+                        if ($returnType !== 'string') {
+                            $content = json_decode($content);
+                        }
+                    }
+
+                    return [
+                        ObjectSerializer::deserialize($content, $returnType, []),
+                        $response->getStatusCode(),
+                        $response->getHeaders()
+                    ];
+                },
+                function ($exception) {
+                    $response = $exception->getResponse();
+                    $statusCode = $response->getStatusCode();
+                    throw new ApiException(
+                        sprintf(
+                            '[%d] Error connecting to the API (%s)',
+                            $statusCode,
+                            $exception->getRequest()->getUri()
+                        ),
+                        $statusCode,
+                        $response->getHeaders(),
+                        (string) $response->getBody()
+                    );
+                }
+            );
+    }
+
+    /**
+     * Create request for operation 'historyResearch'
+     *
+     * @param  \ChatPanelSdk\Model\ResearchRequest $research_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['historyResearch'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Psr7\Request
+     */
+    public function historyResearchRequest($research_request, string $contentType = self::contentTypes['historyResearch'][0])
+    {
+
+        // verify the required parameter 'research_request' is set
+        if ($research_request === null || (is_array($research_request) && count($research_request) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $research_request when calling historyResearch'
+            );
+        }
+
+
+        $resourcePath = '/v1/research';
+        $formParams = [];
+        $queryParams = [];
+        $headerParams = [];
+        $httpBody = '';
+        $multipart = false;
+
+
+
+
+
+        $headers = $this->headerSelector->selectHeaders(
+            ['application/json', ],
+            $contentType,
+            $multipart
+        );
+
+        // for model (json/xml)
+        if (isset($research_request)) {
+            if (stripos($headers['Content-Type'], 'application/json') !== false) {
+                # if Content-Type contains "application/json", json_encode the body
+                try {
+                    $httpBody = json_encode(ObjectSerializer::sanitizeForSerialization($research_request), JSON_THROW_ON_ERROR);
+                } catch (\JsonException $e) {
+                    throw new \InvalidArgumentException('json_encode error: ' . $e->getMessage(), 0, $e);
+                }
+            } else {
+                $httpBody = $research_request;
+            }
+        } elseif (count($formParams) > 0) {
+            if ($multipart) {
+                $multipartContents = [];
+                foreach ($formParams as $formParamName => $formParamValue) {
+                    $formParamValueItems = is_array($formParamValue) ? $formParamValue : [$formParamValue];
+                    foreach ($formParamValueItems as $formParamValueItem) {
+                        $multipartContents[] = [
+                            'name' => $formParamName,
+                            'contents' => $formParamValueItem
+                        ];
+                    }
+                }
+                // for HTTP post (form)
+                $httpBody = new MultipartStream($multipartContents);
+
+            } elseif (stripos($headers['Content-Type'], 'application/json') !== false) {
+                # if Content-Type contains "application/json", json_encode the form parameters
+                try {
+                    $httpBody = json_encode($formParams, JSON_THROW_ON_ERROR);
+                } catch (\JsonException $e) {
+                    throw new \InvalidArgumentException('json_encode error: ' . $e->getMessage(), 0, $e);
+                }
+            } else {
+                // for HTTP post (form)
+                $httpBody = ObjectSerializer::buildQuery($formParams);
+            }
+        }
+
+        // this endpoint requires Bearer authentication (access token)
+        if (!empty($this->config->getAccessToken())) {
+            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
+        }
+
+        $defaultHeaders = [];
+        if ($this->config->getUserAgent()) {
+            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
+        }
+
+        $headers = array_merge(
+            $defaultHeaders,
+            $headerParams,
+            $headers
+        );
+
+        $operationHost = $this->config->getHost();
+        $query = ObjectSerializer::buildQuery($queryParams);
+        return new Request(
+            'POST',
             $operationHost . $resourcePath . ($query ? "?{$query}" : ''),
             $headers,
             $httpBody

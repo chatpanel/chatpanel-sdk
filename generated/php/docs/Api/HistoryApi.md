@@ -12,6 +12,7 @@ All URIs are relative to http://127.0.0.1:4320, except if the operation defines 
 | [**historyPutRecords()**](HistoryApi.md#historyPutRecords) | **PUT** /v1/history/records | Push whole records; the gateway derives the searchable text itself. |
 | [**historyRecords()**](HistoryApi.md#historyRecords) | **GET** /v1/history/records | WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included. |
 | [**historyRelated()**](HistoryApi.md#historyRelated) | **GET** /v1/history/related | The records most connected to one record. |
+| [**historyResearch()**](HistoryApi.md#historyResearch) | **POST** /v1/research | A question about the person&#39;s own data, researched over the whole store. |
 | [**historySearch()**](HistoryApi.md#historySearch) | **POST** /v1/history/search | One keyword query over the warm index. |
 | [**historySmartSearch()**](HistoryApi.md#historySmartSearch) | **POST** /v1/history/smart-search | Several phrasings at once, rank-fused; briefs lead. |
 | [**historyStatus()**](HistoryApi.md#historyStatus) | **GET** /v1/history/status | Size and freshness of the warm index (and the lossless tier from 0.10.0). |
@@ -388,6 +389,66 @@ try {
 ### HTTP request headers
 
 - **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+[[Back to top]](#) [[Back to API list]](../../README.md#endpoints)
+[[Back to Model list]](../../README.md#models)
+[[Back to README]](../../README.md)
+
+## `historyResearch()`
+
+```php
+historyResearch($research_request): \ChatPanelSdk\Model\ResearchResponse
+```
+
+A question about the person's own data, researched over the whole store.
+
+The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus `attachment`: one block to hand a model, with record ids to cite. Pass `next` back as `previous` to continue the question (\"no, even later\", \"what was it about\"). Open like the other history reads; naming a `model` (to condense long records and check the evidence) runs a model on the caller's behalf and needs the gateway token.
+
+### Example
+
+```php
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+
+// Configure Bearer authorization: gatewayToken
+$config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setAccessToken('YOUR_ACCESS_TOKEN');
+
+
+$apiInstance = new ChatPanelSdk\Api\HistoryApi(
+    // If you want use custom http client, pass your client which implements `GuzzleHttp\ClientInterface`.
+    // This is optional, `GuzzleHttp\Client` will be used as default.
+    new GuzzleHttp\Client(),
+    $config
+);
+$research_request = new \ChatPanelSdk\Model\ResearchRequest(); // \ChatPanelSdk\Model\ResearchRequest
+
+try {
+    $result = $apiInstance->historyResearch($research_request);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling HistoryApi->historyResearch: ', $e->getMessage(), PHP_EOL;
+}
+```
+
+### Parameters
+
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **research_request** | [**\ChatPanelSdk\Model\ResearchRequest**](../Model/ResearchRequest.md)|  | |
+
+### Return type
+
+[**\ChatPanelSdk\Model\ResearchResponse**](../Model/ResearchResponse.md)
+
+### Authorization
+
+[gatewayToken](../../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
 - **Accept**: `application/json`
 
 [[Back to top]](#) [[Back to API list]](../../README.md#endpoints)

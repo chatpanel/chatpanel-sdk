@@ -400,6 +400,59 @@ SearchRequest = Dict[str, Any]
 
 SmartSearchRequest = Dict[str, Any]
 
+class ResearchPlan(TypedDict, total=False):
+    """How the question was framed — the typed plan the store was queried with."""
+    intent: NotRequired[Literal["find", "latest", "earliest", "count", "group", "people", "list", "detail"]]
+    kind: NotRequired[str]  # meeting, note, chat — or empty for every kind.
+    names: NotRequired[List[str]]
+    terms: NotRequired[List[str]]
+    sort: NotRequired[Literal["relevance", "newest", "oldest"]]
+    limit: NotRequired[int]
+    since: NotRequired[int]
+    after: NotRequired[int]
+    before: NotRequired[int]
+    group: NotRequired[str]  # person, month, week, day — or empty.
+    readFull: NotRequired[bool]
+    followUp: NotRequired[bool]
+    target: NotRequired[Union[str, None]]
+
+
+class ResearchFollowUp(TypedDict, total=False):
+    """What a follow-up continues — the `next` of the previous answer, passed back as `previous`."""
+    plan: "ResearchPlan"
+    top: NotRequired[Union[str, None]]  # The record the answer pointed at.
+    answer: NotRequired[str]  # What the answer said (a date in it bounds "even later").
+
+
+class ResearchRequest(TypedDict, total=False):
+    """ResearchRequest"""
+    question: str  # The person's question, in their words.
+    previous: NotRequired["ResearchFollowUp"]
+    model: NotRequired[str]  # A model id to read with (condense long records, check the evidence). Needs the gateway token; without one the parts are quoted as they are.
+    excludeId: NotRequired[str]  # A record that is not evidence — the conversation asking.
+
+
+class ResearchResponse(TypedDict, total=False):
+    """ResearchResponse"""
+    ok: bool
+    question: NotRequired[str]
+    plan: "ResearchPlan"
+    how: str  # How the store was searched, in words.
+    framedBy: NotRequired[Literal["rules", "model"]]
+    count: NotRequired[Union[int, None]]  # Every match in the store, not the rows returned.
+    rows: List[Dict[str, Any]]
+    groups: NotRequired[Union[List[Dict[str, Any]], None]]
+    read: List[Dict[str, Any]]
+    memory: NotRequired[List[str]]
+    rounds: NotRequired[int]
+    verdict: NotRequired[Union[str, None]]
+    ms: NotRequired[int]
+    next: "ResearchFollowUp"
+    attachment: NotRequired[Union[Dict[str, Any], None]]  # The block to hand a model — null when nothing was found anywhere.
+    size: NotRequired[int]
+    newest: NotRequired[Union[int, None]]
+
+
 class SearchHit(TypedDict, total=False):
     """SearchHit"""
     id: str

@@ -20,6 +20,8 @@ import 'package:chatpanel/src/model/put_records_request.dart';
 import 'package:chatpanel/src/model/put_records_response.dart';
 import 'package:chatpanel/src/model/record_type.dart';
 import 'package:chatpanel/src/model/records_page.dart';
+import 'package:chatpanel/src/model/research_request.dart';
+import 'package:chatpanel/src/model/research_response.dart';
 import 'package:chatpanel/src/model/search_request.dart';
 import 'package:chatpanel/src/model/search_response.dart';
 import 'package:chatpanel/src/model/smart_search_request.dart';
@@ -602,6 +604,107 @@ class HistoryApi {
     }
 
     return Response<HistoryRelated200Response>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// A question about the person&#39;s own data, researched over the whole store.
+  /// The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+  ///
+  /// Parameters:
+  /// * [researchRequest] 
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ResearchResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ResearchResponse>> historyResearch({ 
+    required ResearchRequest researchRequest,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/v1/research';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'http',
+            'scheme': 'bearer',
+            'name': 'gatewayToken',
+          },
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      const _type = FullType(ResearchRequest);
+      _bodyData = _serializers.serialize(researchRequest, specifiedType: _type);
+
+    } catch(error, stackTrace) {
+      throw DioException(
+         requestOptions: _options.compose(
+          _dio.options,
+          _path,
+        ),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ResearchResponse? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(ResearchResponse),
+      ) as ResearchResponse;
+
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ResearchResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

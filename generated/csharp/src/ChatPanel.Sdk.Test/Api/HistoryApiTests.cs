@@ -131,6 +131,18 @@ namespace ChatPanel.Sdk.Test.Api
         }
 
         /// <summary>
+        /// Test HistoryResearch
+        /// </summary>
+        [Fact (Skip = "not implemented")]
+        public async Task HistoryResearchAsyncTest()
+        {
+            ResearchRequest researchRequest = default!;
+            var response = await _instance.HistoryResearchAsync(researchRequest);
+            var model = response.Ok();
+            Assert.IsType<ChatPanel.Sdk.Model.ResearchResponse>(model);
+        }
+
+        /// <summary>
         /// Test HistorySearch
         /// </summary>
         [Fact (Skip = "not implemented")]

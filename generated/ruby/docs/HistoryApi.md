@@ -10,6 +10,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | [**history_put_records**](HistoryApi.md#history_put_records) | **PUT** /v1/history/records | Push whole records; the gateway derives the searchable text itself. |
 | [**history_records**](HistoryApi.md#history_records) | **GET** /v1/history/records | WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included. |
 | [**history_related**](HistoryApi.md#history_related) | **GET** /v1/history/related | The records most connected to one record. |
+| [**history_research**](HistoryApi.md#history_research) | **POST** /v1/research | A question about the person&#39;s own data, researched over the whole store. |
 | [**history_search**](HistoryApi.md#history_search) | **POST** /v1/history/search | One keyword query over the warm index. |
 | [**history_smart_search**](HistoryApi.md#history_smart_search) | **POST** /v1/history/smart-search | Several phrasings at once, rank-fused; briefs lead. |
 | [**history_status**](HistoryApi.md#history_status) | **GET** /v1/history/status | Size and freshness of the warm index (and the lossless tier from 0.10.0). |
@@ -451,6 +452,75 @@ end
 ### HTTP request headers
 
 - **Content-Type**: Not defined
+- **Accept**: application/json
+
+
+## history_research
+
+> <ResearchResponse> history_research(research_request)
+
+A question about the person's own data, researched over the whole store.
+
+The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus `attachment`: one block to hand a model, with record ids to cite. Pass `next` back as `previous` to continue the question (\"no, even later\", \"what was it about\"). Open like the other history reads; naming a `model` (to condense long records and check the evidence) runs a model on the caller's behalf and needs the gateway token. 
+
+### Examples
+
+```ruby
+require 'time'
+require 'chatpanel'
+# setup authorization
+ChatPanel.configure do |config|
+  # Configure Bearer authorization: gatewayToken
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = ChatPanel::HistoryApi.new
+research_request = ChatPanel::ResearchRequest.new({question: 'question_example'}) # ResearchRequest | 
+
+begin
+  # A question about the person's own data, researched over the whole store.
+  result = api_instance.history_research(research_request)
+  p result
+rescue ChatPanel::ApiError => e
+  puts "Error when calling HistoryApi->history_research: #{e}"
+end
+```
+
+#### Using the history_research_with_http_info variant
+
+This returns an Array which contains the response data, status code and headers.
+
+> <Array(<ResearchResponse>, Integer, Hash)> history_research_with_http_info(research_request)
+
+```ruby
+begin
+  # A question about the person's own data, researched over the whole store.
+  data, status_code, headers = api_instance.history_research_with_http_info(research_request)
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => <ResearchResponse>
+rescue ChatPanel::ApiError => e
+  puts "Error when calling HistoryApi->history_research_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+| Name | Type | Description | Notes |
+| ---- | ---- | ----------- | ----- |
+| **research_request** | [**ResearchRequest**](ResearchRequest.md) |  |  |
+
+### Return type
+
+[**ResearchResponse**](ResearchResponse.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
 - **Accept**: application/json
 
 

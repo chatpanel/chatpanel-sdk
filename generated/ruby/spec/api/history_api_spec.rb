@@ -107,6 +107,18 @@ describe 'HistoryApi' do
     end
   end
 
+  # unit tests for history_research
+  # A question about the person&#39;s own data, researched over the whole store.
+  # The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+  # @param research_request 
+  # @param [Hash] opts the optional parameters
+  # @return [ResearchResponse]
+  describe 'history_research test' do
+    it 'should work' do
+      # assertion here. ref: https://rspec.info/features/3-12/rspec-expectations/built-in-matchers/
+    end
+  end
+
   # unit tests for history_search
   # One keyword query over the warm index.
   # @param search_request 

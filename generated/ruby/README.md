@@ -145,6 +145,7 @@ Class | Method | HTTP request | Description
 *ChatPanel::HistoryApi* | [**history_put_records**](docs/HistoryApi.md#history_put_records) | **PUT** /v1/history/records | Push whole records; the gateway derives the searchable text itself.
 *ChatPanel::HistoryApi* | [**history_records**](docs/HistoryApi.md#history_records) | **GET** /v1/history/records | WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 *ChatPanel::HistoryApi* | [**history_related**](docs/HistoryApi.md#history_related) | **GET** /v1/history/related | The records most connected to one record.
+*ChatPanel::HistoryApi* | [**history_research**](docs/HistoryApi.md#history_research) | **POST** /v1/research | A question about the person's own data, researched over the whole store.
 *ChatPanel::HistoryApi* | [**history_search**](docs/HistoryApi.md#history_search) | **POST** /v1/history/search | One keyword query over the warm index.
 *ChatPanel::HistoryApi* | [**history_smart_search**](docs/HistoryApi.md#history_smart_search) | **POST** /v1/history/smart-search | Several phrasings at once, rank-fused; briefs lead.
 *ChatPanel::HistoryApi* | [**history_status**](docs/HistoryApi.md#history_status) | **GET** /v1/history/status | Size and freshness of the warm index (and the lossless tier from 0.10.0).
@@ -322,6 +323,15 @@ Class | Method | HTTP request | Description
  - [ChatPanel::RerankRequest](docs/RerankRequest.md)
  - [ChatPanel::RerankResponse](docs/RerankResponse.md)
  - [ChatPanel::RerankResult](docs/RerankResult.md)
+ - [ChatPanel::ResearchFollowUp](docs/ResearchFollowUp.md)
+ - [ChatPanel::ResearchPlan](docs/ResearchPlan.md)
+ - [ChatPanel::ResearchRequest](docs/ResearchRequest.md)
+ - [ChatPanel::ResearchResponse](docs/ResearchResponse.md)
+ - [ChatPanel::ResearchResponseAttachment](docs/ResearchResponseAttachment.md)
+ - [ChatPanel::ResearchResponseGroupsInner](docs/ResearchResponseGroupsInner.md)
+ - [ChatPanel::ResearchResponseReadInner](docs/ResearchResponseReadInner.md)
+ - [ChatPanel::ResearchResponseReadInnerSpeakersInner](docs/ResearchResponseReadInnerSpeakersInner.md)
+ - [ChatPanel::ResearchResponseRowsInner](docs/ResearchResponseRowsInner.md)
  - [ChatPanel::RetrievalReadAlias200Response](docs/RetrievalReadAlias200Response.md)
  - [ChatPanel::RetrievalSearchAlias200Response](docs/RetrievalSearchAlias200Response.md)
  - [ChatPanel::RetrievalSearchAlias200ResponseDataInner](docs/RetrievalSearchAlias200ResponseDataInner.md)

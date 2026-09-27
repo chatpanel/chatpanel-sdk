@@ -453,6 +453,74 @@ module ChatPanel
       return data, status_code, headers
     end
 
+    # A question about the person's own data, researched over the whole store.
+    # The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus `attachment`: one block to hand a model, with record ids to cite. Pass `next` back as `previous` to continue the question (\"no, even later\", \"what was it about\"). Open like the other history reads; naming a `model` (to condense long records and check the evidence) runs a model on the caller's behalf and needs the gateway token. 
+    # @param research_request [ResearchRequest] 
+    # @param [Hash] opts the optional parameters
+    # @return [ResearchResponse]
+    def history_research(research_request, opts = {})
+      data, _status_code, _headers = history_research_with_http_info(research_request, opts)
+      data
+    end
+
+    # A question about the person&#39;s own data, researched over the whole store.
+    # The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+    # @param research_request [ResearchRequest] 
+    # @param [Hash] opts the optional parameters
+    # @return [Array<(ResearchResponse, Integer, Hash)>] ResearchResponse data, response status code and response headers
+    def history_research_with_http_info(research_request, opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: HistoryApi.history_research ...'
+      end
+      # verify the required parameter 'research_request' is set
+      if @api_client.config.client_side_validation && research_request.nil?
+        fail ArgumentError, "Missing the required parameter 'research_request' when calling HistoryApi.history_research"
+      end
+      # resource path
+      local_var_path = '/v1/research'
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json']) unless header_params['Accept']
+      # HTTP header 'Content-Type'
+      content_type = @api_client.select_header_content_type(['application/json'])
+      if !content_type.nil?
+          header_params['Content-Type'] = content_type
+      end
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body] || @api_client.object_to_http_body(research_request)
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'ResearchResponse'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['gatewayToken']
+
+      new_options = opts.merge(
+        :operation => :"HistoryApi.history_research",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:POST, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: HistoryApi#history_research\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
     # One keyword query over the warm index.
     # @param search_request [SearchRequest] 
     # @param [Hash] opts the optional parameters

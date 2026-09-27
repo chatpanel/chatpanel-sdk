@@ -196,6 +196,12 @@ namespace ChatPanel.Sdk.Client
                 return RecordTypeValueConverter.ToJsonValue(recordType);
             if (obj is RedactionPreview.TierEnum redactionPreviewTierEnum)
                 return RedactionPreview.TierEnumToJsonValue(redactionPreviewTierEnum);
+            if (obj is ResearchPlan.IntentEnum researchPlanIntentEnum)
+                return ResearchPlan.IntentEnumToJsonValue(researchPlanIntentEnum);
+            if (obj is ResearchPlan.SortEnum researchPlanSortEnum)
+                return ResearchPlan.SortEnumToJsonValue(researchPlanSortEnum);
+            if (obj is ResearchResponse.FramedByEnum researchResponseFramedByEnum)
+                return ResearchResponse.FramedByEnumToJsonValue(researchResponseFramedByEnum);
             if (obj is RuntimeEngineRequest.ActionEnum runtimeEngineRequestActionEnum)
                 return RuntimeEngineRequest.ActionEnumToJsonValue(runtimeEngineRequestActionEnum);
             if (obj is RuntimeServiceRequest.ActionEnum runtimeServiceRequestActionEnum)

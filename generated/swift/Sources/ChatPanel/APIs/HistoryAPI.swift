@@ -287,6 +287,46 @@ open class HistoryAPI {
     }
 
     /**
+     A question about the person's own data, researched over the whole store.
+     
+     - parameter researchRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: ResearchResponse
+     */
+    open class func historyResearch(researchRequest: ResearchRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> ResearchResponse {
+        return try await historyResearchWithRequestBuilder(researchRequest: researchRequest, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     A question about the person's own data, researched over the whole store.
+     - POST /v1/research
+     - The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus `attachment`: one block to hand a model, with record ids to cite. Pass `next` back as `previous` to continue the question (\"no, even later\", \"what was it about\"). Open like the other history reads; naming a `model` (to condense long records and check the evidence) runs a model on the caller's behalf and needs the gateway token. 
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter researchRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<ResearchResponse> 
+     */
+    open class func historyResearchWithRequestBuilder(researchRequest: ResearchRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<ResearchResponse> {
+        let localVariablePath = "/v1/research"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: researchRequest, codableHelper: apiConfiguration.codableHelper)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            "Content-Type": "application/json",
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<ResearchResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
      One keyword query over the warm index.
      
      - parameter searchRequest: (body)  

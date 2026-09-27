@@ -38,6 +38,8 @@ import net.chatpanel.sdk.models.PutRecordsRequest
 import net.chatpanel.sdk.models.PutRecordsResponse
 import net.chatpanel.sdk.models.RecordType
 import net.chatpanel.sdk.models.RecordsPage
+import net.chatpanel.sdk.models.ResearchRequest
+import net.chatpanel.sdk.models.ResearchResponse
 import net.chatpanel.sdk.models.SearchRequest
 import net.chatpanel.sdk.models.SearchResponse
 import net.chatpanel.sdk.models.SmartSearchRequest
@@ -101,6 +103,14 @@ class HistoryApiTest : ShouldSpec() {
             //val id : kotlin.String = id_example // kotlin.String | 
             //val limit : kotlin.Int = 56 // kotlin.Int | 
             //val result : HistoryRelated200Response = apiInstance.historyRelated(id, limit)
+            //result shouldBe ("TODO")
+        }
+
+        // to test historyResearch
+        should("test historyResearch") {
+            // uncomment below to test historyResearch
+            //val researchRequest : ResearchRequest =  // ResearchRequest | 
+            //val result : ResearchResponse = apiInstance.historyResearch(researchRequest)
             //result shouldBe ("TODO")
         }
 

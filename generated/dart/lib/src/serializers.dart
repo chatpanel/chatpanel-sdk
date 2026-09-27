@@ -135,6 +135,15 @@ import 'package:chatpanel/src/model/remember_response.dart';
 import 'package:chatpanel/src/model/rerank_request.dart';
 import 'package:chatpanel/src/model/rerank_response.dart';
 import 'package:chatpanel/src/model/rerank_result.dart';
+import 'package:chatpanel/src/model/research_follow_up.dart';
+import 'package:chatpanel/src/model/research_plan.dart';
+import 'package:chatpanel/src/model/research_request.dart';
+import 'package:chatpanel/src/model/research_response.dart';
+import 'package:chatpanel/src/model/research_response_attachment.dart';
+import 'package:chatpanel/src/model/research_response_groups_inner.dart';
+import 'package:chatpanel/src/model/research_response_read_inner.dart';
+import 'package:chatpanel/src/model/research_response_read_inner_speakers_inner.dart';
+import 'package:chatpanel/src/model/research_response_rows_inner.dart';
 import 'package:chatpanel/src/model/retrieval_read_alias200_response.dart';
 import 'package:chatpanel/src/model/retrieval_search_alias200_response.dart';
 import 'package:chatpanel/src/model/retrieval_search_alias200_response_data_inner.dart';
@@ -297,6 +306,15 @@ part 'serializers.g.dart';
   RerankRequest,
   RerankResponse,
   RerankResult,
+  ResearchFollowUp,
+  ResearchPlan,
+  ResearchRequest,
+  ResearchResponse,
+  ResearchResponseAttachment,
+  ResearchResponseGroupsInner,
+  ResearchResponseReadInner,
+  ResearchResponseReadInnerSpeakersInner,
+  ResearchResponseRowsInner,
   RetrievalReadAlias200Response,
   RetrievalSearchAlias200Response,
   RetrievalSearchAlias200ResponseDataInner,
@@ -336,6 +354,10 @@ part 'serializers.g.dart';
   WhoAmI,
 ])
 Serializers serializers = (_$serializers.toBuilder()
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ResearchResponseReadInnerSpeakersInner)]),
+        () => ListBuilder<ResearchResponseReadInnerSpeakersInner>(),
+      )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(RunEvent)]),
         () => ListBuilder<RunEvent>(),
@@ -429,6 +451,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<DecideAnswerOption>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ResearchResponseRowsInner)]),
+        () => ListBuilder<ResearchResponseRowsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType(PrefSection)]),
         () => MapBuilder<String, PrefSection>(),
       )
@@ -449,6 +475,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<FusionListFusionsInnerMembersInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ResearchResponseReadInner)]),
+        () => ListBuilder<ResearchResponseReadInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AgentFidelityDroppedInner)]),
         () => ListBuilder<AgentFidelityDroppedInner>(),
       )
@@ -463,6 +493,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(WebSearchResult)]),
         () => ListBuilder<WebSearchResult>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ResearchResponseGroupsInner)]),
+        () => ListBuilder<ResearchResponseGroupsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),

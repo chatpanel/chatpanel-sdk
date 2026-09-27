@@ -15,6 +15,7 @@ export const OPERATIONS = {
   "redaction.preview": { id: "redaction.preview", method: "POST", path: "/redact", auth: "open", since: "0.6.62", stream: null, pathParams: [], queryParams: [] },
   "history.search": { id: "history.search", method: "POST", path: "/v1/history/search", auth: "open", since: null, stream: null, pathParams: [], queryParams: [] },
   "history.smartSearch": { id: "history.smartSearch", method: "POST", path: "/v1/history/smart-search", auth: "open", since: null, stream: null, pathParams: [], queryParams: [] },
+  "history.research": { id: "history.research", method: "POST", path: "/v1/research", auth: "open", since: "0.58.0", stream: null, pathParams: [], queryParams: [] },
   "history.related": { id: "history.related", method: "GET", path: "/v1/history/related", auth: "open", since: null, stream: null, pathParams: [], queryParams: ["id","limit"] },
   "history.status": { id: "history.status", method: "GET", path: "/v1/history/status", auth: "open", since: null, stream: null, pathParams: [], queryParams: [] },
   "history.list": { id: "history.list", method: "GET", path: "/v1/history/list", auth: "open", since: null, stream: null, pathParams: [], queryParams: ["limit","offset","type"] },
@@ -174,6 +175,10 @@ export class HistoryApi {
   /** Several phrasings at once, rank-fused; briefs lead. */
   smartSearch(body: T.SmartSearchRequest, opts?: RequestOptions): Promise<T.SmartSearchResponse> {
     return this.rt.request(OPERATIONS["history.smartSearch"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** A question about the person's own data, researched over the whole store. The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus `attachment`: one block to hand a model, with record ids to cite. Pass `next` back as `previous` to continue the question ("no, even later", "what was it about"). Open like the other history reads; naming a `model` (to condense long records and check the evidence) runs a model on the caller's behalf and needs the gateway token. — Gateway 0.58.0+. */
+  research(body: T.ResearchRequest, opts?: RequestOptions): Promise<T.ResearchResponse> {
+    return this.rt.request(OPERATIONS["history.research"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
   }
   /** The records most connected to one record. */
   related(query: { id: string; limit?: number }, opts?: RequestOptions): Promise<{

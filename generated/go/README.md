@@ -128,6 +128,7 @@ Class | Method | HTTP request | Description
 *HistoryAPI* | [**HistoryPutRecords**](docs/HistoryAPI.md#historyputrecords) | **Put** /v1/history/records | Push whole records; the gateway derives the searchable text itself.
 *HistoryAPI* | [**HistoryRecords**](docs/HistoryAPI.md#historyrecords) | **Get** /v1/history/records | WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 *HistoryAPI* | [**HistoryRelated**](docs/HistoryAPI.md#historyrelated) | **Get** /v1/history/related | The records most connected to one record.
+*HistoryAPI* | [**HistoryResearch**](docs/HistoryAPI.md#historyresearch) | **Post** /v1/research | A question about the person&#39;s own data, researched over the whole store.
 *HistoryAPI* | [**HistorySearch**](docs/HistoryAPI.md#historysearch) | **Post** /v1/history/search | One keyword query over the warm index.
 *HistoryAPI* | [**HistorySmartSearch**](docs/HistoryAPI.md#historysmartsearch) | **Post** /v1/history/smart-search | Several phrasings at once, rank-fused; briefs lead.
 *HistoryAPI* | [**HistoryStatus**](docs/HistoryAPI.md#historystatus) | **Get** /v1/history/status | Size and freshness of the warm index (and the lossless tier from 0.10.0).
@@ -305,6 +306,15 @@ Class | Method | HTTP request | Description
  - [RerankRequest](docs/RerankRequest.md)
  - [RerankResponse](docs/RerankResponse.md)
  - [RerankResult](docs/RerankResult.md)
+ - [ResearchFollowUp](docs/ResearchFollowUp.md)
+ - [ResearchPlan](docs/ResearchPlan.md)
+ - [ResearchRequest](docs/ResearchRequest.md)
+ - [ResearchResponse](docs/ResearchResponse.md)
+ - [ResearchResponseAttachment](docs/ResearchResponseAttachment.md)
+ - [ResearchResponseGroupsInner](docs/ResearchResponseGroupsInner.md)
+ - [ResearchResponseReadInner](docs/ResearchResponseReadInner.md)
+ - [ResearchResponseReadInnerSpeakersInner](docs/ResearchResponseReadInnerSpeakersInner.md)
+ - [ResearchResponseRowsInner](docs/ResearchResponseRowsInner.md)
  - [RetrievalReadAlias200Response](docs/RetrievalReadAlias200Response.md)
  - [RetrievalSearchAlias200Response](docs/RetrievalSearchAlias200Response.md)
  - [RetrievalSearchAlias200ResponseDataInner](docs/RetrievalSearchAlias200ResponseDataInner.md)

@@ -38,6 +38,8 @@ import net.chatpanel.sdk.models.PutRecordsRequest
 import net.chatpanel.sdk.models.PutRecordsResponse
 import net.chatpanel.sdk.models.RecordType
 import net.chatpanel.sdk.models.RecordsPage
+import net.chatpanel.sdk.models.ResearchRequest
+import net.chatpanel.sdk.models.ResearchResponse
 import net.chatpanel.sdk.models.SearchRequest
 import net.chatpanel.sdk.models.SearchResponse
 import net.chatpanel.sdk.models.SmartSearchRequest
@@ -564,6 +566,80 @@ open class HistoryApi(basePath: kotlin.String = defaultBasePath, client: Call.Fa
         return RequestConfig(
             method = RequestMethod.GET,
             path = "/v1/history/related",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * POST /v1/research
+     * A question about the person&#39;s own data, researched over the whole store.
+     * The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+     * @param researchRequest 
+     * @return ResearchResponse
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun historyResearch(researchRequest: ResearchRequest) : ResearchResponse {
+        val localVarResponse = historyResearchWithHttpInfo(researchRequest = researchRequest)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as ResearchResponse
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * POST /v1/research
+     * A question about the person&#39;s own data, researched over the whole store.
+     * The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+     * @param researchRequest 
+     * @return ApiResponse<ResearchResponse?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun historyResearchWithHttpInfo(researchRequest: ResearchRequest) : ApiResponse<ResearchResponse?> {
+        val localVariableConfig = historyResearchRequestConfig(researchRequest = researchRequest)
+
+        return request<ResearchRequest, ResearchResponse>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation historyResearch
+     *
+     * @param researchRequest 
+     * @return RequestConfig
+     */
+    fun historyResearchRequestConfig(researchRequest: ResearchRequest) : RequestConfig<ResearchRequest> {
+        val localVariableBody = researchRequest
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/v1/research",
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,

@@ -10,6 +10,7 @@ Method | HTTP request | Description
 [**HistoryPutRecords**](HistoryAPI.md#HistoryPutRecords) | **Put** /v1/history/records | Push whole records; the gateway derives the searchable text itself.
 [**HistoryRecords**](HistoryAPI.md#HistoryRecords) | **Get** /v1/history/records | WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 [**HistoryRelated**](HistoryAPI.md#HistoryRelated) | **Get** /v1/history/related | The records most connected to one record.
+[**HistoryResearch**](HistoryAPI.md#HistoryResearch) | **Post** /v1/research | A question about the person&#39;s own data, researched over the whole store.
 [**HistorySearch**](HistoryAPI.md#HistorySearch) | **Post** /v1/history/search | One keyword query over the warm index.
 [**HistorySmartSearch**](HistoryAPI.md#HistorySmartSearch) | **Post** /v1/history/smart-search | Several phrasings at once, rank-fused; briefs lead.
 [**HistoryStatus**](HistoryAPI.md#HistoryStatus) | **Get** /v1/history/status | Size and freshness of the warm index (and the lossless tier from 0.10.0).
@@ -412,6 +413,72 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
 - **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
+
+
+## HistoryResearch
+
+> ResearchResponse HistoryResearch(ctx).ResearchRequest(researchRequest).Execute()
+
+A question about the person's own data, researched over the whole store.
+
+
+
+### Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	openapiclient "github.com/chatpanel/chatpanel-sdk"
+)
+
+func main() {
+	researchRequest := *openapiclient.NewResearchRequest("Question_example") // ResearchRequest | 
+
+	configuration := openapiclient.NewConfiguration()
+	apiClient := openapiclient.NewAPIClient(configuration)
+	resp, r, err := apiClient.HistoryAPI.HistoryResearch(context.Background()).ResearchRequest(researchRequest).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `HistoryAPI.HistoryResearch``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `HistoryResearch`: ResearchResponse
+	fmt.Fprintf(os.Stdout, "Response from `HistoryAPI.HistoryResearch`: %v\n", resp)
+}
+```
+
+### Path Parameters
+
+
+
+### Other Parameters
+
+Other parameters are passed through a pointer to a apiHistoryResearchRequest struct via the builder pattern
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **researchRequest** | [**ResearchRequest**](ResearchRequest.md) |  | 
+
+### Return type
+
+[**ResearchResponse**](ResearchResponse.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)

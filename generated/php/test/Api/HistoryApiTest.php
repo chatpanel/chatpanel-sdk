@@ -144,6 +144,18 @@ class HistoryApiTest extends TestCase
     }
 
     /**
+     * Test case for historyResearch
+     *
+     * A question about the person's own data, researched over the whole store..
+     *
+     */
+    public function testHistoryResearch()
+    {
+        // TODO: implement
+        self::markTestIncomplete('Not implemented');
+    }
+
+    /**
      * Test case for historySearch
      *
      * One keyword query over the warm index..

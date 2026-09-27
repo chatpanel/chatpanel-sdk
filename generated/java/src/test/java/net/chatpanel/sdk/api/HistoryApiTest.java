@@ -25,6 +25,8 @@ import net.chatpanel.sdk.model.PutRecordsRequest;
 import net.chatpanel.sdk.model.PutRecordsResponse;
 import net.chatpanel.sdk.model.RecordType;
 import net.chatpanel.sdk.model.RecordsPage;
+import net.chatpanel.sdk.model.ResearchRequest;
+import net.chatpanel.sdk.model.ResearchResponse;
 import net.chatpanel.sdk.model.SearchRequest;
 import net.chatpanel.sdk.model.SearchResponse;
 import net.chatpanel.sdk.model.SmartSearchRequest;
@@ -154,6 +156,23 @@ public class HistoryApiTest {
         Integer limit = null;
         HistoryRelated200Response response = 
         api.historyRelated(id, limit);
+        
+        // TODO: test validations
+    }
+    
+    /**
+     * A question about the person&#39;s own data, researched over the whole store.
+     *
+     * The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus &#x60;attachment&#x60;: one block to hand a model, with record ids to cite. Pass &#x60;next&#x60; back as &#x60;previous&#x60; to continue the question (\&quot;no, even later\&quot;, \&quot;what was it about\&quot;). Open like the other history reads; naming a &#x60;model&#x60; (to condense long records and check the evidence) runs a model on the caller&#39;s behalf and needs the gateway token. 
+     *
+     * @throws ApiException
+     *          if the Api call fails
+     */
+    @Test
+    public void historyResearchTest() throws ApiException {
+        ResearchRequest researchRequest = null;
+        ResearchResponse response = 
+        api.historyResearch(researchRequest);
         
         // TODO: test validations
     }

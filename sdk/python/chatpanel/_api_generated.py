@@ -15,6 +15,7 @@ OPERATIONS: Dict[str, Operation] = {
     "redaction.preview": Operation(id="redaction.preview", method="POST", path="/redact", auth="open", since="0.6.62", stream=None, path_params=(), query_params=()),
     "history.search": Operation(id="history.search", method="POST", path="/v1/history/search", auth="open", since=None, stream=None, path_params=(), query_params=()),
     "history.smartSearch": Operation(id="history.smartSearch", method="POST", path="/v1/history/smart-search", auth="open", since=None, stream=None, path_params=(), query_params=()),
+    "history.research": Operation(id="history.research", method="POST", path="/v1/research", auth="open", since="0.58.0", stream=None, path_params=(), query_params=()),
     "history.related": Operation(id="history.related", method="GET", path="/v1/history/related", auth="open", since=None, stream=None, path_params=(), query_params=("id", "limit",)),
     "history.status": Operation(id="history.status", method="GET", path="/v1/history/status", auth="open", since=None, stream=None, path_params=(), query_params=()),
     "history.list": Operation(id="history.list", method="GET", path="/v1/history/list", auth="open", since=None, stream=None, path_params=(), query_params=("limit", "offset", "type",)),
@@ -174,6 +175,10 @@ class HistoryApi:
     def smart_search(self, body: "T.SmartSearchRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.SmartSearchResponse":
         """Several phrasings at once, rank-fused; briefs lead."""
         return self._rt.request(OPERATIONS["history.smartSearch"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def research(self, body: "T.ResearchRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.ResearchResponse":
+        """A question about the person's own data, researched over the whole store. The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus `attachment`: one block to hand a model, with record ids to cite. Pass `next` back as `previous` to continue the question ("no, even later", "what was it about"). Open like the other history reads; naming a `model` (to condense long records and check the evidence) runs a model on the caller's behalf and needs the gateway token. — Gateway 0.58.0+."""
+        return self._rt.request(OPERATIONS["history.research"], path={}, query=query, headers=headers, body=body, timeout=timeout)
 
     def related(self, query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
         """The records most connected to one record."""

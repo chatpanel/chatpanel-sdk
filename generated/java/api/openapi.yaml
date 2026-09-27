@@ -352,6 +352,45 @@ paths:
       x-content-type: application/json
       x-accepts:
       - application/json
+  /v1/research:
+    post:
+      description: |
+        The shared bounded loop over the warm store: the question is framed (kind of record,
+        people named, dates, the latest or the first, a count, counts per person or per
+        month/week/day), every matching record is queried — sorted by date when it asks for the
+        last one, counted when it asks how many — the top records are read in full, and the
+        result carries what was searched, found and read, plus `attachment`: one block to hand
+        a model, with record ids to cite. Pass `next` back as `previous` to continue the question
+        ("no, even later", "what was it about"). Open like the other history reads; naming a
+        `model` (to condense long records and check the evidence) runs a model on the caller's
+        behalf and needs the gateway token.
+      operationId: history.research
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResearchRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchResponse"
+          description: "What was searched, found and read, and the block for a model."
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+      summary: "A question about the person's own data, researched over the whole\
+        \ store."
+      tags:
+      - history
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.58.0
+      x-content-type: application/json
+      x-accepts:
+      - application/json
   /v1/history/related:
     get:
       operationId: history.related
@@ -4898,6 +4937,322 @@ components:
         - queries
         - queries
         maxQueries: 3
+    ResearchPlan:
+      additionalProperties: true
+      description: How the question was framed — the typed plan the store was queried
+        with.
+      example:
+        intent: find
+        kind: kind
+        names:
+        - names
+        - names
+        terms:
+        - terms
+        - terms
+        sort: relevance
+        limit: 0
+        since: 6
+        after: 1
+        before: 5
+        group: group
+        readFull: true
+        followUp: true
+        target: target
+      properties:
+        intent:
+          enum:
+          - find
+          - latest
+          - earliest
+          - count
+          - group
+          - people
+          - list
+          - detail
+          type: string
+        kind:
+          description: "meeting, note, chat — or empty for every kind."
+          type: string
+        names:
+          items:
+            type: string
+          type: array
+          default: null
+        terms:
+          items:
+            type: string
+          type: array
+          default: null
+        sort:
+          enum:
+          - relevance
+          - newest
+          - oldest
+          type: string
+        limit:
+          type: integer
+        since:
+          format: int64
+          type: integer
+        after:
+          format: int64
+          type: integer
+        before:
+          format: int64
+          type: integer
+        group:
+          description: "person, month, week, day — or empty."
+          type: string
+        readFull:
+          type: boolean
+        followUp:
+          type: boolean
+        target:
+          nullable: true
+          type: string
+    ResearchFollowUp:
+      description: "What a follow-up continues — the `next` of the previous answer,\
+        \ passed back as `previous`."
+      example:
+        plan:
+          intent: find
+          kind: kind
+          names:
+          - names
+          - names
+          terms:
+          - terms
+          - terms
+          sort: relevance
+          limit: 0
+          since: 6
+          after: 1
+          before: 5
+          group: group
+          readFull: true
+          followUp: true
+          target: target
+        top: top
+        answer: answer
+      properties:
+        plan:
+          $ref: "#/components/schemas/ResearchPlan"
+        top:
+          description: The record the answer pointed at.
+          nullable: true
+          type: string
+        answer:
+          description: What the answer said (a date in it bounds "even later").
+          type: string
+      required:
+      - plan
+    ResearchRequest:
+      example:
+        question: question
+        previous:
+          plan:
+            intent: find
+            kind: kind
+            names:
+            - names
+            - names
+            terms:
+            - terms
+            - terms
+            sort: relevance
+            limit: 0
+            since: 6
+            after: 1
+            before: 5
+            group: group
+            readFull: true
+            followUp: true
+            target: target
+          top: top
+          answer: answer
+        model: model
+        excludeId: excludeId
+      properties:
+        question:
+          description: "The person's question, in their words."
+          type: string
+        previous:
+          $ref: "#/components/schemas/ResearchFollowUp"
+        model:
+          description: "A model id to read with (condense long records, check the\
+            \ evidence). Needs the gateway token; without one the parts are quoted\
+            \ as they are."
+          type: string
+        excludeId:
+          description: A record that is not evidence — the conversation asking.
+          type: string
+      required:
+      - question
+    ResearchResponse:
+      example:
+        ok: true
+        question: question
+        plan:
+          intent: find
+          kind: kind
+          names:
+          - names
+          - names
+          terms:
+          - terms
+          - terms
+          sort: relevance
+          limit: 0
+          since: 6
+          after: 1
+          before: 5
+          group: group
+          readFull: true
+          followUp: true
+          target: target
+        how: how
+        framedBy: rules
+        count: 5
+        rows:
+        - id: id
+          kind: kind
+          title: title
+          date: 2
+          snippet: snippet
+        - id: id
+          kind: kind
+          title: title
+          date: 2
+          snippet: snippet
+        groups:
+        - key: key
+          count: 7
+        - key: key
+          count: 7
+        read:
+        - id: id
+          title: title
+          date: 9
+          parts: 3
+          of: 2
+          speakers:
+          - name: name
+            lines: 4
+          - name: name
+            lines: 4
+          notes:
+          - notes
+          - notes
+        - id: id
+          title: title
+          date: 9
+          parts: 3
+          of: 2
+          speakers:
+          - name: name
+            lines: 4
+          - name: name
+            lines: 4
+          notes:
+          - notes
+          - notes
+        memory:
+        - memory
+        - memory
+        rounds: 7
+        verdict: verdict
+        ms: 1
+        next:
+          plan:
+            intent: find
+            kind: kind
+            names:
+            - names
+            - names
+            terms:
+            - terms
+            - terms
+            sort: relevance
+            limit: 0
+            since: 6
+            after: 1
+            before: 5
+            group: group
+            readFull: true
+            followUp: true
+            target: target
+          top: top
+          answer: answer
+        attachment:
+          title: title
+          text: text
+        size: 1
+        newest: 1
+      properties:
+        ok:
+          type: boolean
+        question:
+          type: string
+        plan:
+          $ref: "#/components/schemas/ResearchPlan"
+        how:
+          description: "How the store was searched, in words."
+          type: string
+        framedBy:
+          enum:
+          - rules
+          - model
+          type: string
+        count:
+          description: "Every match in the store, not the rows returned."
+          nullable: true
+          type: integer
+        rows:
+          items:
+            $ref: "#/components/schemas/ResearchResponse_rows_inner"
+          type: array
+          default: null
+        groups:
+          items:
+            $ref: "#/components/schemas/ResearchResponse_groups_inner"
+          nullable: true
+          type: array
+          default: null
+        read:
+          items:
+            $ref: "#/components/schemas/ResearchResponse_read_inner"
+          type: array
+          default: null
+        memory:
+          items:
+            type: string
+          type: array
+          default: null
+        rounds:
+          type: integer
+        verdict:
+          nullable: true
+          type: string
+        ms:
+          type: integer
+        next:
+          $ref: "#/components/schemas/ResearchFollowUp"
+        attachment:
+          $ref: "#/components/schemas/ResearchResponse_attachment"
+        size:
+          type: integer
+        newest:
+          format: int64
+          nullable: true
+          type: integer
+      required:
+      - how
+      - next
+      - ok
+      - plan
+      - read
+      - rows
     SearchHit:
       additionalProperties: true
       example:
@@ -7542,6 +7897,102 @@ components:
       oneOf:
       - type: string
       - $ref: "#/components/schemas/DecideOption"
+    ResearchResponse_rows_inner:
+      additionalProperties: true
+      example:
+        id: id
+        kind: kind
+        title: title
+        date: 2
+        snippet: snippet
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        title:
+          type: string
+        date:
+          format: int64
+          type: integer
+        snippet:
+          type: string
+      required:
+      - id
+    ResearchResponse_groups_inner:
+      example:
+        key: key
+        count: 7
+      properties:
+        key:
+          type: string
+        count:
+          type: integer
+      required:
+      - count
+      - key
+    ResearchResponse_read_inner_speakers_inner:
+      example:
+        name: name
+        lines: 4
+      properties:
+        name:
+          type: string
+        lines:
+          type: integer
+    ResearchResponse_read_inner:
+      example:
+        id: id
+        title: title
+        date: 9
+        parts: 3
+        of: 2
+        speakers:
+        - name: name
+          lines: 4
+        - name: name
+          lines: 4
+        notes:
+        - notes
+        - notes
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        date:
+          format: int64
+          type: integer
+        parts:
+          type: integer
+        of:
+          type: integer
+        speakers:
+          items:
+            $ref: "#/components/schemas/ResearchResponse_read_inner_speakers_inner"
+          type: array
+          default: null
+        notes:
+          items:
+            type: string
+          type: array
+          default: null
+      required:
+      - id
+    ResearchResponse_attachment:
+      description: The block to hand a model — null when nothing was found anywhere.
+      example:
+        title: title
+        text: text
+      nullable: true
+      properties:
+        title:
+          type: string
+        text:
+          type: string
+      required:
+      - text
+      - title
     HistoryStatus_lossless:
       example:
         records: 5

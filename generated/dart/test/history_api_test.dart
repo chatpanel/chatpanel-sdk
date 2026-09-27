@@ -51,6 +51,15 @@ void main() {
       // TODO
     });
 
+    // A question about the person's own data, researched over the whole store.
+    //
+    // The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus `attachment`: one block to hand a model, with record ids to cite. Pass `next` back as `previous` to continue the question (\"no, even later\", \"what was it about\"). Open like the other history reads; naming a `model` (to condense long records and check the evidence) runs a model on the caller's behalf and needs the gateway token. 
+    //
+    //Future<ResearchResponse> historyResearch(ResearchRequest researchRequest) async
+    test('test historyResearch', () async {
+      // TODO
+    });
+
     // One keyword query over the warm index.
     //
     //Future<SearchResponse> historySearch(SearchRequest searchRequest) async

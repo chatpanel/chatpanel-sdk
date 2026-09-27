@@ -10,6 +10,7 @@ Method | HTTP request | Description
 [**historyPutRecords**](HistoryAPI.md#historyputrecords) | **PUT** /v1/history/records | Push whole records; the gateway derives the searchable text itself.
 [**historyRecords**](HistoryAPI.md#historyrecords) | **GET** /v1/history/records | WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 [**historyRelated**](HistoryAPI.md#historyrelated) | **GET** /v1/history/related | The records most connected to one record.
+[**historyResearch**](HistoryAPI.md#historyresearch) | **POST** /v1/research | A question about the person&#39;s own data, researched over the whole store.
 [**historySearch**](HistoryAPI.md#historysearch) | **POST** /v1/history/search | One keyword query over the warm index.
 [**historySmartSearch**](HistoryAPI.md#historysmartsearch) | **POST** /v1/history/smart-search | Several phrasings at once, rank-fused; briefs lead.
 [**historyStatus**](HistoryAPI.md#historystatus) | **GET** /v1/history/status | Size and freshness of the warm index (and the lossless tier from 0.10.0).
@@ -318,6 +319,56 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **historyResearch**
+```swift
+    open class func historyResearch(researchRequest: ResearchRequest, completion: @escaping (_ data: ResearchResponse?, _ error: Error?) -> Void)
+```
+
+A question about the person's own data, researched over the whole store.
+
+The shared bounded loop over the warm store: the question is framed (kind of record, people named, dates, the latest or the first, a count, counts per person or per month/week/day), every matching record is queried — sorted by date when it asks for the last one, counted when it asks how many — the top records are read in full, and the result carries what was searched, found and read, plus `attachment`: one block to hand a model, with record ids to cite. Pass `next` back as `previous` to continue the question (\"no, even later\", \"what was it about\"). Open like the other history reads; naming a `model` (to condense long records and check the evidence) runs a model on the caller's behalf and needs the gateway token. 
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import ChatPanel
+
+let researchRequest = ResearchRequest(question: "question_example", previous: ResearchFollowUp(plan: ResearchPlan(intent: "intent_example", kind: "kind_example", names: ["names_example"], terms: ["terms_example"], sort: "sort_example", limit: 123, since: 123, after: 123, before: 123, group: "group_example", readFull: false, followUp: false, target: "target_example"), top: "top_example", answer: "answer_example"), model: "model_example", excludeId: "excludeId_example") // ResearchRequest | 
+
+// A question about the person's own data, researched over the whole store.
+HistoryAPI.historyResearch(researchRequest: researchRequest) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **researchRequest** | [**ResearchRequest**](ResearchRequest.md) |  | 
+
+### Return type
+
+[**ResearchResponse**](ResearchResponse.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

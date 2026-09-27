@@ -165,6 +165,15 @@ namespace ChatPanel.Sdk.Client
             _jsonOptions.Converters.Add(new RerankRequestJsonConverter());
             _jsonOptions.Converters.Add(new RerankResponseJsonConverter());
             _jsonOptions.Converters.Add(new RerankResultJsonConverter());
+            _jsonOptions.Converters.Add(new ResearchFollowUpJsonConverter());
+            _jsonOptions.Converters.Add(new ResearchPlanJsonConverter());
+            _jsonOptions.Converters.Add(new ResearchRequestJsonConverter());
+            _jsonOptions.Converters.Add(new ResearchResponseJsonConverter());
+            _jsonOptions.Converters.Add(new ResearchResponseAttachmentJsonConverter());
+            _jsonOptions.Converters.Add(new ResearchResponseGroupsInnerJsonConverter());
+            _jsonOptions.Converters.Add(new ResearchResponseReadInnerJsonConverter());
+            _jsonOptions.Converters.Add(new ResearchResponseReadInnerSpeakersInnerJsonConverter());
+            _jsonOptions.Converters.Add(new ResearchResponseRowsInnerJsonConverter());
             _jsonOptions.Converters.Add(new RetrievalReadAlias200ResponseJsonConverter());
             _jsonOptions.Converters.Add(new RetrievalSearchAlias200ResponseJsonConverter());
             _jsonOptions.Converters.Add(new RetrievalSearchAlias200ResponseDataInnerJsonConverter());

@@ -102,6 +102,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | *HistoryApi* | [**historyPutRecords**](docs/HistoryApi.md#historyputrecords) | **PUT** /v1/history/records | Push whole records; the gateway derives the searchable text itself. |
 | *HistoryApi* | [**historyRecords**](docs/HistoryApi.md#historyrecords) | **GET** /v1/history/records | WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included. |
 | *HistoryApi* | [**historyRelated**](docs/HistoryApi.md#historyrelated) | **GET** /v1/history/related | The records most connected to one record. |
+| *HistoryApi* | [**historyResearch**](docs/HistoryApi.md#historyresearch) | **POST** /v1/research | A question about the person's own data, researched over the whole store. |
 | *HistoryApi* | [**historySearch**](docs/HistoryApi.md#historysearch) | **POST** /v1/history/search | One keyword query over the warm index. |
 | *HistoryApi* | [**historySmartSearch**](docs/HistoryApi.md#historysmartsearch) | **POST** /v1/history/smart-search | Several phrasings at once, rank-fused; briefs lead. |
 | *HistoryApi* | [**historyStatus**](docs/HistoryApi.md#historystatus) | **GET** /v1/history/status | Size and freshness of the warm index (and the lossless tier from 0.10.0). |
@@ -280,6 +281,15 @@ All URIs are relative to *http://127.0.0.1:4320*
  - [net.chatpanel.sdk.models.RerankRequest](docs/RerankRequest.md)
  - [net.chatpanel.sdk.models.RerankResponse](docs/RerankResponse.md)
  - [net.chatpanel.sdk.models.RerankResult](docs/RerankResult.md)
+ - [net.chatpanel.sdk.models.ResearchFollowUp](docs/ResearchFollowUp.md)
+ - [net.chatpanel.sdk.models.ResearchPlan](docs/ResearchPlan.md)
+ - [net.chatpanel.sdk.models.ResearchRequest](docs/ResearchRequest.md)
+ - [net.chatpanel.sdk.models.ResearchResponse](docs/ResearchResponse.md)
+ - [net.chatpanel.sdk.models.ResearchResponseAttachment](docs/ResearchResponseAttachment.md)
+ - [net.chatpanel.sdk.models.ResearchResponseGroupsInner](docs/ResearchResponseGroupsInner.md)
+ - [net.chatpanel.sdk.models.ResearchResponseReadInner](docs/ResearchResponseReadInner.md)
+ - [net.chatpanel.sdk.models.ResearchResponseReadInnerSpeakersInner](docs/ResearchResponseReadInnerSpeakersInner.md)
+ - [net.chatpanel.sdk.models.ResearchResponseRowsInner](docs/ResearchResponseRowsInner.md)
  - [net.chatpanel.sdk.models.RetrievalReadAlias200Response](docs/RetrievalReadAlias200Response.md)
  - [net.chatpanel.sdk.models.RetrievalSearchAlias200Response](docs/RetrievalSearchAlias200Response.md)
  - [net.chatpanel.sdk.models.RetrievalSearchAlias200ResponseDataInner](docs/RetrievalSearchAlias200ResponseDataInner.md)
