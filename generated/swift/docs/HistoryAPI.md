@@ -181,7 +181,7 @@ Push whole records; the gateway derives the searchable text itself.
 // The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
 import ChatPanel
 
-let putRecordsRequest = PutRecordsRequest(host: "host_example", at: 123, records: ["TODO"], entries: ["TODO"]) // PutRecordsRequest | 
+let putRecordsRequest = PutRecordsRequest(host: "host_example", at: 123, records: ["TODO"], entries: ["TODO"], merge: false) // PutRecordsRequest | 
 
 // Push whole records; the gateway derives the searchable text itself.
 HistoryAPI.historyPutRecords(putRecordsRequest: putRecordsRequest) { (response, error) in

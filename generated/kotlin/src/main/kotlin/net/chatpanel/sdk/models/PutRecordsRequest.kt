@@ -34,6 +34,7 @@ import com.squareup.moshi.JsonClass
  * @param at 
  * @param records Whole records or tombstones. A record with `baseRev` (gateway 0.63.0+) is written only while the stored one is at that revision (0 = none stored); otherwise it comes back in `conflicts`. Without it the newer stamp wins.
  * @param propertyEntries Sealed backup entries, opened with the stored passphrase.
+ * @param merge Gateway 0.64.0+: a NOTE sent with a `baseRev` that is no longer current is merged against that version (title, tags and text three-way) instead of coming back in `conflicts`; the result is in `merged`.
  */
 
 
@@ -52,7 +53,11 @@ data class PutRecordsRequest (
 
     /* Sealed backup entries, opened with the stored passphrase. */
     @Json(name = "entries")
-    val propertyEntries: kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.Any>>? = null
+    val propertyEntries: kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.Any>>? = null,
+
+    /* Gateway 0.64.0+: a NOTE sent with a `baseRev` that is no longer current is merged against that version (title, tags and text three-way) instead of coming back in `conflicts`; the result is in `merged`. */
+    @Json(name = "merge")
+    val merge: kotlin.Boolean? = null
 
 ) {
 

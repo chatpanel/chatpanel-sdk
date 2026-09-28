@@ -24,7 +24,7 @@ info:
   license:
     name: Apache-2.0
   title: ChatPanel Gateway API
-  version: 0.37.0
+  version: 0.38.0
 servers:
 - description: The local gateway. Loopback only.
   url: http://127.0.0.1:4320
@@ -5982,6 +5982,7 @@ components:
         entries:
         - null
         - null
+        merge: true
       properties:
         host:
           description: Who is pushing — recorded on every record.
@@ -6005,6 +6006,11 @@ components:
             $ref: "#/components/schemas/AnyObject"
           type: array
           default: null
+        merge:
+          description: "Gateway 0.64.0+: a NOTE sent with a `baseRev` that is no longer\
+            \ current is merged against that version (title, tags and text three-way)\
+            \ instead of coming back in `conflicts`; the result is in `merged`."
+          type: boolean
     PutRecordsResponse:
       example:
         ok: true
@@ -6017,6 +6023,9 @@ components:
         revs:
           key: 5
         conflicts:
+        - null
+        - null
+        merged:
         - null
         - null
         rev: 5
@@ -6043,6 +6052,14 @@ components:
         conflicts:
           description: The current record for each one sent with a `baseRev` that
             is no longer current — merge and send again.
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+        merged:
+          description: "Gateway 0.64.0+, with `merge: true`: each note merged from\
+            \ an outdated copy, as stored (with its new `rev`) — replace yours with\
+            \ it."
           items:
             $ref: "#/components/schemas/AnyObject"
           type: array

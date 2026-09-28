@@ -780,6 +780,8 @@ export interface PutRecordsRequest {
   records?: Array<AnyObject>;
   /** Sealed backup entries, opened with the stored passphrase. */
   entries?: Array<AnyObject>;
+  /** Gateway 0.64.0+: a NOTE sent with a `baseRev` that is no longer current is merged against that version (title, tags and text three-way) instead of coming back in `conflicts`; the result is in `merged`. */
+  merge?: boolean;
 }
 
 export interface PutRecordsResponse {
@@ -794,6 +796,8 @@ export interface PutRecordsResponse {
   };
   /** The current record for each one sent with a `baseRev` that is no longer current — merge and send again. */
   conflicts?: Array<AnyObject>;
+  /** Gateway 0.64.0+, with `merge: true`: each note merged from an outdated copy, as stored (with its new `rev`) — replace yours with it. */
+  merged?: Array<AnyObject>;
   /** The newest revision after this write. */
   rev?: number;
 }

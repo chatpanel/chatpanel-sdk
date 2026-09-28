@@ -57,5 +57,11 @@ class PutRecordsRequestTest : ShouldSpec() {
             //modelInstance.propertyEntries shouldBe ("TODO")
         }
 
+        // to test the property `merge` - Gateway 0.64.0+: a NOTE sent with a `baseRev` that is no longer current is merged against that version (title, tags and text three-way) instead of coming back in `conflicts`; the result is in `merged`.
+        should("test merge") {
+            // uncomment below to test the property
+            //modelInstance.merge shouldBe ("TODO")
+        }
+
     }
 }

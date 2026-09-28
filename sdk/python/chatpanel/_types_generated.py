@@ -585,6 +585,7 @@ class PutRecordsRequest(TypedDict, total=False):
     at: NotRequired[int]
     records: NotRequired[List["AnyObject"]]  # Whole records or tombstones. A record with `baseRev` (gateway 0.63.0+) is written only while the stored one is at that revision (0 = none stored); otherwise it comes back in `conflicts`. Without it the newer stamp wins.
     entries: NotRequired[List["AnyObject"]]  # Sealed backup entries, opened with the stored passphrase.
+    merge: NotRequired[bool]  # Gateway 0.64.0+: a NOTE sent with a `baseRev` that is no longer current is merged against that version (title, tags and text three-way) instead of coming back in `conflicts`; the result is in `merged`.
 
 
 class PutRecordsResponse(TypedDict, total=False):
@@ -596,6 +597,7 @@ class PutRecordsResponse(TypedDict, total=False):
     size: NotRequired[int]
     revs: NotRequired[Dict[str, int]]  # Each written record's new revision (gateway 0.63.0+).
     conflicts: NotRequired[List["AnyObject"]]  # The current record for each one sent with a `baseRev` that is no longer current — merge and send again.
+    merged: NotRequired[List["AnyObject"]]  # Gateway 0.64.0+, with `merge: true`: each note merged from an outdated copy, as stored (with its new `rev`) — replace yours with it.
     rev: NotRequired[int]  # The newest revision after this write.
 
 

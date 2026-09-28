@@ -75,6 +75,12 @@ class PutRecordsResponseTest : ShouldSpec() {
             //modelInstance.conflicts shouldBe ("TODO")
         }
 
+        // to test the property `merged` - Gateway 0.64.0+, with `merge: true`: each note merged from an outdated copy, as stored (with its new `rev`) — replace yours with it.
+        should("test merged") {
+            // uncomment below to test the property
+            //modelInstance.merged shouldBe ("TODO")
+        }
+
         // to test the property `rev` - The newest revision after this write.
         should("test rev") {
             // uncomment below to test the property

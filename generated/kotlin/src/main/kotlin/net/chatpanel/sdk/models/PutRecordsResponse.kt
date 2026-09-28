@@ -37,6 +37,7 @@ import com.squareup.moshi.JsonClass
  * @param propertySize 
  * @param revs Each written record's new revision (gateway 0.63.0+).
  * @param conflicts The current record for each one sent with a `baseRev` that is no longer current — merge and send again.
+ * @param merged Gateway 0.64.0+, with `merge: true`: each note merged from an outdated copy, as stored (with its new `rev`) — replace yours with it.
  * @param rev The newest revision after this write.
  */
 
@@ -65,6 +66,10 @@ data class PutRecordsResponse (
     /* The current record for each one sent with a `baseRev` that is no longer current — merge and send again. */
     @Json(name = "conflicts")
     val conflicts: kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.Any>>? = null,
+
+    /* Gateway 0.64.0+, with `merge: true`: each note merged from an outdated copy, as stored (with its new `rev`) — replace yours with it. */
+    @Json(name = "merged")
+    val merged: kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.Any>>? = null,
 
     /* The newest revision after this write. */
     @Json(name = "rev")

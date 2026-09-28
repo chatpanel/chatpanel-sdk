@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **Size** | Pointer to **int32** |  | [optional] 
 **Revs** | Pointer to **map[string]int64** | Each written record&#39;s new revision (gateway 0.63.0+). | [optional] 
 **Conflicts** | Pointer to **[]map[string]interface{}** | The current record for each one sent with a &#x60;baseRev&#x60; that is no longer current — merge and send again. | [optional] 
+**Merged** | Pointer to **[]map[string]interface{}** | Gateway 0.64.0+, with &#x60;merge: true&#x60;: each note merged from an outdated copy, as stored (with its new &#x60;rev&#x60;) — replace yours with it. | [optional] 
 **Rev** | Pointer to **int64** | The newest revision after this write. | [optional] 
 
 ## Methods
@@ -196,6 +197,31 @@ SetConflicts sets Conflicts field to given value.
 `func (o *PutRecordsResponse) HasConflicts() bool`
 
 HasConflicts returns a boolean if a field has been set.
+
+### GetMerged
+
+`func (o *PutRecordsResponse) GetMerged() []map[string]interface{}`
+
+GetMerged returns the Merged field if non-nil, zero value otherwise.
+
+### GetMergedOk
+
+`func (o *PutRecordsResponse) GetMergedOk() (*[]map[string]interface{}, bool)`
+
+GetMergedOk returns a tuple with the Merged field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetMerged
+
+`func (o *PutRecordsResponse) SetMerged(v []map[string]interface{})`
+
+SetMerged sets Merged field to given value.
+
+### HasMerged
+
+`func (o *PutRecordsResponse) HasMerged() bool`
+
+HasMerged returns a boolean if a field has been set.
 
 ### GetRev
 

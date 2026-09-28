@@ -8,6 +8,7 @@ Name | Type | Description | Notes
 **At** | Pointer to **int64** |  | [optional] 
 **Records** | Pointer to **[]map[string]interface{}** | Whole records or tombstones. A record with &#x60;baseRev&#x60; (gateway 0.63.0+) is written only while the stored one is at that revision (0 &#x3D; none stored); otherwise it comes back in &#x60;conflicts&#x60;. Without it the newer stamp wins. | [optional] 
 **Entries** | Pointer to **[]map[string]interface{}** | Sealed backup entries, opened with the stored passphrase. | [optional] 
+**Merge** | Pointer to **bool** | Gateway 0.64.0+: a NOTE sent with a &#x60;baseRev&#x60; that is no longer current is merged against that version (title, tags and text three-way) instead of coming back in &#x60;conflicts&#x60;; the result is in &#x60;merged&#x60;. | [optional] 
 
 ## Methods
 
@@ -127,6 +128,31 @@ SetEntries sets Entries field to given value.
 `func (o *PutRecordsRequest) HasEntries() bool`
 
 HasEntries returns a boolean if a field has been set.
+
+### GetMerge
+
+`func (o *PutRecordsRequest) GetMerge() bool`
+
+GetMerge returns the Merge field if non-nil, zero value otherwise.
+
+### GetMergeOk
+
+`func (o *PutRecordsRequest) GetMergeOk() (*bool, bool)`
+
+GetMergeOk returns a tuple with the Merge field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetMerge
+
+`func (o *PutRecordsRequest) SetMerge(v bool)`
+
+SetMerge sets Merge field to given value.
+
+### HasMerge
+
+`func (o *PutRecordsRequest) HasMerge() bool`
+
+HasMerge returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

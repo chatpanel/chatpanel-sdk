@@ -44,6 +44,12 @@ void main() {
       // TODO
     });
 
+    // Gateway 0.64.0+, with `merge: true`: each note merged from an outdated copy, as stored (with its new `rev`) — replace yours with it.
+    // BuiltList<BuiltMap<String, JsonObject>> merged
+    test('to test the property `merged`', () async {
+      // TODO
+    });
+
     // The newest revision after this write.
     // int rev
     test('to test the property `rev`', () async {

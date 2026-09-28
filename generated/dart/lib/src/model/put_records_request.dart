@@ -17,6 +17,7 @@ part 'put_records_request.g.dart';
 /// * [at] 
 /// * [records] - Whole records or tombstones. A record with `baseRev` (gateway 0.63.0+) is written only while the stored one is at that revision (0 = none stored); otherwise it comes back in `conflicts`. Without it the newer stamp wins.
 /// * [entries] - Sealed backup entries, opened with the stored passphrase.
+/// * [merge] - Gateway 0.64.0+: a NOTE sent with a `baseRev` that is no longer current is merged against that version (title, tags and text three-way) instead of coming back in `conflicts`; the result is in `merged`.
 @BuiltValue()
 abstract class PutRecordsRequest implements Built<PutRecordsRequest, PutRecordsRequestBuilder> {
   /// Who is pushing — recorded on every record.
@@ -33,6 +34,10 @@ abstract class PutRecordsRequest implements Built<PutRecordsRequest, PutRecordsR
   /// Sealed backup entries, opened with the stored passphrase.
   @BuiltValueField(wireName: r'entries')
   BuiltList<BuiltMap<String, JsonObject?>>? get entries;
+
+  /// Gateway 0.64.0+: a NOTE sent with a `baseRev` that is no longer current is merged against that version (title, tags and text three-way) instead of coming back in `conflicts`; the result is in `merged`.
+  @BuiltValueField(wireName: r'merge')
+  bool? get merge;
 
   PutRecordsRequest._();
 
@@ -83,6 +88,13 @@ class _$PutRecordsRequestSerializer implements PrimitiveSerializer<PutRecordsReq
       yield serializers.serialize(
         object.entries,
         specifiedType: const FullType(BuiltList, [FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)])]),
+      );
+    }
+    if (object.merge != null) {
+      yield r'merge';
+      yield serializers.serialize(
+        object.merge,
+        specifiedType: const FullType(bool),
       );
     }
   }
@@ -139,6 +151,14 @@ class _$PutRecordsRequestSerializer implements PrimitiveSerializer<PutRecordsReq
           ) as BuiltList<BuiltMap<String, JsonObject?>>?;
           if (valueDes == null) continue;
           result.entries.replace(valueDes);
+          break;
+        case r'merge':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(bool),
+          ) as bool?;
+          if (valueDes == null) continue;
+          result.merge = valueDes;
           break;
         default:
           unhandled.add(key);

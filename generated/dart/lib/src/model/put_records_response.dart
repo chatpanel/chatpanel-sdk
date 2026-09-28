@@ -20,6 +20,7 @@ part 'put_records_response.g.dart';
 /// * [size] 
 /// * [revs] - Each written record's new revision (gateway 0.63.0+).
 /// * [conflicts] - The current record for each one sent with a `baseRev` that is no longer current — merge and send again.
+/// * [merged] - Gateway 0.64.0+, with `merge: true`: each note merged from an outdated copy, as stored (with its new `rev`) — replace yours with it.
 /// * [rev] - The newest revision after this write.
 @BuiltValue()
 abstract class PutRecordsResponse implements Built<PutRecordsResponse, PutRecordsResponseBuilder> {
@@ -45,6 +46,10 @@ abstract class PutRecordsResponse implements Built<PutRecordsResponse, PutRecord
   /// The current record for each one sent with a `baseRev` that is no longer current — merge and send again.
   @BuiltValueField(wireName: r'conflicts')
   BuiltList<BuiltMap<String, JsonObject?>>? get conflicts;
+
+  /// Gateway 0.64.0+, with `merge: true`: each note merged from an outdated copy, as stored (with its new `rev`) — replace yours with it.
+  @BuiltValueField(wireName: r'merged')
+  BuiltList<BuiltMap<String, JsonObject?>>? get merged;
 
   /// The newest revision after this write.
   @BuiltValueField(wireName: r'rev')
@@ -115,6 +120,13 @@ class _$PutRecordsResponseSerializer implements PrimitiveSerializer<PutRecordsRe
       yield r'conflicts';
       yield serializers.serialize(
         object.conflicts,
+        specifiedType: const FullType(BuiltList, [FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)])]),
+      );
+    }
+    if (object.merged != null) {
+      yield r'merged';
+      yield serializers.serialize(
+        object.merged,
         specifiedType: const FullType(BuiltList, [FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)])]),
       );
     }
@@ -201,6 +213,14 @@ class _$PutRecordsResponseSerializer implements PrimitiveSerializer<PutRecordsRe
           ) as BuiltList<BuiltMap<String, JsonObject?>>?;
           if (valueDes == null) continue;
           result.conflicts.replace(valueDes);
+          break;
+        case r'merged':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(BuiltList, [FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)])]),
+          ) as BuiltList<BuiltMap<String, JsonObject?>>?;
+          if (valueDes == null) continue;
+          result.merged.replace(valueDes);
           break;
         case r'rev':
           final valueDes = serializers.deserialize(

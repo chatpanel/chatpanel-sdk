@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.37.0
+  version: 0.38.0
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -3255,6 +3255,7 @@ components:
         at: { type: integer, format: int64 }
         records: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "Whole records or tombstones. A record with `baseRev` (gateway 0.63.0+) is written only while the stored one is at that revision (0 = none stored); otherwise it comes back in `conflicts`. Without it the newer stamp wins." }
         entries: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "Sealed backup entries, opened with the stored passphrase." }
+        merge: { type: boolean, description: "Gateway 0.64.0+: a NOTE sent with a `baseRev` that is no longer current is merged against that version (title, tags and text three-way) instead of coming back in `conflicts`; the result is in `merged`." }
     PutRecordsResponse:
       type: object
       required: [ok, written]
@@ -3266,6 +3267,7 @@ components:
         size: { type: integer }
         revs: { type: object, additionalProperties: { type: integer, format: int64 }, description: "Each written record's new revision (gateway 0.63.0+)." }
         conflicts: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "The current record for each one sent with a `baseRev` that is no longer current — merge and send again." }
+        merged: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "Gateway 0.64.0+, with `merge: true`: each note merged from an outdated copy, as stored (with its new `rev`) — replace yours with it." }
         rev: { type: integer, format: int64, description: "The newest revision after this write." }
     IngestRequest:
       type: object

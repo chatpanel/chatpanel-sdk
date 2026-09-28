@@ -18,10 +18,12 @@ public struct PutRecordsResponse: Sendable, Codable, Hashable {
     public var revs: [String: Int64]?
     /** The current record for each one sent with a `baseRev` that is no longer current — merge and send again. */
     public var conflicts: [Dictionary]?
+    /** Gateway 0.64.0+, with `merge: true`: each note merged from an outdated copy, as stored (with its new `rev`) — replace yours with it. */
+    public var merged: [Dictionary]?
     /** The newest revision after this write. */
     public var rev: Int64?
 
-    public init(ok: Bool, written: Int, ids: [String]? = nil, sealed: Int? = nil, size: Int? = nil, revs: [String: Int64]? = nil, conflicts: [Dictionary]? = nil, rev: Int64? = nil) {
+    public init(ok: Bool, written: Int, ids: [String]? = nil, sealed: Int? = nil, size: Int? = nil, revs: [String: Int64]? = nil, conflicts: [Dictionary]? = nil, merged: [Dictionary]? = nil, rev: Int64? = nil) {
         self.ok = ok
         self.written = written
         self.ids = ids
@@ -29,6 +31,7 @@ public struct PutRecordsResponse: Sendable, Codable, Hashable {
         self.size = size
         self.revs = revs
         self.conflicts = conflicts
+        self.merged = merged
         self.rev = rev
     }
 
@@ -40,6 +43,7 @@ public struct PutRecordsResponse: Sendable, Codable, Hashable {
         case size
         case revs
         case conflicts
+        case merged
         case rev
     }
 
@@ -54,6 +58,7 @@ public struct PutRecordsResponse: Sendable, Codable, Hashable {
         try container.encodeIfPresent(size, forKey: .size)
         try container.encodeIfPresent(revs, forKey: .revs)
         try container.encodeIfPresent(conflicts, forKey: .conflicts)
+        try container.encodeIfPresent(merged, forKey: .merged)
         try container.encodeIfPresent(rev, forKey: .rev)
     }
 }

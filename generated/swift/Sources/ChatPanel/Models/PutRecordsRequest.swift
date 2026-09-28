@@ -17,12 +17,15 @@ public struct PutRecordsRequest: Sendable, Codable, Hashable {
     public var records: [Dictionary]?
     /** Sealed backup entries, opened with the stored passphrase. */
     public var entries: [Dictionary]?
+    /** Gateway 0.64.0+: a NOTE sent with a `baseRev` that is no longer current is merged against that version (title, tags and text three-way) instead of coming back in `conflicts`; the result is in `merged`. */
+    public var merge: Bool?
 
-    public init(host: String? = nil, at: Int64? = nil, records: [Dictionary]? = nil, entries: [Dictionary]? = nil) {
+    public init(host: String? = nil, at: Int64? = nil, records: [Dictionary]? = nil, entries: [Dictionary]? = nil, merge: Bool? = nil) {
         self.host = host
         self.at = at
         self.records = records
         self.entries = entries
+        self.merge = merge
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -30,6 +33,7 @@ public struct PutRecordsRequest: Sendable, Codable, Hashable {
         case at
         case records
         case entries
+        case merge
     }
 
     // Encodable protocol methods
@@ -40,6 +44,7 @@ public struct PutRecordsRequest: Sendable, Codable, Hashable {
         try container.encodeIfPresent(at, forKey: .at)
         try container.encodeIfPresent(records, forKey: .records)
         try container.encodeIfPresent(entries, forKey: .entries)
+        try container.encodeIfPresent(merge, forKey: .merge)
     }
 }
 

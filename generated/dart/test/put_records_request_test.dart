@@ -30,5 +30,11 @@ void main() {
       // TODO
     });
 
+    // Gateway 0.64.0+: a NOTE sent with a `baseRev` that is no longer current is merged against that version (title, tags and text three-way) instead of coming back in `conflicts`; the result is in `merged`.
+    // bool merge
+    test('to test the property `merge`', () async {
+      // TODO
+    });
+
   });
 }
