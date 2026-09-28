@@ -241,7 +241,7 @@ apiInstance.accessTokenProvider = { "" }
 
 <a id="historyRecords"></a>
 # **historyRecords**
-> RecordsPage historyRecords(since, cursor, limit, kind)
+> RecordsPage historyRecords(since, cursor, limit, kind, bytes)
 
 WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 
@@ -258,8 +258,9 @@ val since : kotlin.Long = 789 // kotlin.Long | A stamp (ms since epoch) from a p
 val cursor : kotlin.String = cursor_example // kotlin.String | Opaque; from the previous page.
 val limit : kotlin.Int = 56 // kotlin.Int | 
 val kind : kotlin.String = kind_example // kotlin.String | 
+val bytes : kotlin.Int = 56 // kotlin.Int | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap.
 try {
-    val result : RecordsPage = apiInstance.historyRecords(since, cursor, limit, kind)
+    val result : RecordsPage = apiInstance.historyRecords(since, cursor, limit, kind, bytes)
     println(result)
 } catch (e: ClientException) {
     println("4xx response calling HistoryApi#historyRecords")
@@ -277,6 +278,7 @@ try {
 | **cursor** | **kotlin.String**| Opaque; from the previous page. | [optional] |
 | **limit** | **kotlin.Int**|  | [optional] [default to 200] |
 | **kind** | **kotlin.String**|  | [optional] |
+| **bytes** | **kotlin.Int**| Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. | [optional] [default to 0] |
 
 ### Return type
 

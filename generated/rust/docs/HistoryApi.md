@@ -136,7 +136,7 @@ Name | Type | Description  | Required | Notes
 
 ## history_records
 
-> models::RecordsPage history_records(since, cursor, limit, kind)
+> models::RecordsPage history_records(since, cursor, limit, kind, bytes)
 WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 
 The lossless tier. A gateway without the SQLite store answers 501.
@@ -150,6 +150,7 @@ Name | Type | Description  | Required | Notes
 **cursor** | Option<**String**> | Opaque; from the previous page. |  |
 **limit** | Option<**i32**> |  |  |[default to 200]
 **kind** | Option<**String**> |  |  |
+**bytes** | Option<**i32**> | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap. |  |[default to 0]
 
 ### Return type
 

@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.36.1
+  version: 0.36.2
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -430,6 +430,7 @@ paths:
         - { name: cursor, in: query, schema: { type: string }, description: "Opaque; from the previous page." }
         - { name: limit, in: query, schema: { type: integer, minimum: 1, default: 200 } }
         - { name: kind, in: query, schema: { type: string } }
+        - { name: bytes, in: query, schema: { type: integer, minimum: 0, default: 0 }, description: "Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap." }
       responses:
         '200':
           description: A page of whole records.

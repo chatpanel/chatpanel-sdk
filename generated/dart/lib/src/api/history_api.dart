@@ -439,6 +439,7 @@ class HistoryApi {
   /// * [cursor] - Opaque; from the previous page.
   /// * [limit] 
   /// * [kind] 
+  /// * [bytes] - Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -453,6 +454,7 @@ class HistoryApi {
     String? cursor,
     int? limit = 200,
     String? kind,
+    int? bytes = 0,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -484,6 +486,7 @@ class HistoryApi {
       if (cursor != null) r'cursor': encodeQueryParameter(_serializers, cursor, const FullType(String)),
       if (limit != null) r'limit': encodeQueryParameter(_serializers, limit, const FullType(int)),
       if (kind != null) r'kind': encodeQueryParameter(_serializers, kind, const FullType(String)),
+      if (bytes != null) r'bytes': encodeQueryParameter(_serializers, bytes, const FullType(int)),
     };
 
     final _response = await _dio.request<Object>(

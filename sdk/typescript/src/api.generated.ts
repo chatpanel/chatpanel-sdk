@@ -20,7 +20,7 @@ export const OPERATIONS = {
   "history.status": { id: "history.status", method: "GET", path: "/v1/history/status", auth: "open", since: null, stream: null, pathParams: [], queryParams: [] },
   "history.list": { id: "history.list", method: "GET", path: "/v1/history/list", auth: "open", since: null, stream: null, pathParams: [], queryParams: ["limit","offset","type"] },
   "history.get": { id: "history.get", method: "GET", path: "/v1/history/get", auth: "open", since: null, stream: null, pathParams: [], queryParams: ["id","maxChars","offset"] },
-  "history.records": { id: "history.records", method: "GET", path: "/v1/history/records", auth: "open", since: "0.10.0", stream: null, pathParams: [], queryParams: ["since","cursor","limit","kind"] },
+  "history.records": { id: "history.records", method: "GET", path: "/v1/history/records", auth: "open", since: "0.10.0", stream: null, pathParams: [], queryParams: ["since","cursor","limit","kind","bytes"] },
   "history.putRecords": { id: "history.putRecords", method: "PUT", path: "/v1/history/records", auth: "token", since: "0.10.0", stream: null, pathParams: [], queryParams: [] },
   "history.stream": { id: "history.stream", method: "GET", path: "/v1/history/stream", auth: "open", since: "0.11.0", stream: "sse", pathParams: [], queryParams: [] },
   "events.since": { id: "events.since", method: "GET", path: "/v1/events", auth: "token", since: "0.24.0", stream: null, pathParams: [], queryParams: ["cursor","limit","host"] },
@@ -208,7 +208,7 @@ export class HistoryApi {
     return this.rt.request(OPERATIONS["history.get"], { path: {  }, query: query, headers: opts?.headers, body: undefined, opts });
   }
   /** WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included. The lossless tier. A gateway without the SQLite store answers 501. — Gateway 0.10.0+. */
-  records(query?: { since?: number; cursor?: string; limit?: number; kind?: string }, opts?: RequestOptions): Promise<T.RecordsPage> {
+  records(query?: { since?: number; cursor?: string; limit?: number; kind?: string; bytes?: number }, opts?: RequestOptions): Promise<T.RecordsPage> {
     return this.rt.request(OPERATIONS["history.records"], { path: {  }, query: query, headers: opts?.headers, body: undefined, opts });
   }
   /** Push whole records; the gateway derives the searchable text itself. — Requires the gateway token. Gateway 0.10.0+. */

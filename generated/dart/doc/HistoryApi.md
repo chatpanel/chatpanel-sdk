@@ -203,7 +203,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **historyRecords**
-> RecordsPage historyRecords(since, cursor, limit, kind)
+> RecordsPage historyRecords(since, cursor, limit, kind, bytes)
 
 WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 
@@ -218,9 +218,10 @@ final int since = 789; // int | A stamp (ms since epoch) from a previous page's 
 final String cursor = cursor_example; // String | Opaque; from the previous page.
 final int limit = 56; // int | 
 final String kind = kind_example; // String | 
+final int bytes = 56; // int | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap.
 
 try {
-    final response = api.historyRecords(since, cursor, limit, kind);
+    final response = api.historyRecords(since, cursor, limit, kind, bytes);
     print(response);
 } on DioException catch (e) {
     print('Exception when calling HistoryApi->historyRecords: $e\n');
@@ -235,6 +236,7 @@ Name | Type | Description  | Notes
  **cursor** | **String**| Opaque; from the previous page. | [optional] 
  **limit** | **int**|  | [optional] [default to 200]
  **kind** | **String**|  | [optional] 
+ **bytes** | **int**| Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap. | [optional] [default to 0]
 
 ### Return type
 

@@ -331,7 +331,8 @@ opts = {
   since: 789, # Integer | A stamp (ms since epoch) from a previous page's `newest`.
   cursor: 'cursor_example', # String | Opaque; from the previous page.
   limit: 56, # Integer | 
-  kind: 'kind_example' # String | 
+  kind: 'kind_example', # String | 
+  bytes: 56 # Integer | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap.
 }
 
 begin
@@ -369,6 +370,7 @@ end
 | **cursor** | **String** | Opaque; from the previous page. | [optional] |
 | **limit** | **Integer** |  | [optional][default to 200] |
 | **kind** | **String** |  | [optional] |
+| **bytes** | **Integer** | Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. | [optional][default to 0] |
 
 ### Return type
 

@@ -24,7 +24,7 @@ info:
   license:
     name: Apache-2.0
   title: ChatPanel Gateway API
-  version: 0.36.1
+  version: 0.36.2
 servers:
 - description: The local gateway. Loopback only.
   url: http://127.0.0.1:4320
@@ -572,6 +572,18 @@ paths:
         required: false
         schema:
           type: string
+        style: form
+      - description: "Caps the page by the records' stored size too (gateway 0.62.0+;\
+          \ an older one ignores it). The first record always comes, so a page is\
+          \ never empty. 0 = no cap."
+        explode: true
+        in: query
+        name: bytes
+        required: false
+        schema:
+          default: 0
+          minimum: 0
+          type: integer
         style: form
       responses:
         "200":

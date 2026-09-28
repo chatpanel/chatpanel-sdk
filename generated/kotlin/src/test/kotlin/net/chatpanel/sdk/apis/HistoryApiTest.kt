@@ -93,7 +93,8 @@ class HistoryApiTest : ShouldSpec() {
             //val cursor : kotlin.String = cursor_example // kotlin.String | Opaque; from the previous page.
             //val limit : kotlin.Int = 56 // kotlin.Int | 
             //val kind : kotlin.String = kind_example // kotlin.String | 
-            //val result : RecordsPage = apiInstance.historyRecords(since, cursor, limit, kind)
+            //val bytes : kotlin.Int = 56 // kotlin.Int | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap.
+            //val result : RecordsPage = apiInstance.historyRecords(since, cursor, limit, kind, bytes)
             //result shouldBe ("TODO")
         }
 

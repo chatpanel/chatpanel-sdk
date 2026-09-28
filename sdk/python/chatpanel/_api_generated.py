@@ -20,7 +20,7 @@ OPERATIONS: Dict[str, Operation] = {
     "history.status": Operation(id="history.status", method="GET", path="/v1/history/status", auth="open", since=None, stream=None, path_params=(), query_params=()),
     "history.list": Operation(id="history.list", method="GET", path="/v1/history/list", auth="open", since=None, stream=None, path_params=(), query_params=("limit", "offset", "type",)),
     "history.get": Operation(id="history.get", method="GET", path="/v1/history/get", auth="open", since=None, stream=None, path_params=(), query_params=("id", "maxChars", "offset",)),
-    "history.records": Operation(id="history.records", method="GET", path="/v1/history/records", auth="open", since="0.10.0", stream=None, path_params=(), query_params=("since", "cursor", "limit", "kind",)),
+    "history.records": Operation(id="history.records", method="GET", path="/v1/history/records", auth="open", since="0.10.0", stream=None, path_params=(), query_params=("since", "cursor", "limit", "kind", "bytes",)),
     "history.putRecords": Operation(id="history.putRecords", method="PUT", path="/v1/history/records", auth="token", since="0.10.0", stream=None, path_params=(), query_params=()),
     "history.stream": Operation(id="history.stream", method="GET", path="/v1/history/stream", auth="open", since="0.11.0", stream="sse", path_params=(), query_params=()),
     "events.since": Operation(id="events.since", method="GET", path="/v1/events", auth="token", since="0.24.0", stream=None, path_params=(), query_params=("cursor", "limit", "host",)),

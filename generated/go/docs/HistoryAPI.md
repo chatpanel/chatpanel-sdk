@@ -284,7 +284,7 @@ Name | Type | Description  | Notes
 
 ## HistoryRecords
 
-> RecordsPage HistoryRecords(ctx).Since(since).Cursor(cursor).Limit(limit).Kind(kind).Execute()
+> RecordsPage HistoryRecords(ctx).Since(since).Cursor(cursor).Limit(limit).Kind(kind).Bytes(bytes).Execute()
 
 WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 
@@ -307,10 +307,11 @@ func main() {
 	cursor := "cursor_example" // string | Opaque; from the previous page. (optional)
 	limit := int32(56) // int32 |  (optional) (default to 200)
 	kind := "kind_example" // string |  (optional)
+	bytes := int32(56) // int32 | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap. (optional) (default to 0)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.HistoryAPI.HistoryRecords(context.Background()).Since(since).Cursor(cursor).Limit(limit).Kind(kind).Execute()
+	resp, r, err := apiClient.HistoryAPI.HistoryRecords(context.Background()).Since(since).Cursor(cursor).Limit(limit).Kind(kind).Bytes(bytes).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `HistoryAPI.HistoryRecords``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -335,6 +336,7 @@ Name | Type | Description  | Notes
  **cursor** | **string** | Opaque; from the previous page. | 
  **limit** | **int32** |  | [default to 200]
  **kind** | **string** |  | 
+ **bytes** | **int32** | Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. | [default to 0]
 
 ### Return type
 

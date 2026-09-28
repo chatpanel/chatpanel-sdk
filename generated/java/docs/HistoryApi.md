@@ -643,7 +643,7 @@ ApiResponse<[**PutRecordsResponse**](PutRecordsResponse.md)>
 
 ## historyRecords
 
-> RecordsPage historyRecords(since, cursor, limit, kind)
+> RecordsPage historyRecords(since, cursor, limit, kind, bytes)
 
 WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 
@@ -674,8 +674,9 @@ public class Example {
         String cursor = "cursor_example"; // String | Opaque; from the previous page.
         Integer limit = 200; // Integer | 
         String kind = "kind_example"; // String | 
+        Integer bytes = 0; // Integer | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap.
         try {
-            RecordsPage result = apiInstance.historyRecords(since, cursor, limit, kind);
+            RecordsPage result = apiInstance.historyRecords(since, cursor, limit, kind, bytes);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling HistoryApi#historyRecords");
@@ -697,6 +698,7 @@ public class Example {
 | **cursor** | **String**| Opaque; from the previous page. | [optional] |
 | **limit** | **Integer**|  | [optional] [default to 200] |
 | **kind** | **String**|  | [optional] |
+| **bytes** | **Integer**| Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. | [optional] [default to 0] |
 
 ### Return type
 
@@ -720,7 +722,7 @@ public class Example {
 
 ## historyRecordsWithHttpInfo
 
-> ApiResponse<RecordsPage> historyRecordsWithHttpInfo(since, cursor, limit, kind)
+> ApiResponse<RecordsPage> historyRecordsWithHttpInfo(since, cursor, limit, kind, bytes)
 
 WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 
@@ -752,8 +754,9 @@ public class Example {
         String cursor = "cursor_example"; // String | Opaque; from the previous page.
         Integer limit = 200; // Integer | 
         String kind = "kind_example"; // String | 
+        Integer bytes = 0; // Integer | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap.
         try {
-            ApiResponse<RecordsPage> response = apiInstance.historyRecordsWithHttpInfo(since, cursor, limit, kind);
+            ApiResponse<RecordsPage> response = apiInstance.historyRecordsWithHttpInfo(since, cursor, limit, kind, bytes);
             System.out.println("Status code: " + response.getStatusCode());
             System.out.println("Response headers: " + response.getHeaders());
             System.out.println("Response body: " + response.getData());
@@ -777,6 +780,7 @@ public class Example {
 | **cursor** | **String**| Opaque; from the previous page. | [optional] |
 | **limit** | **Integer**|  | [optional] [default to 200] |
 | **kind** | **String**|  | [optional] |
+| **bytes** | **Integer**| Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. | [optional] [default to 0] |
 
 ### Return type
 

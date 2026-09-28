@@ -403,6 +403,7 @@ open class HistoryApi(basePath: kotlin.String = defaultBasePath, client: Call.Fa
      * @param cursor Opaque; from the previous page. (optional)
      * @param limit  (optional, default to 200)
      * @param kind  (optional)
+     * @param bytes Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. (optional, default to 0)
      * @return RecordsPage
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
@@ -412,8 +413,8 @@ open class HistoryApi(basePath: kotlin.String = defaultBasePath, client: Call.Fa
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
-    fun historyRecords(since: kotlin.Long? = 0L, cursor: kotlin.String? = null, limit: kotlin.Int? = 200, kind: kotlin.String? = null) : RecordsPage {
-        val localVarResponse = historyRecordsWithHttpInfo(since = since, cursor = cursor, limit = limit, kind = kind)
+    fun historyRecords(since: kotlin.Long? = 0L, cursor: kotlin.String? = null, limit: kotlin.Int? = 200, kind: kotlin.String? = null, bytes: kotlin.Int? = 0) : RecordsPage {
+        val localVarResponse = historyRecordsWithHttpInfo(since = since, cursor = cursor, limit = limit, kind = kind, bytes = bytes)
 
         return when (localVarResponse.responseType) {
             ResponseType.Success -> (localVarResponse as Success<*>).data as RecordsPage
@@ -438,14 +439,15 @@ open class HistoryApi(basePath: kotlin.String = defaultBasePath, client: Call.Fa
      * @param cursor Opaque; from the previous page. (optional)
      * @param limit  (optional, default to 200)
      * @param kind  (optional)
+     * @param bytes Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. (optional, default to 0)
      * @return ApiResponse<RecordsPage?>
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class)
-    fun historyRecordsWithHttpInfo(since: kotlin.Long?, cursor: kotlin.String?, limit: kotlin.Int?, kind: kotlin.String?) : ApiResponse<RecordsPage?> {
-        val localVariableConfig = historyRecordsRequestConfig(since = since, cursor = cursor, limit = limit, kind = kind)
+    fun historyRecordsWithHttpInfo(since: kotlin.Long?, cursor: kotlin.String?, limit: kotlin.Int?, kind: kotlin.String?, bytes: kotlin.Int?) : ApiResponse<RecordsPage?> {
+        val localVariableConfig = historyRecordsRequestConfig(since = since, cursor = cursor, limit = limit, kind = kind, bytes = bytes)
 
         return request<Unit, RecordsPage>(
             localVariableConfig
@@ -459,9 +461,10 @@ open class HistoryApi(basePath: kotlin.String = defaultBasePath, client: Call.Fa
      * @param cursor Opaque; from the previous page. (optional)
      * @param limit  (optional, default to 200)
      * @param kind  (optional)
+     * @param bytes Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. (optional, default to 0)
      * @return RequestConfig
      */
-    fun historyRecordsRequestConfig(since: kotlin.Long?, cursor: kotlin.String?, limit: kotlin.Int?, kind: kotlin.String?) : RequestConfig<Unit> {
+    fun historyRecordsRequestConfig(since: kotlin.Long?, cursor: kotlin.String?, limit: kotlin.Int?, kind: kotlin.String?, bytes: kotlin.Int?) : RequestConfig<Unit> {
         val localVariableBody = null
         val localVariableQuery: MultiValueMap = mutableMapOf<kotlin.String, kotlin.collections.List<kotlin.String>>()
             .apply {
@@ -476,6 +479,9 @@ open class HistoryApi(basePath: kotlin.String = defaultBasePath, client: Call.Fa
                 }
                 if (kind != null) {
                     put("kind", listOf(kind.toString()))
+                }
+                if (bytes != null) {
+                    put("bytes", listOf(bytes.toString()))
                 }
             }
         val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
