@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
+import 'package:built_value/json_object.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -17,6 +18,9 @@ part 'put_records_response.g.dart';
 /// * [ids] 
 /// * [sealed_] 
 /// * [size] 
+/// * [revs] - Each written record's new revision (gateway 0.63.0+).
+/// * [conflicts] - The current record for each one sent with a `baseRev` that is no longer current — merge and send again.
+/// * [rev] - The newest revision after this write.
 @BuiltValue()
 abstract class PutRecordsResponse implements Built<PutRecordsResponse, PutRecordsResponseBuilder> {
   @BuiltValueField(wireName: r'ok')
@@ -33,6 +37,18 @@ abstract class PutRecordsResponse implements Built<PutRecordsResponse, PutRecord
 
   @BuiltValueField(wireName: r'size')
   int? get size;
+
+  /// Each written record's new revision (gateway 0.63.0+).
+  @BuiltValueField(wireName: r'revs')
+  BuiltMap<String, int>? get revs;
+
+  /// The current record for each one sent with a `baseRev` that is no longer current — merge and send again.
+  @BuiltValueField(wireName: r'conflicts')
+  BuiltList<BuiltMap<String, JsonObject?>>? get conflicts;
+
+  /// The newest revision after this write.
+  @BuiltValueField(wireName: r'rev')
+  int? get rev;
 
   PutRecordsResponse._();
 
@@ -85,6 +101,27 @@ class _$PutRecordsResponseSerializer implements PrimitiveSerializer<PutRecordsRe
       yield r'size';
       yield serializers.serialize(
         object.size,
+        specifiedType: const FullType(int),
+      );
+    }
+    if (object.revs != null) {
+      yield r'revs';
+      yield serializers.serialize(
+        object.revs,
+        specifiedType: const FullType(BuiltMap, [FullType(String), FullType(int)]),
+      );
+    }
+    if (object.conflicts != null) {
+      yield r'conflicts';
+      yield serializers.serialize(
+        object.conflicts,
+        specifiedType: const FullType(BuiltList, [FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)])]),
+      );
+    }
+    if (object.rev != null) {
+      yield r'rev';
+      yield serializers.serialize(
+        object.rev,
         specifiedType: const FullType(int),
       );
     }
@@ -148,6 +185,30 @@ class _$PutRecordsResponseSerializer implements PrimitiveSerializer<PutRecordsRe
           ) as int?;
           if (valueDes == null) continue;
           result.size = valueDes;
+          break;
+        case r'revs':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(BuiltMap, [FullType(String), FullType(int)]),
+          ) as BuiltMap<String, int>?;
+          if (valueDes == null) continue;
+          result.revs.replace(valueDes);
+          break;
+        case r'conflicts':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(BuiltList, [FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)])]),
+          ) as BuiltList<BuiltMap<String, JsonObject?>>?;
+          if (valueDes == null) continue;
+          result.conflicts.replace(valueDes);
+          break;
+        case r'rev':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
+          result.rev = valueDes;
           break;
         default:
           unhandled.add(key);

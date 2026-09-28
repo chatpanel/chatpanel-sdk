@@ -32,7 +32,7 @@ import com.squareup.moshi.JsonClass
  *
  * @param host Who is pushing — recorded on every record.
  * @param at 
- * @param records 
+ * @param records Whole records or tombstones. A record with `baseRev` (gateway 0.63.0+) is written only while the stored one is at that revision (0 = none stored); otherwise it comes back in `conflicts`. Without it the newer stamp wins.
  * @param propertyEntries Sealed backup entries, opened with the stored passphrase.
  */
 
@@ -46,6 +46,7 @@ data class PutRecordsRequest (
     @Json(name = "at")
     val at: kotlin.Long? = null,
 
+    /* Whole records or tombstones. A record with `baseRev` (gateway 0.63.0+) is written only while the stored one is at that revision (0 = none stored); otherwise it comes back in `conflicts`. Without it the newer stamp wins. */
     @Json(name = "records")
     val records: kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.Any>>? = null,
 

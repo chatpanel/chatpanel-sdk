@@ -13,6 +13,7 @@ public struct PutRecordsRequest: Sendable, Codable, Hashable {
     /** Who is pushing — recorded on every record. */
     public var host: String?
     public var at: Int64?
+    /** Whole records or tombstones. A record with `baseRev` (gateway 0.63.0+) is written only while the stored one is at that revision (0 = none stored); otherwise it comes back in `conflicts`. Without it the newer stamp wins. */
     public var records: [Dictionary]?
     /** Sealed backup entries, opened with the stored passphrase. */
     public var entries: [Dictionary]?

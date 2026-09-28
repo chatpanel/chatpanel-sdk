@@ -9,6 +9,9 @@
 | **ids** | **Array&lt;String&gt;** |  | [optional] |
 | **sealed** | **Integer** |  | [optional] |
 | **size** | **Integer** |  | [optional] |
+| **revs** | **Hash&lt;String, Integer&gt;** | Each written record&#39;s new revision (gateway 0.63.0+). | [optional] |
+| **conflicts** | **Array&lt;Hash&gt;** | The current record for each one sent with a &#x60;baseRev&#x60; that is no longer current — merge and send again. | [optional] |
+| **rev** | **Integer** | The newest revision after this write. | [optional] |
 
 ## Example
 
@@ -20,7 +23,10 @@ instance = ChatPanel::PutRecordsResponse.new(
   written: null,
   ids: null,
   sealed: null,
-  size: null
+  size: null,
+  revs: null,
+  conflicts: null,
+  rev: null
 )
 ```
 

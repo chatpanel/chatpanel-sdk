@@ -6,9 +6,10 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Ok** | **bool** |  | 
 **Records** | **[]map[string]interface{}** | Whole records; a tombstone carries &#x60;deletedAt&#x60;. | 
-**Next** | Pointer to **string** | The cursor for the next page — pass it as &#x60;cursor&#x60;; absent on the last page. | [optional] 
+**Next** | Pointer to **string** | The cursor for the next page — pass it as &#x60;cursor&#x60; (or, paging by revision, as &#x60;after_rev&#x60;); absent on the last page. | [optional] 
 **Size** | Pointer to **int32** |  | [optional] 
 **Newest** | Pointer to **int64** |  | [optional] 
+**Rev** | Pointer to **int64** | The newest revision (gateway 0.63.0+). Each record carries its own &#x60;rev&#x60; too. | [optional] 
 
 ## Methods
 
@@ -143,6 +144,31 @@ SetNewest sets Newest field to given value.
 `func (o *RecordsPage) HasNewest() bool`
 
 HasNewest returns a boolean if a field has been set.
+
+### GetRev
+
+`func (o *RecordsPage) GetRev() int64`
+
+GetRev returns the Rev field if non-nil, zero value otherwise.
+
+### GetRevOk
+
+`func (o *RecordsPage) GetRevOk() (*int64, bool)`
+
+GetRevOk returns a tuple with the Rev field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetRev
+
+`func (o *RecordsPage) SetRev(v int64)`
+
+SetRev sets Rev field to given value.
+
+### HasRev
+
+`func (o *RecordsPage) HasRev() bool`
+
+HasRev returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

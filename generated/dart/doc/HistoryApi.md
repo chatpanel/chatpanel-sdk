@@ -203,7 +203,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **historyRecords**
-> RecordsPage historyRecords(since, cursor, limit, kind, bytes)
+> RecordsPage historyRecords(since, cursor, limit, kind, bytes, afterRev)
 
 WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 
@@ -219,9 +219,10 @@ final String cursor = cursor_example; // String | Opaque; from the previous page
 final int limit = 56; // int | 
 final String kind = kind_example; // String | 
 final int bytes = 56; // int | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap.
+final int afterRev = 789; // int | Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. `next` is then the last revision served, and `rev` the newest there is.
 
 try {
-    final response = api.historyRecords(since, cursor, limit, kind, bytes);
+    final response = api.historyRecords(since, cursor, limit, kind, bytes, afterRev);
     print(response);
 } on DioException catch (e) {
     print('Exception when calling HistoryApi->historyRecords: $e\n');
@@ -237,6 +238,7 @@ Name | Type | Description  | Notes
  **limit** | **int**|  | [optional] [default to 200]
  **kind** | **String**|  | [optional] 
  **bytes** | **int**| Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap. | [optional] [default to 0]
+ **afterRev** | **int**| Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. `next` is then the last revision served, and `rev` the newest there is. | [optional] 
 
 ### Return type
 

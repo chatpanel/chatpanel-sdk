@@ -511,9 +511,10 @@ class RecordsPage(TypedDict, total=False):
     """RecordsPage"""
     ok: bool
     records: List["AnyObject"]  # Whole records; a tombstone carries `deletedAt`.
-    next: NotRequired[str]  # The cursor for the next page — pass it as `cursor`; absent on the last page.
+    next: NotRequired[str]  # The cursor for the next page — pass it as `cursor` (or, paging by revision, as `after_rev`); absent on the last page.
     size: NotRequired[int]
     newest: NotRequired[int]
+    rev: NotRequired[int]  # The newest revision (gateway 0.63.0+). Each record carries its own `rev` too.
 
 
 class CloudEvent(TypedDict, total=False):
@@ -582,7 +583,7 @@ class PutRecordsRequest(TypedDict, total=False):
     """PutRecordsRequest"""
     host: NotRequired[str]  # Who is pushing — recorded on every record.
     at: NotRequired[int]
-    records: NotRequired[List["AnyObject"]]
+    records: NotRequired[List["AnyObject"]]  # Whole records or tombstones. A record with `baseRev` (gateway 0.63.0+) is written only while the stored one is at that revision (0 = none stored); otherwise it comes back in `conflicts`. Without it the newer stamp wins.
     entries: NotRequired[List["AnyObject"]]  # Sealed backup entries, opened with the stored passphrase.
 
 
@@ -593,6 +594,9 @@ class PutRecordsResponse(TypedDict, total=False):
     ids: NotRequired[List[str]]
     sealed: NotRequired[int]
     size: NotRequired[int]
+    revs: NotRequired[Dict[str, int]]  # Each written record's new revision (gateway 0.63.0+).
+    conflicts: NotRequired[List["AnyObject"]]  # The current record for each one sent with a `baseRev` that is no longer current — merge and send again.
+    rev: NotRequired[int]  # The newest revision after this write.
 
 
 class IngestRequest(TypedDict, total=False):

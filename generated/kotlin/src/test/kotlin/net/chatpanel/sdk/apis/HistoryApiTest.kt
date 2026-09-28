@@ -94,7 +94,8 @@ class HistoryApiTest : ShouldSpec() {
             //val limit : kotlin.Int = 56 // kotlin.Int | 
             //val kind : kotlin.String = kind_example // kotlin.String | 
             //val bytes : kotlin.Int = 56 // kotlin.Int | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap.
-            //val result : RecordsPage = apiInstance.historyRecords(since, cursor, limit, kind, bytes)
+            //val afterRev : kotlin.Long = 789 // kotlin.Long | Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. `next` is then the last revision served, and `rev` the newest there is.
+            //val result : RecordsPage = apiInstance.historyRecords(since, cursor, limit, kind, bytes, afterRev)
             //result shouldBe ("TODO")
         }
 

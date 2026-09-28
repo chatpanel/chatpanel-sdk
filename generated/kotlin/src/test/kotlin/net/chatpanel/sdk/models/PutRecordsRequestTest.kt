@@ -45,7 +45,7 @@ class PutRecordsRequestTest : ShouldSpec() {
             //modelInstance.at shouldBe ("TODO")
         }
 
-        // to test the property `records`
+        // to test the property `records` - Whole records or tombstones. A record with `baseRev` (gateway 0.63.0+) is written only while the stored one is at that revision (0 = none stored); otherwise it comes back in `conflicts`. Without it the newer stamp wins.
         should("test records") {
             // uncomment below to test the property
             //modelInstance.records shouldBe ("TODO")

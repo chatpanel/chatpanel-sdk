@@ -9,6 +9,9 @@ Name | Type | Description | Notes
 **Ids** | Pointer to **[]string** |  | [optional] 
 **Sealed** | Pointer to **int32** |  | [optional] 
 **Size** | Pointer to **int32** |  | [optional] 
+**Revs** | Pointer to **map[string]int64** | Each written record&#39;s new revision (gateway 0.63.0+). | [optional] 
+**Conflicts** | Pointer to **[]map[string]interface{}** | The current record for each one sent with a &#x60;baseRev&#x60; that is no longer current — merge and send again. | [optional] 
+**Rev** | Pointer to **int64** | The newest revision after this write. | [optional] 
 
 ## Methods
 
@@ -143,6 +146,81 @@ SetSize sets Size field to given value.
 `func (o *PutRecordsResponse) HasSize() bool`
 
 HasSize returns a boolean if a field has been set.
+
+### GetRevs
+
+`func (o *PutRecordsResponse) GetRevs() map[string]int64`
+
+GetRevs returns the Revs field if non-nil, zero value otherwise.
+
+### GetRevsOk
+
+`func (o *PutRecordsResponse) GetRevsOk() (*map[string]int64, bool)`
+
+GetRevsOk returns a tuple with the Revs field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetRevs
+
+`func (o *PutRecordsResponse) SetRevs(v map[string]int64)`
+
+SetRevs sets Revs field to given value.
+
+### HasRevs
+
+`func (o *PutRecordsResponse) HasRevs() bool`
+
+HasRevs returns a boolean if a field has been set.
+
+### GetConflicts
+
+`func (o *PutRecordsResponse) GetConflicts() []map[string]interface{}`
+
+GetConflicts returns the Conflicts field if non-nil, zero value otherwise.
+
+### GetConflictsOk
+
+`func (o *PutRecordsResponse) GetConflictsOk() (*[]map[string]interface{}, bool)`
+
+GetConflictsOk returns a tuple with the Conflicts field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetConflicts
+
+`func (o *PutRecordsResponse) SetConflicts(v []map[string]interface{})`
+
+SetConflicts sets Conflicts field to given value.
+
+### HasConflicts
+
+`func (o *PutRecordsResponse) HasConflicts() bool`
+
+HasConflicts returns a boolean if a field has been set.
+
+### GetRev
+
+`func (o *PutRecordsResponse) GetRev() int64`
+
+GetRev returns the Rev field if non-nil, zero value otherwise.
+
+### GetRevOk
+
+`func (o *PutRecordsResponse) GetRevOk() (*int64, bool)`
+
+GetRevOk returns a tuple with the Rev field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetRev
+
+`func (o *PutRecordsResponse) SetRev(v int64)`
+
+SetRev sets Rev field to given value.
+
+### HasRev
+
+`func (o *PutRecordsResponse) HasRev() bool`
+
+HasRev returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

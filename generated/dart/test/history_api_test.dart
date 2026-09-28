@@ -39,7 +39,7 @@ void main() {
     //
     // The lossless tier. A gateway without the SQLite store answers 501.
     //
-    //Future<RecordsPage> historyRecords({ int since, String cursor, int limit, String kind, int bytes }) async
+    //Future<RecordsPage> historyRecords({ int since, String cursor, int limit, String kind, int bytes, int afterRev }) async
     test('test historyRecords', () async {
       // TODO
     });

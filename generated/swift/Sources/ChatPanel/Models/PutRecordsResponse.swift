@@ -14,13 +14,22 @@ public struct PutRecordsResponse: Sendable, Codable, Hashable {
     public var ids: [String]?
     public var sealed: Int?
     public var size: Int?
+    /** Each written record's new revision (gateway 0.63.0+). */
+    public var revs: [String: Int64]?
+    /** The current record for each one sent with a `baseRev` that is no longer current — merge and send again. */
+    public var conflicts: [Dictionary]?
+    /** The newest revision after this write. */
+    public var rev: Int64?
 
-    public init(ok: Bool, written: Int, ids: [String]? = nil, sealed: Int? = nil, size: Int? = nil) {
+    public init(ok: Bool, written: Int, ids: [String]? = nil, sealed: Int? = nil, size: Int? = nil, revs: [String: Int64]? = nil, conflicts: [Dictionary]? = nil, rev: Int64? = nil) {
         self.ok = ok
         self.written = written
         self.ids = ids
         self.sealed = sealed
         self.size = size
+        self.revs = revs
+        self.conflicts = conflicts
+        self.rev = rev
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -29,6 +38,9 @@ public struct PutRecordsResponse: Sendable, Codable, Hashable {
         case ids
         case sealed
         case size
+        case revs
+        case conflicts
+        case rev
     }
 
     // Encodable protocol methods
@@ -40,6 +52,9 @@ public struct PutRecordsResponse: Sendable, Codable, Hashable {
         try container.encodeIfPresent(ids, forKey: .ids)
         try container.encodeIfPresent(sealed, forKey: .sealed)
         try container.encodeIfPresent(size, forKey: .size)
+        try container.encodeIfPresent(revs, forKey: .revs)
+        try container.encodeIfPresent(conflicts, forKey: .conflicts)
+        try container.encodeIfPresent(rev, forKey: .rev)
     }
 }
 

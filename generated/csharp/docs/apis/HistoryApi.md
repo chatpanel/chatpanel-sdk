@@ -164,7 +164,7 @@ Push whole records; the gateway derives the searchable text itself.
 
 <a id="historyrecords"></a>
 # **HistoryRecords**
-> RecordsPage HistoryRecords (long since = null, string cursor = null, int limit = null, string kind = null, int bytes = null)
+> RecordsPage HistoryRecords (long since = null, string cursor = null, int limit = null, string kind = null, int bytes = null, long afterRev = null)
 
 WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 
@@ -180,6 +180,7 @@ The lossless tier. A gateway without the SQLite store answers 501.
 | **limit** | **int** |  | [optional] [default to 200] |
 | **kind** | **string** |  | [optional]  |
 | **bytes** | **int** | Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. | [optional] [default to 0] |
+| **afterRev** | **long** | Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. &#x60;next&#x60; is then the last revision served, and &#x60;rev&#x60; the newest there is. | [optional]  |
 
 ### Return type
 

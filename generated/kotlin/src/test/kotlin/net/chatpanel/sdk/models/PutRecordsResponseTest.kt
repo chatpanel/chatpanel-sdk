@@ -63,5 +63,23 @@ class PutRecordsResponseTest : ShouldSpec() {
             //modelInstance.propertySize shouldBe ("TODO")
         }
 
+        // to test the property `revs` - Each written record's new revision (gateway 0.63.0+).
+        should("test revs") {
+            // uncomment below to test the property
+            //modelInstance.revs shouldBe ("TODO")
+        }
+
+        // to test the property `conflicts` - The current record for each one sent with a `baseRev` that is no longer current — merge and send again.
+        should("test conflicts") {
+            // uncomment below to test the property
+            //modelInstance.conflicts shouldBe ("TODO")
+        }
+
+        // to test the property `rev` - The newest revision after this write.
+        should("test rev") {
+            // uncomment below to test the property
+            //modelInstance.rev shouldBe ("TODO")
+        }
+
     }
 }

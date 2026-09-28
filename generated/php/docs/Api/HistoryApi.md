@@ -272,7 +272,7 @@ try {
 ## `historyRecords()`
 
 ```php
-historyRecords($since, $cursor, $limit, $kind, $bytes): \ChatPanelSdk\Model\RecordsPage
+historyRecords($since, $cursor, $limit, $kind, $bytes, $after_rev): \ChatPanelSdk\Model\RecordsPage
 ```
 
 WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
@@ -301,9 +301,10 @@ $cursor = 'cursor_example'; // string | Opaque; from the previous page.
 $limit = 200; // int
 $kind = 'kind_example'; // string
 $bytes = 0; // int | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap.
+$after_rev = 56; // int | Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. `next` is then the last revision served, and `rev` the newest there is.
 
 try {
-    $result = $apiInstance->historyRecords($since, $cursor, $limit, $kind, $bytes);
+    $result = $apiInstance->historyRecords($since, $cursor, $limit, $kind, $bytes, $after_rev);
     print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling HistoryApi->historyRecords: ', $e->getMessage(), PHP_EOL;
@@ -319,6 +320,7 @@ try {
 | **limit** | **int**|  | [optional] [default to 200] |
 | **kind** | **string**|  | [optional] |
 | **bytes** | **int**| Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. | [optional] [default to 0] |
+| **after_rev** | **int**| Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. &#x60;next&#x60; is then the last revision served, and &#x60;rev&#x60; the newest there is. | [optional] |
 
 ### Return type
 

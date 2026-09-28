@@ -241,7 +241,7 @@ apiInstance.accessTokenProvider = { "" }
 
 <a id="historyRecords"></a>
 # **historyRecords**
-> RecordsPage historyRecords(since, cursor, limit, kind, bytes)
+> RecordsPage historyRecords(since, cursor, limit, kind, bytes, afterRev)
 
 WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 
@@ -259,8 +259,9 @@ val cursor : kotlin.String = cursor_example // kotlin.String | Opaque; from the 
 val limit : kotlin.Int = 56 // kotlin.Int | 
 val kind : kotlin.String = kind_example // kotlin.String | 
 val bytes : kotlin.Int = 56 // kotlin.Int | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap.
+val afterRev : kotlin.Long = 789 // kotlin.Long | Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. `next` is then the last revision served, and `rev` the newest there is.
 try {
-    val result : RecordsPage = apiInstance.historyRecords(since, cursor, limit, kind, bytes)
+    val result : RecordsPage = apiInstance.historyRecords(since, cursor, limit, kind, bytes, afterRev)
     println(result)
 } catch (e: ClientException) {
     println("4xx response calling HistoryApi#historyRecords")
@@ -279,6 +280,7 @@ try {
 | **limit** | **kotlin.Int**|  | [optional] [default to 200] |
 | **kind** | **kotlin.String**|  | [optional] |
 | **bytes** | **kotlin.Int**| Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. | [optional] [default to 0] |
+| **afterRev** | **kotlin.Long**| Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. &#x60;next&#x60; is then the last revision served, and &#x60;rev&#x60; the newest there is. | [optional] |
 
 ### Return type
 

@@ -12,17 +12,20 @@ public struct RecordsPage: Sendable, Codable, Hashable {
     public var ok: Bool
     /** Whole records; a tombstone carries `deletedAt`. */
     public var records: [Dictionary]
-    /** The cursor for the next page — pass it as `cursor`; absent on the last page. */
+    /** The cursor for the next page — pass it as `cursor` (or, paging by revision, as `after_rev`); absent on the last page. */
     public var next: String?
     public var size: Int?
     public var newest: Int64?
+    /** The newest revision (gateway 0.63.0+). Each record carries its own `rev` too. */
+    public var rev: Int64?
 
-    public init(ok: Bool, records: [Dictionary], next: String? = nil, size: Int? = nil, newest: Int64? = nil) {
+    public init(ok: Bool, records: [Dictionary], next: String? = nil, size: Int? = nil, newest: Int64? = nil, rev: Int64? = nil) {
         self.ok = ok
         self.records = records
         self.next = next
         self.size = size
         self.newest = newest
+        self.rev = rev
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -31,6 +34,7 @@ public struct RecordsPage: Sendable, Codable, Hashable {
         case next
         case size
         case newest
+        case rev
     }
 
     public var additionalProperties: [String: JSONValue] = [:]
@@ -57,6 +61,7 @@ public struct RecordsPage: Sendable, Codable, Hashable {
         try container.encodeIfPresent(next, forKey: .next)
         try container.encodeIfPresent(size, forKey: .size)
         try container.encodeIfPresent(newest, forKey: .newest)
+        try container.encodeIfPresent(rev, forKey: .rev)
         var additionalPropertiesContainer = encoder.container(keyedBy: String.self)
         try additionalPropertiesContainer.encodeMap(additionalProperties)
     }
@@ -71,12 +76,14 @@ public struct RecordsPage: Sendable, Codable, Hashable {
         next = try container.decodeIfPresent(String.self, forKey: .next)
         size = try container.decodeIfPresent(Int.self, forKey: .size)
         newest = try container.decodeIfPresent(Int64.self, forKey: .newest)
+        rev = try container.decodeIfPresent(Int64.self, forKey: .rev)
         var nonAdditionalPropertyKeys = Set<String>()
         nonAdditionalPropertyKeys.insert("ok")
         nonAdditionalPropertyKeys.insert("records")
         nonAdditionalPropertyKeys.insert("next")
         nonAdditionalPropertyKeys.insert("size")
         nonAdditionalPropertyKeys.insert("newest")
+        nonAdditionalPropertyKeys.insert("rev")
         let additionalPropertiesContainer = try decoder.container(keyedBy: String.self)
         additionalProperties = try additionalPropertiesContainer.decodeMap(JSONValue.self, excludedKeys: nonAdditionalPropertyKeys)
     }

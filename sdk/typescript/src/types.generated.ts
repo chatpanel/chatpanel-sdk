@@ -664,10 +664,12 @@ export interface RecordsPage {
   ok: boolean;
   /** Whole records; a tombstone carries `deletedAt`. */
   records: Array<AnyObject>;
-  /** The cursor for the next page — pass it as `cursor`; absent on the last page. */
+  /** The cursor for the next page — pass it as `cursor` (or, paging by revision, as `after_rev`); absent on the last page. */
   next?: string;
   size?: number;
   newest?: number;
+  /** The newest revision (gateway 0.63.0+). Each record carries its own `rev` too. */
+  rev?: number;
   [key: string]: unknown;
 }
 
@@ -774,6 +776,7 @@ export interface PutRecordsRequest {
   /** Who is pushing — recorded on every record. */
   host?: string;
   at?: number;
+  /** Whole records or tombstones. A record with `baseRev` (gateway 0.63.0+) is written only while the stored one is at that revision (0 = none stored); otherwise it comes back in `conflicts`. Without it the newer stamp wins. */
   records?: Array<AnyObject>;
   /** Sealed backup entries, opened with the stored passphrase. */
   entries?: Array<AnyObject>;
@@ -785,6 +788,14 @@ export interface PutRecordsResponse {
   ids?: Array<string>;
   sealed?: number;
   size?: number;
+  /** Each written record's new revision (gateway 0.63.0+). */
+  revs?: {
+    [key: string]: number;
+  };
+  /** The current record for each one sent with a `baseRev` that is no longer current — merge and send again. */
+  conflicts?: Array<AnyObject>;
+  /** The newest revision after this write. */
+  rev?: number;
 }
 
 export interface IngestRequest {

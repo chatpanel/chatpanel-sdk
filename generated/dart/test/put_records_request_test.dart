@@ -18,6 +18,7 @@ void main() {
       // TODO
     });
 
+    // Whole records or tombstones. A record with `baseRev` (gateway 0.63.0+) is written only while the stored one is at that revision (0 = none stored); otherwise it comes back in `conflicts`. Without it the newer stamp wins.
     // BuiltList<BuiltMap<String, JsonObject>> records
     test('to test the property `records`', () async {
       // TODO

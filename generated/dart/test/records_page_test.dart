@@ -18,7 +18,7 @@ void main() {
       // TODO
     });
 
-    // The cursor for the next page — pass it as `cursor`; absent on the last page.
+    // The cursor for the next page — pass it as `cursor` (or, paging by revision, as `after_rev`); absent on the last page.
     // String next
     test('to test the property `next`', () async {
       // TODO
@@ -31,6 +31,12 @@ void main() {
 
     // int newest
     test('to test the property `newest`', () async {
+      // TODO
+    });
+
+    // The newest revision (gateway 0.63.0+). Each record carries its own `rev` too.
+    // int rev
+    test('to test the property `rev`', () async {
       // TODO
     });
 

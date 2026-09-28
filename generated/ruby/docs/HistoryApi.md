@@ -332,7 +332,8 @@ opts = {
   cursor: 'cursor_example', # String | Opaque; from the previous page.
   limit: 56, # Integer | 
   kind: 'kind_example', # String | 
-  bytes: 56 # Integer | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap.
+  bytes: 56, # Integer | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap.
+  after_rev: 789 # Integer | Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. `next` is then the last revision served, and `rev` the newest there is.
 }
 
 begin
@@ -371,6 +372,7 @@ end
 | **limit** | **Integer** |  | [optional][default to 200] |
 | **kind** | **String** |  | [optional] |
 | **bytes** | **Integer** | Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. | [optional][default to 0] |
+| **after_rev** | **Integer** | Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. &#x60;next&#x60; is then the last revision served, and &#x60;rev&#x60; the newest there is. | [optional] |
 
 ### Return type
 

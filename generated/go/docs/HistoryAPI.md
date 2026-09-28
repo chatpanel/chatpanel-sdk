@@ -284,7 +284,7 @@ Name | Type | Description  | Notes
 
 ## HistoryRecords
 
-> RecordsPage HistoryRecords(ctx).Since(since).Cursor(cursor).Limit(limit).Kind(kind).Bytes(bytes).Execute()
+> RecordsPage HistoryRecords(ctx).Since(since).Cursor(cursor).Limit(limit).Kind(kind).Bytes(bytes).AfterRev(afterRev).Execute()
 
 WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 
@@ -308,10 +308,11 @@ func main() {
 	limit := int32(56) // int32 |  (optional) (default to 200)
 	kind := "kind_example" // string |  (optional)
 	bytes := int32(56) // int32 | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap. (optional) (default to 0)
+	afterRev := int64(789) // int64 | Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. `next` is then the last revision served, and `rev` the newest there is. (optional)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.HistoryAPI.HistoryRecords(context.Background()).Since(since).Cursor(cursor).Limit(limit).Kind(kind).Bytes(bytes).Execute()
+	resp, r, err := apiClient.HistoryAPI.HistoryRecords(context.Background()).Since(since).Cursor(cursor).Limit(limit).Kind(kind).Bytes(bytes).AfterRev(afterRev).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `HistoryAPI.HistoryRecords``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -337,6 +338,7 @@ Name | Type | Description  | Notes
  **limit** | **int32** |  | [default to 200]
  **kind** | **string** |  | 
  **bytes** | **int32** | Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. | [default to 0]
+ **afterRev** | **int64** | Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. &#x60;next&#x60; is then the last revision served, and &#x60;rev&#x60; the newest there is. | 
 
 ### Return type
 

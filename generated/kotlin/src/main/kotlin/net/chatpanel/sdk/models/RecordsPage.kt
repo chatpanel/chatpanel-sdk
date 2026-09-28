@@ -32,9 +32,10 @@ import com.squareup.moshi.JsonClass
  *
  * @param ok 
  * @param records Whole records; a tombstone carries `deletedAt`.
- * @param next The cursor for the next page — pass it as `cursor`; absent on the last page.
+ * @param next The cursor for the next page — pass it as `cursor` (or, paging by revision, as `after_rev`); absent on the last page.
  * @param propertySize 
  * @param newest 
+ * @param rev The newest revision (gateway 0.63.0+). Each record carries its own `rev` too.
  */
 
 
@@ -47,7 +48,7 @@ data class RecordsPage (
     @Json(name = "records")
     val records: kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.Any>>,
 
-    /* The cursor for the next page — pass it as `cursor`; absent on the last page. */
+    /* The cursor for the next page — pass it as `cursor` (or, paging by revision, as `after_rev`); absent on the last page. */
     @Json(name = "next")
     val next: kotlin.String? = null,
 
@@ -55,7 +56,11 @@ data class RecordsPage (
     val propertySize: kotlin.Int? = null,
 
     @Json(name = "newest")
-    val newest: kotlin.Long? = null
+    val newest: kotlin.Long? = null,
+
+    /* The newest revision (gateway 0.63.0+). Each record carries its own `rev` too. */
+    @Json(name = "rev")
+    val rev: kotlin.Long? = null
 
 ) : kotlin.collections.HashMap<String, kotlin.Any>() {
 

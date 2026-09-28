@@ -197,11 +197,12 @@ open class HistoryAPI {
      - parameter limit: (query)  (optional, default to 200)
      - parameter kind: (query)  (optional)
      - parameter bytes: (query) Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. (optional, default to 0)
+     - parameter afterRev: (query) Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. &#x60;next&#x60; is then the last revision served, and &#x60;rev&#x60; the newest there is. (optional)
      - parameter apiConfiguration: The configuration for the http request.
      - returns: RecordsPage
      */
-    open class func historyRecords(since: Int64? = nil, cursor: String? = nil, limit: Int? = nil, kind: String? = nil, bytes: Int? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> RecordsPage {
-        return try await historyRecordsWithRequestBuilder(since: since, cursor: cursor, limit: limit, kind: kind, bytes: bytes, apiConfiguration: apiConfiguration).execute().body
+    open class func historyRecords(since: Int64? = nil, cursor: String? = nil, limit: Int? = nil, kind: String? = nil, bytes: Int? = nil, afterRev: Int64? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> RecordsPage {
+        return try await historyRecordsWithRequestBuilder(since: since, cursor: cursor, limit: limit, kind: kind, bytes: bytes, afterRev: afterRev, apiConfiguration: apiConfiguration).execute().body
     }
 
     /**
@@ -216,10 +217,11 @@ open class HistoryAPI {
      - parameter limit: (query)  (optional, default to 200)
      - parameter kind: (query)  (optional)
      - parameter bytes: (query) Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. (optional, default to 0)
+     - parameter afterRev: (query) Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. &#x60;next&#x60; is then the last revision served, and &#x60;rev&#x60; the newest there is. (optional)
      - parameter apiConfiguration: The configuration for the http request.
      - returns: RequestBuilder<RecordsPage> 
      */
-    open class func historyRecordsWithRequestBuilder(since: Int64? = nil, cursor: String? = nil, limit: Int? = nil, kind: String? = nil, bytes: Int? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<RecordsPage> {
+    open class func historyRecordsWithRequestBuilder(since: Int64? = nil, cursor: String? = nil, limit: Int? = nil, kind: String? = nil, bytes: Int? = nil, afterRev: Int64? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<RecordsPage> {
         let localVariablePath = "/v1/history/records"
         let localVariableURLString = apiConfiguration.basePath + localVariablePath
         let localVariableParameters: [String: any Sendable]? = nil
@@ -231,6 +233,7 @@ open class HistoryAPI {
             "limit": (wrappedValue: limit?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
             "kind": (wrappedValue: kind?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
             "bytes": (wrappedValue: bytes?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+            "after_rev": (wrappedValue: afterRev?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
         ])
 
         let localVariableNillableHeaders: [String: (any Sendable)?] = [

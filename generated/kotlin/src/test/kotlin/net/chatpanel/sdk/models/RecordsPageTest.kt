@@ -45,7 +45,7 @@ class RecordsPageTest : ShouldSpec() {
             //modelInstance.records shouldBe ("TODO")
         }
 
-        // to test the property `next` - The cursor for the next page — pass it as `cursor`; absent on the last page.
+        // to test the property `next` - The cursor for the next page — pass it as `cursor` (or, paging by revision, as `after_rev`); absent on the last page.
         should("test next") {
             // uncomment below to test the property
             //modelInstance.next shouldBe ("TODO")
@@ -61,6 +61,12 @@ class RecordsPageTest : ShouldSpec() {
         should("test newest") {
             // uncomment below to test the property
             //modelInstance.newest shouldBe ("TODO")
+        }
+
+        // to test the property `rev` - The newest revision (gateway 0.63.0+). Each record carries its own `rev` too.
+        should("test rev") {
+            // uncomment below to test the property
+            //modelInstance.rev shouldBe ("TODO")
         }
 
     }

@@ -15,7 +15,7 @@ part 'put_records_request.g.dart';
 /// Properties:
 /// * [host] - Who is pushing — recorded on every record.
 /// * [at] 
-/// * [records] 
+/// * [records] - Whole records or tombstones. A record with `baseRev` (gateway 0.63.0+) is written only while the stored one is at that revision (0 = none stored); otherwise it comes back in `conflicts`. Without it the newer stamp wins.
 /// * [entries] - Sealed backup entries, opened with the stored passphrase.
 @BuiltValue()
 abstract class PutRecordsRequest implements Built<PutRecordsRequest, PutRecordsRequestBuilder> {
@@ -26,6 +26,7 @@ abstract class PutRecordsRequest implements Built<PutRecordsRequest, PutRecordsR
   @BuiltValueField(wireName: r'at')
   int? get at;
 
+  /// Whole records or tombstones. A record with `baseRev` (gateway 0.63.0+) is written only while the stored one is at that revision (0 = none stored); otherwise it comes back in `conflicts`. Without it the newer stamp wins.
   @BuiltValueField(wireName: r'records')
   BuiltList<BuiltMap<String, JsonObject?>>? get records;
 

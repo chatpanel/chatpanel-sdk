@@ -6,7 +6,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Host** | Pointer to **string** | Who is pushing — recorded on every record. | [optional] 
 **At** | Pointer to **int64** |  | [optional] 
-**Records** | Pointer to **[]map[string]interface{}** |  | [optional] 
+**Records** | Pointer to **[]map[string]interface{}** | Whole records or tombstones. A record with &#x60;baseRev&#x60; (gateway 0.63.0+) is written only while the stored one is at that revision (0 &#x3D; none stored); otherwise it comes back in &#x60;conflicts&#x60;. Without it the newer stamp wins. | [optional] 
 **Entries** | Pointer to **[]map[string]interface{}** | Sealed backup entries, opened with the stored passphrase. | [optional] 
 
 ## Methods

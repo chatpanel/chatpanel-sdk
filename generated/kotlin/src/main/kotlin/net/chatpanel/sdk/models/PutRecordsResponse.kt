@@ -35,6 +35,9 @@ import com.squareup.moshi.JsonClass
  * @param ids 
  * @param `sealed` 
  * @param propertySize 
+ * @param revs Each written record's new revision (gateway 0.63.0+).
+ * @param conflicts The current record for each one sent with a `baseRev` that is no longer current — merge and send again.
+ * @param rev The newest revision after this write.
  */
 
 
@@ -53,7 +56,19 @@ data class PutRecordsResponse (
     val `sealed`: kotlin.Int? = null,
 
     @Json(name = "size")
-    val propertySize: kotlin.Int? = null
+    val propertySize: kotlin.Int? = null,
+
+    /* Each written record's new revision (gateway 0.63.0+). */
+    @Json(name = "revs")
+    val revs: kotlin.collections.Map<kotlin.String, kotlin.Long>? = null,
+
+    /* The current record for each one sent with a `baseRev` that is no longer current — merge and send again. */
+    @Json(name = "conflicts")
+    val conflicts: kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.Any>>? = null,
+
+    /* The newest revision after this write. */
+    @Json(name = "rev")
+    val rev: kotlin.Long? = null
 
 ) {
 

@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.36.2
+  version: 0.37.0
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -431,6 +431,7 @@ paths:
         - { name: limit, in: query, schema: { type: integer, minimum: 1, default: 200 } }
         - { name: kind, in: query, schema: { type: string } }
         - { name: bytes, in: query, schema: { type: integer, minimum: 0, default: 0 }, description: "Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap." }
+        - { name: after_rev, in: query, schema: { type: integer, format: int64, minimum: 0 }, description: "Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. `next` is then the last revision served, and `rev` the newest there is." }
       responses:
         '200':
           description: A page of whole records.
@@ -3151,9 +3152,10 @@ components:
       properties:
         ok: { type: boolean }
         records: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "Whole records; a tombstone carries `deletedAt`." }
-        next: { type: string, description: "The cursor for the next page — pass it as `cursor`; absent on the last page." }
+        next: { type: string, description: "The cursor for the next page — pass it as `cursor` (or, paging by revision, as `after_rev`); absent on the last page." }
         size: { type: integer }
         newest: { type: integer, format: int64 }
+        rev: { type: integer, format: int64, description: "The newest revision (gateway 0.63.0+). Each record carries its own `rev` too." }
     CloudEvent:
       type: object
       description: >-
@@ -3251,7 +3253,7 @@ components:
       properties:
         host: { type: string, maxLength: 80, description: "Who is pushing — recorded on every record." }
         at: { type: integer, format: int64 }
-        records: { type: array, items: { $ref: '#/components/schemas/AnyObject' } }
+        records: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "Whole records or tombstones. A record with `baseRev` (gateway 0.63.0+) is written only while the stored one is at that revision (0 = none stored); otherwise it comes back in `conflicts`. Without it the newer stamp wins." }
         entries: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "Sealed backup entries, opened with the stored passphrase." }
     PutRecordsResponse:
       type: object
@@ -3262,6 +3264,9 @@ components:
         ids: { type: array, items: { type: string } }
         sealed: { type: integer }
         size: { type: integer }
+        revs: { type: object, additionalProperties: { type: integer, format: int64 }, description: "Each written record's new revision (gateway 0.63.0+)." }
+        conflicts: { type: array, items: { $ref: '#/components/schemas/AnyObject' }, description: "The current record for each one sent with a `baseRev` that is no longer current — merge and send again." }
+        rev: { type: integer, format: int64, description: "The newest revision after this write." }
     IngestRequest:
       type: object
       properties:

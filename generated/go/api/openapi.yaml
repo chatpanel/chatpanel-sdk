@@ -24,7 +24,7 @@ info:
   license:
     name: Apache-2.0
   title: ChatPanel Gateway API
-  version: 0.36.2
+  version: 0.37.0
 servers:
 - description: The local gateway. Loopback only.
   url: http://127.0.0.1:4320
@@ -545,6 +545,19 @@ paths:
         required: false
         schema:
           default: 0
+          minimum: 0
+          type: integer
+        style: form
+      - description: "Pages in REVISION order instead (gateway 0.63.0+): every write\
+          \ after this revision, the order the gateway took them in, no device clock\
+          \ involved. `next` is then the last revision served, and `rev` the newest\
+          \ there is."
+        explode: true
+        in: query
+        name: after_rev
+        required: false
+        schema:
+          format: int64
           minimum: 0
           type: integer
         style: form
@@ -5377,6 +5390,7 @@ components:
         next: next
         size: 0
         newest: 6
+        rev: 1
       properties:
         ok:
           type: boolean
@@ -5387,12 +5401,17 @@ components:
           type: array
           default: null
         next:
-          description: The cursor for the next page — pass it as `cursor`; absent
-            on the last page.
+          description: "The cursor for the next page — pass it as `cursor` (or, paging\
+            \ by revision, as `after_rev`); absent on the last page."
           type: string
         size:
           type: integer
         newest:
+          format: int64
+          type: integer
+        rev:
+          description: The newest revision (gateway 0.63.0+). Each record carries
+            its own `rev` too.
           format: int64
           type: integer
       required:
@@ -5720,6 +5739,10 @@ components:
           format: int64
           type: integer
         records:
+          description: Whole records or tombstones. A record with `baseRev` (gateway
+            0.63.0+) is written only while the stored one is at that revision (0 =
+            none stored); otherwise it comes back in `conflicts`. Without it the newer
+            stamp wins.
           items:
             $ref: "#/components/schemas/AnyObject"
           type: array
@@ -5739,6 +5762,12 @@ components:
         - ids
         sealed: 6
         size: 1
+        revs:
+          key: 5
+        conflicts:
+        - null
+        - null
+        rev: 5
       properties:
         ok:
           type: boolean
@@ -5752,6 +5781,23 @@ components:
         sealed:
           type: integer
         size:
+          type: integer
+        revs:
+          additionalProperties:
+            format: int64
+            type: integer
+          description: Each written record's new revision (gateway 0.63.0+).
+          type: object
+        conflicts:
+          description: The current record for each one sent with a `baseRev` that
+            is no longer current — merge and send again.
+          items:
+            $ref: "#/components/schemas/AnyObject"
+          type: array
+          default: null
+        rev:
+          description: The newest revision after this write.
+          format: int64
           type: integer
       required:
       - ok

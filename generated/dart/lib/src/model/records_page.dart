@@ -15,9 +15,10 @@ part 'records_page.g.dart';
 /// Properties:
 /// * [ok] 
 /// * [records] - Whole records; a tombstone carries `deletedAt`.
-/// * [next] - The cursor for the next page — pass it as `cursor`; absent on the last page.
+/// * [next] - The cursor for the next page — pass it as `cursor` (or, paging by revision, as `after_rev`); absent on the last page.
 /// * [size] 
 /// * [newest] 
+/// * [rev] - The newest revision (gateway 0.63.0+). Each record carries its own `rev` too.
 @BuiltValue()
 abstract class RecordsPage implements Built<RecordsPage, RecordsPageBuilder> {
   @BuiltValueField(wireName: r'ok')
@@ -27,7 +28,7 @@ abstract class RecordsPage implements Built<RecordsPage, RecordsPageBuilder> {
   @BuiltValueField(wireName: r'records')
   BuiltList<BuiltMap<String, JsonObject?>> get records;
 
-  /// The cursor for the next page — pass it as `cursor`; absent on the last page.
+  /// The cursor for the next page — pass it as `cursor` (or, paging by revision, as `after_rev`); absent on the last page.
   @BuiltValueField(wireName: r'next')
   String? get next;
 
@@ -36,6 +37,10 @@ abstract class RecordsPage implements Built<RecordsPage, RecordsPageBuilder> {
 
   @BuiltValueField(wireName: r'newest')
   int? get newest;
+
+  /// The newest revision (gateway 0.63.0+). Each record carries its own `rev` too.
+  @BuiltValueField(wireName: r'rev')
+  int? get rev;
 
   RecordsPage._();
 
@@ -88,6 +93,13 @@ class _$RecordsPageSerializer implements PrimitiveSerializer<RecordsPage> {
       yield r'newest';
       yield serializers.serialize(
         object.newest,
+        specifiedType: const FullType(int),
+      );
+    }
+    if (object.rev != null) {
+      yield r'rev';
+      yield serializers.serialize(
+        object.rev,
         specifiedType: const FullType(int),
       );
     }
@@ -151,6 +163,14 @@ class _$RecordsPageSerializer implements PrimitiveSerializer<RecordsPage> {
           ) as int?;
           if (valueDes == null) continue;
           result.newest = valueDes;
+          break;
+        case r'rev':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
+          result.rev = valueDes;
           break;
         default:
           unhandled.add(key);

@@ -643,7 +643,7 @@ ApiResponse<[**PutRecordsResponse**](PutRecordsResponse.md)>
 
 ## historyRecords
 
-> RecordsPage historyRecords(since, cursor, limit, kind, bytes)
+> RecordsPage historyRecords(since, cursor, limit, kind, bytes, afterRev)
 
 WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 
@@ -675,8 +675,9 @@ public class Example {
         Integer limit = 200; // Integer | 
         String kind = "kind_example"; // String | 
         Integer bytes = 0; // Integer | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap.
+        Long afterRev = 56L; // Long | Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. `next` is then the last revision served, and `rev` the newest there is.
         try {
-            RecordsPage result = apiInstance.historyRecords(since, cursor, limit, kind, bytes);
+            RecordsPage result = apiInstance.historyRecords(since, cursor, limit, kind, bytes, afterRev);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling HistoryApi#historyRecords");
@@ -699,6 +700,7 @@ public class Example {
 | **limit** | **Integer**|  | [optional] [default to 200] |
 | **kind** | **String**|  | [optional] |
 | **bytes** | **Integer**| Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. | [optional] [default to 0] |
+| **afterRev** | **Long**| Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. &#x60;next&#x60; is then the last revision served, and &#x60;rev&#x60; the newest there is. | [optional] |
 
 ### Return type
 
@@ -722,7 +724,7 @@ public class Example {
 
 ## historyRecordsWithHttpInfo
 
-> ApiResponse<RecordsPage> historyRecordsWithHttpInfo(since, cursor, limit, kind, bytes)
+> ApiResponse<RecordsPage> historyRecordsWithHttpInfo(since, cursor, limit, kind, bytes, afterRev)
 
 WHOLE records changed after a stamp, oldest first, paged by cursor, tombstones included.
 
@@ -755,8 +757,9 @@ public class Example {
         Integer limit = 200; // Integer | 
         String kind = "kind_example"; // String | 
         Integer bytes = 0; // Integer | Caps the page by the records' stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 = no cap.
+        Long afterRev = 56L; // Long | Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. `next` is then the last revision served, and `rev` the newest there is.
         try {
-            ApiResponse<RecordsPage> response = apiInstance.historyRecordsWithHttpInfo(since, cursor, limit, kind, bytes);
+            ApiResponse<RecordsPage> response = apiInstance.historyRecordsWithHttpInfo(since, cursor, limit, kind, bytes, afterRev);
             System.out.println("Status code: " + response.getStatusCode());
             System.out.println("Response headers: " + response.getHeaders());
             System.out.println("Response body: " + response.getData());
@@ -781,6 +784,7 @@ public class Example {
 | **limit** | **Integer**|  | [optional] [default to 200] |
 | **kind** | **String**|  | [optional] |
 | **bytes** | **Integer**| Caps the page by the records&#39; stored size too (gateway 0.62.0+; an older one ignores it). The first record always comes, so a page is never empty. 0 &#x3D; no cap. | [optional] [default to 0] |
+| **afterRev** | **Long**| Pages in REVISION order instead (gateway 0.63.0+): every write after this revision, the order the gateway took them in, no device clock involved. &#x60;next&#x60; is then the last revision served, and &#x60;rev&#x60; the newest there is. | [optional] |
 
 ### Return type
 
