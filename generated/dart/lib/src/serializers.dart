@@ -187,6 +187,9 @@ import 'package:chatpanel/src/model/teams_handoff_request.dart';
 import 'package:chatpanel/src/model/teams_list_runs200_response.dart';
 import 'package:chatpanel/src/model/teams_post_request.dart';
 import 'package:chatpanel/src/model/teams_stream_event.dart';
+import 'package:chatpanel/src/model/threads_send200_response.dart';
+import 'package:chatpanel/src/model/threads_send_request.dart';
+import 'package:chatpanel/src/model/threads_send_request_from.dart';
 import 'package:chatpanel/src/model/transcription.dart';
 import 'package:chatpanel/src/model/transcription_segments_inner.dart';
 import 'package:chatpanel/src/model/web_search_request.dart';
@@ -370,6 +373,9 @@ part 'serializers.g.dart';
   TeamsListRuns200Response,
   TeamsPostRequest,
   TeamsStreamEvent,
+  ThreadsSend200Response,
+  ThreadsSendRequest,
+  ThreadsSendRequestFrom,
   Transcription,
   TranscriptionSegmentsInner,
   WebSearchRequest,

@@ -24,7 +24,7 @@ info:
   license:
     name: Apache-2.0
   title: ChatPanel Gateway API
-  version: 0.38.0
+  version: 0.39.0
 servers:
 - description: The local gateway. Loopback only.
   url: http://127.0.0.1:4320
@@ -49,6 +49,9 @@ tags:
   name: history
 - description: "Durable facts about the user, carried into every turn on every client."
   name: memory
+- description: "The person's chats, asked by one another — any chat's own model answers\
+    \ in it."
+  name: threads
 - description: The settings every client shares.
   name: prefs
 - description: Team runs — the board every client can read.
@@ -894,6 +897,46 @@ paths:
       tags:
       - memory
       x-chatpanel-auth: token
+  /v1/threads/send:
+    post:
+      description: "The chat's own model or coding agent answers, in that chat (its\
+        \ agent session is resumed), and the question — framed with who asked — and\
+        \ the answer are appended to it. A caller acting for an agent should ask the\
+        \ person first; `dryRun` returns the chat's title and model for that question\
+        \ without running anything."
+      operationId: threads.send
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/threads_send_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/threads_send_200_response"
+          description: The chat's answer (absent on a dry run).
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: Ask one of the person's chats and get its answer; the exchange is added
+        to that chat.
+      tags:
+      - threads
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.69.0
   /v1/memory/forget:
     post:
       operationId: memory.forget
@@ -7181,6 +7224,48 @@ components:
       required:
       - ok
       - size
+    threads_send_request_from:
+      description: "The chat asking, so the other one says who asked."
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+    threads_send_request:
+      properties:
+        to:
+          description: "The chat to ask — a record id, chat:…"
+          type: string
+        message:
+          maxLength: 8000
+          type: string
+        from:
+          $ref: "#/components/schemas/threads_send_request_from"
+        dryRun:
+          description: Only which chat and model — nothing is run.
+          type: boolean
+      required:
+      - message
+      - to
+    threads_send_200_response:
+      example:
+        ok: true
+        title: title
+        model: model
+        reply: reply
+      properties:
+        ok:
+          type: boolean
+        title:
+          type: string
+        model:
+          type: string
+        reply:
+          type: string
+      required:
+      - model
+      - ok
+      - title
     memory_forget_request:
       properties:
         query:

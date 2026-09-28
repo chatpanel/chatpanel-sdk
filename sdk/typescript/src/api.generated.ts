@@ -32,6 +32,7 @@ export const OPERATIONS = {
   "memory.list": { id: "memory.list", method: "GET", path: "/v1/memory/list", auth: "open", since: null, stream: null, pathParams: [], queryParams: [] },
   "memory.recall": { id: "memory.recall", method: "POST", path: "/v1/memory/recall", auth: "open", since: null, stream: null, pathParams: [], queryParams: [] },
   "memory.remember": { id: "memory.remember", method: "POST", path: "/v1/memory/remember", auth: "token", since: null, stream: null, pathParams: [], queryParams: [] },
+  "threads.send": { id: "threads.send", method: "POST", path: "/v1/threads/send", auth: "token", since: "0.69.0", stream: null, pathParams: [], queryParams: [] },
   "memory.forget": { id: "memory.forget", method: "POST", path: "/v1/memory/forget", auth: "token", since: null, stream: null, pathParams: [], queryParams: [] },
   "memory.sync": { id: "memory.sync", method: "POST", path: "/v1/memory/sync", auth: "token", since: null, stream: null, pathParams: [], queryParams: [] },
   "prefs.get": { id: "prefs.get", method: "GET", path: "/v1/prefs", auth: "open", since: "0.6.77", stream: null, pathParams: [], queryParams: ["section","stamps"] },
@@ -286,6 +287,32 @@ export class MemoryApi {
     removes?: Array<string>;
   }, opts?: RequestOptions): Promise<T.MemorySyncResponse> {
     return this.rt.request(OPERATIONS["memory.sync"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+}
+
+/** The person's chats, asked by one another — any chat's own model answers in it. */
+export class ThreadsApi {
+  private readonly rt: Runtime;
+  constructor(rt: Runtime) { this.rt = rt; }
+  /** Ask one of the person's chats and get its answer; the exchange is added to that chat. The chat's own model or coding agent answers, in that chat (its agent session is resumed), and the question — framed with who asked — and the answer are appended to it. A caller acting for an agent should ask the person first; `dryRun` returns the chat's title and model for that question without running anything. — Requires the gateway token. Gateway 0.69.0+. */
+  send(body: {
+    /** The chat to ask — a record id, chat:… */
+    to: string;
+    message: string;
+    /** The chat asking, so the other one says who asked. */
+    from?: {
+      id?: string;
+      title?: string;
+    };
+    /** Only which chat and model — nothing is run. */
+    dryRun?: boolean;
+  }, opts?: RequestOptions): Promise<{
+    ok: boolean;
+    title: string;
+    model: string;
+    reply?: string;
+  }> {
+    return this.rt.request(OPERATIONS["threads.send"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
   }
 }
 
@@ -838,6 +865,7 @@ export function buildApi(rt: Runtime) {
     history: new HistoryApi(rt),
     events: new EventsApi(rt),
     memory: new MemoryApi(rt),
+    threads: new ThreadsApi(rt),
     prefs: new PrefsApi(rt),
     teams: new TeamsApi(rt),
     projects: new ProjectsApi(rt),

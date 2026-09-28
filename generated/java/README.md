@@ -2,7 +2,7 @@
 
 ChatPanel Gateway API
 
-- API version: 0.38.0
+- API version: 0.39.0
 
 - Generator version: 7.25.0
 
@@ -60,7 +60,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>net.chatpanel</groupId>
   <artifactId>chatpanel-sdk</artifactId>
-  <version>0.38.0</version>
+  <version>0.39.0</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -70,7 +70,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "net.chatpanel:chatpanel-sdk:0.38.0"
+compile "net.chatpanel:chatpanel-sdk:0.39.0"
 ```
 
 ### Others
@@ -83,7 +83,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/chatpanel-sdk-0.38.0.jar`
+- `target/chatpanel-sdk-0.39.0.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -318,6 +318,8 @@ Class | Method | HTTP request | Description
 *TeamsApi* | [**teamsStopRunWithHttpInfo**](docs/TeamsApi.md#teamsStopRunWithHttpInfo) | **POST** /v1/teams/runs/{runId}/stop | Ask the running client to stop.
 *TeamsApi* | [**teamsStream**](docs/TeamsApi.md#teamsStream) | **GET** /v1/teams/stream | Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed.
 *TeamsApi* | [**teamsStreamWithHttpInfo**](docs/TeamsApi.md#teamsStreamWithHttpInfo) | **GET** /v1/teams/stream | Run changes, pushed — &#x60;hello&#x60; once, then a &#x60;run&#x60; notice whenever a run is created, moves or is removed.
+*ThreadsApi* | [**threadsSend**](docs/ThreadsApi.md#threadsSend) | **POST** /v1/threads/send | Ask one of the person&#39;s chats and get its answer; the exchange is added to that chat.
+*ThreadsApi* | [**threadsSendWithHttpInfo**](docs/ThreadsApi.md#threadsSendWithHttpInfo) | **POST** /v1/threads/send | Ask one of the person&#39;s chats and get its answer; the exchange is added to that chat.
 
 
 ## Documentation for Models
@@ -495,6 +497,9 @@ Class | Method | HTTP request | Description
  - [TeamsListRuns200Response](docs/TeamsListRuns200Response.md)
  - [TeamsPostRequest](docs/TeamsPostRequest.md)
  - [TeamsStreamEvent](docs/TeamsStreamEvent.md)
+ - [ThreadsSend200Response](docs/ThreadsSend200Response.md)
+ - [ThreadsSendRequest](docs/ThreadsSendRequest.md)
+ - [ThreadsSendRequestFrom](docs/ThreadsSendRequestFrom.md)
  - [Transcription](docs/Transcription.md)
  - [TranscriptionSegmentsInner](docs/TranscriptionSegmentsInner.md)
  - [WebSearchRequest](docs/WebSearchRequest.md)

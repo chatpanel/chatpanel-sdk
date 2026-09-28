@@ -131,5 +131,6 @@ pub mod retrieval_api;
 pub mod runtime_api;
 pub mod skills_api;
 pub mod teams_api;
+pub mod threads_api;
 
 pub mod configuration;

@@ -30,6 +30,7 @@ export 'package:chatpanel/src/api/retrieval_api.dart';
 export 'package:chatpanel/src/api/runtime_api.dart';
 export 'package:chatpanel/src/api/skills_api.dart';
 export 'package:chatpanel/src/api/teams_api.dart';
+export 'package:chatpanel/src/api/threads_api.dart';
 
 export 'package:chatpanel/src/model/a2_a_result.dart';
 export 'package:chatpanel/src/model/a2_a_send_request.dart';
@@ -204,6 +205,9 @@ export 'package:chatpanel/src/model/teams_handoff_request.dart';
 export 'package:chatpanel/src/model/teams_list_runs200_response.dart';
 export 'package:chatpanel/src/model/teams_post_request.dart';
 export 'package:chatpanel/src/model/teams_stream_event.dart';
+export 'package:chatpanel/src/model/threads_send200_response.dart';
+export 'package:chatpanel/src/model/threads_send_request.dart';
+export 'package:chatpanel/src/model/threads_send_request_from.dart';
 export 'package:chatpanel/src/model/transcription.dart';
 export 'package:chatpanel/src/model/transcription_segments_inner.dart';
 export 'package:chatpanel/src/model/web_search_request.dart';

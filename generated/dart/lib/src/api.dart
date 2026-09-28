@@ -29,6 +29,7 @@ import 'package:chatpanel/src/api/retrieval_api.dart';
 import 'package:chatpanel/src/api/runtime_api.dart';
 import 'package:chatpanel/src/api/skills_api.dart';
 import 'package:chatpanel/src/api/teams_api.dart';
+import 'package:chatpanel/src/api/threads_api.dart';
 
 class Chatpanel {
   static const String basePath = r'http://127.0.0.1:4320';
@@ -242,5 +243,11 @@ class Chatpanel {
   /// by doing that all interceptors will not be executed
   TeamsApi getTeamsApi() {
     return TeamsApi(dio, serializers);
+  }
+
+  /// Get ThreadsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  ThreadsApi getThreadsApi() {
+    return ThreadsApi(dio, serializers);
   }
 }

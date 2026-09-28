@@ -32,6 +32,7 @@ OPERATIONS: Dict[str, Operation] = {
     "memory.list": Operation(id="memory.list", method="GET", path="/v1/memory/list", auth="open", since=None, stream=None, path_params=(), query_params=()),
     "memory.recall": Operation(id="memory.recall", method="POST", path="/v1/memory/recall", auth="open", since=None, stream=None, path_params=(), query_params=()),
     "memory.remember": Operation(id="memory.remember", method="POST", path="/v1/memory/remember", auth="token", since=None, stream=None, path_params=(), query_params=()),
+    "threads.send": Operation(id="threads.send", method="POST", path="/v1/threads/send", auth="token", since="0.69.0", stream=None, path_params=(), query_params=()),
     "memory.forget": Operation(id="memory.forget", method="POST", path="/v1/memory/forget", auth="token", since=None, stream=None, path_params=(), query_params=()),
     "memory.sync": Operation(id="memory.sync", method="POST", path="/v1/memory/sync", auth="token", since=None, stream=None, path_params=(), query_params=()),
     "prefs.get": Operation(id="prefs.get", method="GET", path="/v1/prefs", auth="open", since="0.6.77", stream=None, path_params=(), query_params=("section", "stamps",)),
@@ -270,6 +271,17 @@ class MemoryApi:
     def sync(self, body: Dict[str, Any], query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.MemorySyncResponse":
         """Two-way merge in one round trip — push what you have, receive the full set. — Requires the gateway token."""
         return self._rt.request(OPERATIONS["memory.sync"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+
+class ThreadsApi:
+    """The person's chats, asked by one another — any chat's own model answers in it."""
+
+    def __init__(self, rt: Runtime) -> None:
+        self._rt = rt
+
+    def send(self, body: Dict[str, Any], query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """Ask one of the person's chats and get its answer; the exchange is added to that chat. The chat's own model or coding agent answers, in that chat (its agent session is resumed), and the question — framed with who asked — and the answer are appended to it. A caller acting for an agent should ask the person first; `dryRun` returns the chat's title and model for that question without running anything. — Requires the gateway token. Gateway 0.69.0+."""
+        return self._rt.request(OPERATIONS["threads.send"], path={}, query=query, headers=headers, body=body, timeout=timeout)
 
 
 class PrefsApi:
@@ -631,6 +643,7 @@ class Api:
         self.history = HistoryApi(rt)
         self.events = EventsApi(rt)
         self.memory = MemoryApi(rt)
+        self.threads = ThreadsApi(rt)
         self.prefs = PrefsApi(rt)
         self.teams = TeamsApi(rt)
         self.projects = ProjectsApi(rt)
