@@ -28,6 +28,7 @@ const NOT_IN_SDK = {
   '/channels': 'Telegram/WhatsApp setup — bot tokens and pairing, admin-gated like /config (0.11.5)',
   '/v1/link': 'lists the phones paired to this gateway — the local settings page, admin-gated (gateway 0.60.0)',
   '/v1/link/pair': 'mints a one-time pairing code for a phone — the local settings page, admin-gated (gateway 0.60.0)',
+  '/v1/link/route': 'sets how a paired phone reaches this gateway (ChatPanel Link, Tailscale, Cloudflare Tunnel, your own relay) — the local settings page, admin-gated (gateway 0.65.0)',
   '/logs': 'in-memory request traces — admin UI',
   '/update': 'installs software',
   '/status': 'the extension\'s Gateway tab; /health carries what an app needs',
