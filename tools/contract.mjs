@@ -36,6 +36,8 @@ const NOT_IN_SDK = {
   '/v1/link/settings': 'what a linked phone may reach (agentSessions) — the local settings page, admin-gated, never the phone (gateway 0.68.0)',
   '/agent-sessions/read': 'one of those sessions\' whole conversation — the same client-only reach (gateway 0.67.0)',
   '/agent-sessions/adopt': 'links one of those sessions to a Chap conversation so the next turn resumes it — Chap\'s own clients (gateway 0.67.0)',
+  '/agent-sessions/catchup': 'the turns taken in the agent\'s own app since a Chap conversation last wrote to its session — Chap\'s own clients (gateway 0.70.0)',
+  '/v1/agent-sessions/catchup': 'as /agent-sessions/catchup, for a linked phone (gateway 0.70.0)',
   '/logs': 'in-memory request traces — admin UI',
   '/update': 'installs software',
   '/status': 'the extension\'s Gateway tab; /health carries what an app needs',
