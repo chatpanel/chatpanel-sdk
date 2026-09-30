@@ -18,5 +18,11 @@ void main() {
       // TODO
     });
 
+    // With `action: start` (gateway 0.74+) — start a native model past the live-memory check (`GET /v1/runtime/plan`).
+    // bool force
+    test('to test the property `force`', () async {
+      // TODO
+    });
+
   });
 }

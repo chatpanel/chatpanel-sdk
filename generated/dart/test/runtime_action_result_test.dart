@@ -62,5 +62,10 @@ void main() {
       // TODO
     });
 
+    // RuntimePlan plan
+    test('to test the property `plan`', () async {
+      // TODO
+    });
+
   });
 }

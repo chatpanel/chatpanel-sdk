@@ -5,6 +5,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | Method | HTTP request | Description |
 | ------ | ------------ | ----------- |
 | [**runtime_engine**](RuntimeApi.md#runtime_engine) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed). |
+| [**runtime_plan**](RuntimeApi.md#runtime_plan) | **GET** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free. |
 | [**runtime_service**](RuntimeApi.md#runtime_service) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it. |
 | [**runtime_status**](RuntimeApi.md#runtime_status) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services. |
 
@@ -84,6 +85,83 @@ end
 ### HTTP request headers
 
 - **Content-Type**: application/json
+- **Accept**: application/json
+
+
+## runtime_plan
+
+> <RuntimePlan> runtime_plan(opts)
+
+Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+
+Checked against what Heatwatch (an optional macOS tool on `127.0.0.1:7878`) says is reclaimable NOW, with the apps to close when it is short — or, without Heatwatch, against the machine's total memory, and `source` says which (`heatwatch` | `total-memory`). The KV cache is counted from the model's `config.json` when it is in the gateway's model cache (`contextCounted` says whether it was). A model the catalogue does not list needs `need_mb`. A native service's start makes the same check and refuses a model that does not fit what is free, unless the start says `force: true`. `runtime.heatwatch: false` stops the gateway asking Heatwatch. 
+
+### Examples
+
+```ruby
+require 'time'
+require 'chatpanel'
+# setup authorization
+ChatPanel.configure do |config|
+  # Configure Bearer authorization: gatewayToken
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = ChatPanel::RuntimeApi.new
+opts = {
+  service: 'service_example', # String | 
+  model: 'model_example', # String | A catalogue id or a Hugging Face owner/name; the service's current model when absent.
+  ctx: 56, # Integer | The context in tokens; the service's own window when absent.
+  need_mb: 56 # Integer | The model's peak memory while serving, for a model the catalogue does not list.
+}
+
+begin
+  # Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+  result = api_instance.runtime_plan(opts)
+  p result
+rescue ChatPanel::ApiError => e
+  puts "Error when calling RuntimeApi->runtime_plan: #{e}"
+end
+```
+
+#### Using the runtime_plan_with_http_info variant
+
+This returns an Array which contains the response data, status code and headers.
+
+> <Array(<RuntimePlan>, Integer, Hash)> runtime_plan_with_http_info(opts)
+
+```ruby
+begin
+  # Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+  data, status_code, headers = api_instance.runtime_plan_with_http_info(opts)
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => <RuntimePlan>
+rescue ChatPanel::ApiError => e
+  puts "Error when calling RuntimeApi->runtime_plan_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+| Name | Type | Description | Notes |
+| ---- | ---- | ----------- | ----- |
+| **service** | **String** |  | [optional][default to &#39;mlx&#39;] |
+| **model** | **String** | A catalogue id or a Hugging Face owner/name; the service&#39;s current model when absent. | [optional] |
+| **ctx** | **Integer** | The context in tokens; the service&#39;s own window when absent. | [optional] |
+| **need_mb** | **Integer** | The model&#39;s peak memory while serving, for a model the catalogue does not list. | [optional] |
+
+### Return type
+
+[**RuntimePlan**](RuntimePlan.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
 - **Accept**: application/json
 
 

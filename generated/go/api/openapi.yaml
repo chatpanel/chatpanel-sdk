@@ -24,7 +24,7 @@ info:
   license:
     name: Apache-2.0
   title: ChatPanel Gateway API
-  version: 0.39.0
+  version: 0.40.0
 servers:
 - description: The local gateway. Loopback only.
   url: http://127.0.0.1:4320
@@ -1836,6 +1836,77 @@ paths:
       - runtime
       x-chatpanel-auth: open
       x-chatpanel-since: 0.19.0
+  /v1/runtime/plan:
+    get:
+      description: |
+        Checked against what Heatwatch (an optional macOS tool on `127.0.0.1:7878`) says is
+        reclaimable NOW, with the apps to close when it is short — or, without Heatwatch, against
+        the machine's total memory, and `source` says which (`heatwatch` | `total-memory`). The
+        KV cache is counted from the model's `config.json` when it is in the gateway's model
+        cache (`contextCounted` says whether it was). A model the catalogue does not list needs
+        `need_mb`. A native service's start makes the same check and refuses a model that does
+        not fit what is free, unless the start says `force: true`. `runtime.heatwatch: false`
+        stops the gateway asking Heatwatch.
+      operationId: runtime.plan
+      parameters:
+      - explode: true
+        in: query
+        name: service
+        required: false
+        schema:
+          default: mlx
+          maxLength: 32
+          type: string
+        style: form
+      - description: A catalogue id or a Hugging Face owner/name; the service's current
+          model when absent.
+        explode: true
+        in: query
+        name: model
+        required: false
+        schema:
+          maxLength: 256
+          type: string
+        style: form
+      - description: The context in tokens; the service's own window when absent.
+        explode: true
+        in: query
+        name: ctx
+        required: false
+        schema:
+          minimum: 1
+          type: integer
+        style: form
+      - description: "The model's peak memory while serving, for a model the catalogue\
+          \ does not list."
+        explode: true
+        in: query
+        name: need_mb
+        required: false
+        schema:
+          minimum: 1
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimePlan"
+          description: The plan.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeActionResult"
+          description: "Unknown service, a service that takes no model, or an unlisted\
+            \ model without `need_mb`."
+      summary: "Will this local model run now? Weights + the KV cache for the context\
+        \ + 10% headroom, against what is free."
+      tags:
+      - runtime
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.74.0
   /v1/runtime/engines/{name}:
     post:
       description: |
@@ -3830,6 +3901,28 @@ components:
         model: model
         restarted: true
         note: note
+        plan:
+          ok: true
+          service: service
+          model: model
+          needMB: 0
+          weightsMB: 6
+          kvMB: 1
+          context: 5
+          contextCounted: true
+          source: heatwatch
+          fits: true
+          live:
+            fits: true
+            needMB: 5
+            availableMB: 2
+            shortfallMB: 7
+            fitsGPULimit: true
+            gpuWiredLimitMB: 9
+            close:
+            - close
+            - close
+          advice: advice
       properties:
         ok:
           type: boolean
@@ -3861,6 +3954,69 @@ components:
           type: boolean
         note:
           description: A model pick that fits but is tight for the engine's memory.
+          type: string
+        plan:
+          $ref: "#/components/schemas/RuntimePlan"
+      required:
+      - ok
+    RuntimePlan:
+      description: "Whether a local model fits in memory (gateway 0.74+) — `GET /v1/runtime/plan`,\
+        \ and on a start the live-memory check refused."
+      example:
+        ok: true
+        service: service
+        model: model
+        needMB: 0
+        weightsMB: 6
+        kvMB: 1
+        context: 5
+        contextCounted: true
+        source: heatwatch
+        fits: true
+        live:
+          fits: true
+          needMB: 5
+          availableMB: 2
+          shortfallMB: 7
+          fitsGPULimit: true
+          gpuWiredLimitMB: 9
+          close:
+          - close
+          - close
+        advice: advice
+      properties:
+        ok:
+          type: boolean
+        service:
+          type: string
+        model:
+          type: string
+        needMB:
+          description: Weights + KV cache + 10% headroom.
+          type: integer
+        weightsMB:
+          type: integer
+        kvMB:
+          description: The KV cache for the context; null when the model's config.json
+            is not on disk.
+          type: integer
+          nullable: true
+        context:
+          type: integer
+          nullable: true
+        contextCounted:
+          type: boolean
+        source:
+          enum:
+          - heatwatch
+          - total-memory
+          type: string
+        fits:
+          type: boolean
+        live:
+          $ref: "#/components/schemas/RuntimePlan_live"
+        advice:
+          description: One sentence for the person.
           type: string
       required:
       - ok
@@ -7599,6 +7755,10 @@ components:
         model:
           description: "With `action: model` — a catalogue id or a Hugging Face owner/name."
           type: string
+        force:
+          description: "With `action: start` (gateway 0.74+) — start a native model\
+            \ past the live-memory check (`GET /v1/runtime/plan`)."
+          type: boolean
     retrieval_searchAlias_200_response_data_inner:
       example:
         url: url
@@ -8144,6 +8304,42 @@ components:
           type: boolean
         version:
           type: string
+    RuntimePlan_live:
+      description: Heatwatch's answer; null without it.
+      example:
+        fits: true
+        needMB: 5
+        availableMB: 2
+        shortfallMB: 7
+        fitsGPULimit: true
+        gpuWiredLimitMB: 9
+        close:
+        - close
+        - close
+      properties:
+        fits:
+          type: boolean
+        needMB:
+          type: integer
+          nullable: true
+        availableMB:
+          type: integer
+          nullable: true
+        shortfallMB:
+          type: integer
+        fitsGPULimit:
+          type: boolean
+          nullable: true
+        gpuWiredLimitMB:
+          type: integer
+          nullable: true
+        close:
+          description: The apps to close to make room.
+          items:
+            type: string
+          type: array
+          default: null
+      nullable: true
     CapabilitiesDocument_server:
       example:
         name: name

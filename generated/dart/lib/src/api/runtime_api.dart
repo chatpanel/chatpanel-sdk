@@ -13,6 +13,7 @@ import 'package:chatpanel/src/model/error_response.dart';
 import 'package:chatpanel/src/model/runtime_action_result.dart';
 import 'package:chatpanel/src/model/runtime_document.dart';
 import 'package:chatpanel/src/model/runtime_engine_request.dart';
+import 'package:chatpanel/src/model/runtime_plan.dart';
 import 'package:chatpanel/src/model/runtime_service_request.dart';
 
 class RuntimeApi {
@@ -120,6 +121,101 @@ class RuntimeApi {
     }
 
     return Response<RuntimeActionResult>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+  /// Checked against what Heatwatch (an optional macOS tool on &#x60;127.0.0.1:7878&#x60;) says is reclaimable NOW, with the apps to close when it is short — or, without Heatwatch, against the machine&#39;s total memory, and &#x60;source&#x60; says which (&#x60;heatwatch&#x60; | &#x60;total-memory&#x60;). The KV cache is counted from the model&#39;s &#x60;config.json&#x60; when it is in the gateway&#39;s model cache (&#x60;contextCounted&#x60; says whether it was). A model the catalogue does not list needs &#x60;need_mb&#x60;. A native service&#39;s start makes the same check and refuses a model that does not fit what is free, unless the start says &#x60;force: true&#x60;. &#x60;runtime.heatwatch: false&#x60; stops the gateway asking Heatwatch. 
+  ///
+  /// Parameters:
+  /// * [service] 
+  /// * [model] - A catalogue id or a Hugging Face owner/name; the service's current model when absent.
+  /// * [ctx] - The context in tokens; the service's own window when absent.
+  /// * [needMb] - The model's peak memory while serving, for a model the catalogue does not list.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [RuntimePlan] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<RuntimePlan>> runtimePlan({ 
+    String? service = 'mlx',
+    String? model,
+    int? ctx,
+    int? needMb,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/v1/runtime/plan';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'http',
+            'scheme': 'bearer',
+            'name': 'gatewayToken',
+          },
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (service != null) r'service': encodeQueryParameter(_serializers, service, const FullType(String)),
+      if (model != null) r'model': encodeQueryParameter(_serializers, model, const FullType(String)),
+      if (ctx != null) r'ctx': encodeQueryParameter(_serializers, ctx, const FullType(int)),
+      if (needMb != null) r'need_mb': encodeQueryParameter(_serializers, needMb, const FullType(int)),
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    RuntimePlan? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(RuntimePlan),
+      ) as RuntimePlan;
+
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<RuntimePlan>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

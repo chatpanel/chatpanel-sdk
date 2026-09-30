@@ -6,6 +6,8 @@ All URIs are relative to *http://127.0.0.1:4320*
 |------------- | ------------- | -------------|
 | [**runtimeEngine**](RuntimeApi.md#runtimeEngine) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed). |
 | [**runtimeEngineWithHttpInfo**](RuntimeApi.md#runtimeEngineWithHttpInfo) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed). |
+| [**runtimePlan**](RuntimeApi.md#runtimePlan) | **GET** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free. |
+| [**runtimePlanWithHttpInfo**](RuntimeApi.md#runtimePlanWithHttpInfo) | **GET** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free. |
 | [**runtimeService**](RuntimeApi.md#runtimeService) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it. |
 | [**runtimeServiceWithHttpInfo**](RuntimeApi.md#runtimeServiceWithHttpInfo) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it. |
 | [**runtimeStatus**](RuntimeApi.md#runtimeStatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services. |
@@ -175,6 +177,164 @@ ApiResponse<[**RuntimeActionResult**](RuntimeActionResult.md)>
 | **200** | Started |  -  |
 | **400** | Could not start; &#x60;install&#x60; when the engine is not installed. |  -  |
 | **403** | The caller lacks the token this route needs. |  -  |
+
+
+## runtimePlan
+
+> RuntimePlan runtimePlan(service, model, ctx, needMb)
+
+Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+
+Checked against what Heatwatch (an optional macOS tool on &#x60;127.0.0.1:7878&#x60;) says is reclaimable NOW, with the apps to close when it is short — or, without Heatwatch, against the machine&#39;s total memory, and &#x60;source&#x60; says which (&#x60;heatwatch&#x60; | &#x60;total-memory&#x60;). The KV cache is counted from the model&#39;s &#x60;config.json&#x60; when it is in the gateway&#39;s model cache (&#x60;contextCounted&#x60; says whether it was). A model the catalogue does not list needs &#x60;need_mb&#x60;. A native service&#39;s start makes the same check and refuses a model that does not fit what is free, unless the start says &#x60;force: true&#x60;. &#x60;runtime.heatwatch: false&#x60; stops the gateway asking Heatwatch. 
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.RuntimeApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        RuntimeApi apiInstance = new RuntimeApi(defaultClient);
+        String service = "mlx"; // String | 
+        String model = "model_example"; // String | A catalogue id or a Hugging Face owner/name; the service's current model when absent.
+        Integer ctx = 56; // Integer | The context in tokens; the service's own window when absent.
+        Integer needMb = 56; // Integer | The model's peak memory while serving, for a model the catalogue does not list.
+        try {
+            RuntimePlan result = apiInstance.runtimePlan(service, model, ctx, needMb);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling RuntimeApi#runtimePlan");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **service** | **String**|  | [optional] [default to mlx] |
+| **model** | **String**| A catalogue id or a Hugging Face owner/name; the service&#39;s current model when absent. | [optional] |
+| **ctx** | **Integer**| The context in tokens; the service&#39;s own window when absent. | [optional] |
+| **needMb** | **Integer**| The model&#39;s peak memory while serving, for a model the catalogue does not list. | [optional] |
+
+### Return type
+
+[**RuntimePlan**](RuntimePlan.md)
+
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | The plan. |  -  |
+| **400** | Unknown service, a service that takes no model, or an unlisted model without &#x60;need_mb&#x60;. |  -  |
+
+## runtimePlanWithHttpInfo
+
+> ApiResponse<RuntimePlan> runtimePlanWithHttpInfo(service, model, ctx, needMb)
+
+Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+
+Checked against what Heatwatch (an optional macOS tool on &#x60;127.0.0.1:7878&#x60;) says is reclaimable NOW, with the apps to close when it is short — or, without Heatwatch, against the machine&#39;s total memory, and &#x60;source&#x60; says which (&#x60;heatwatch&#x60; | &#x60;total-memory&#x60;). The KV cache is counted from the model&#39;s &#x60;config.json&#x60; when it is in the gateway&#39;s model cache (&#x60;contextCounted&#x60; says whether it was). A model the catalogue does not list needs &#x60;need_mb&#x60;. A native service&#39;s start makes the same check and refuses a model that does not fit what is free, unless the start says &#x60;force: true&#x60;. &#x60;runtime.heatwatch: false&#x60; stops the gateway asking Heatwatch. 
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.ApiResponse;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.RuntimeApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        RuntimeApi apiInstance = new RuntimeApi(defaultClient);
+        String service = "mlx"; // String | 
+        String model = "model_example"; // String | A catalogue id or a Hugging Face owner/name; the service's current model when absent.
+        Integer ctx = 56; // Integer | The context in tokens; the service's own window when absent.
+        Integer needMb = 56; // Integer | The model's peak memory while serving, for a model the catalogue does not list.
+        try {
+            ApiResponse<RuntimePlan> response = apiInstance.runtimePlanWithHttpInfo(service, model, ctx, needMb);
+            System.out.println("Status code: " + response.getStatusCode());
+            System.out.println("Response headers: " + response.getHeaders());
+            System.out.println("Response body: " + response.getData());
+        } catch (ApiException e) {
+            System.err.println("Exception when calling RuntimeApi#runtimePlan");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            System.err.println("Reason: " + e.getResponseBody());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **service** | **String**|  | [optional] [default to mlx] |
+| **model** | **String**| A catalogue id or a Hugging Face owner/name; the service&#39;s current model when absent. | [optional] |
+| **ctx** | **Integer**| The context in tokens; the service&#39;s own window when absent. | [optional] |
+| **needMb** | **Integer**| The model&#39;s peak memory while serving, for a model the catalogue does not list. | [optional] |
+
+### Return type
+
+ApiResponse<[**RuntimePlan**](RuntimePlan.md)>
+
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | The plan. |  -  |
+| **400** | Unknown service, a service that takes no model, or an unlisted model without &#x60;need_mb&#x60;. |  -  |
 
 
 ## runtimeService

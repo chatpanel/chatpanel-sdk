@@ -14,6 +14,7 @@ Name | Type | Description | Notes
 **Model** | Pointer to **string** | The model the container runs, on a start or a model pick (gateway 0.22+). | [optional] 
 **Restarted** | Pointer to **bool** | A model pick re-created a running container. | [optional] 
 **Note** | Pointer to **string** | A model pick that fits but is tight for the engine&#39;s memory. | [optional] 
+**Plan** | Pointer to [**RuntimePlan**](RuntimePlan.md) |  | [optional] 
 
 ## Methods
 
@@ -278,6 +279,31 @@ SetNote sets Note field to given value.
 `func (o *RuntimeActionResult) HasNote() bool`
 
 HasNote returns a boolean if a field has been set.
+
+### GetPlan
+
+`func (o *RuntimeActionResult) GetPlan() RuntimePlan`
+
+GetPlan returns the Plan field if non-nil, zero value otherwise.
+
+### GetPlanOk
+
+`func (o *RuntimeActionResult) GetPlanOk() (*RuntimePlan, bool)`
+
+GetPlanOk returns a tuple with the Plan field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetPlan
+
+`func (o *RuntimeActionResult) SetPlan(v RuntimePlan)`
+
+SetPlan sets Plan field to given value.
+
+### HasPlan
+
+`func (o *RuntimeActionResult) HasPlan() bool`
+
+HasPlan returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

@@ -66,6 +66,58 @@ open class RuntimeAPI {
     }
 
     /**
+     Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+     
+     - parameter service: (query)  (optional, default to "mlx")
+     - parameter model: (query) A catalogue id or a Hugging Face owner/name; the service&#39;s current model when absent. (optional)
+     - parameter ctx: (query) The context in tokens; the service&#39;s own window when absent. (optional)
+     - parameter needMb: (query) The model&#39;s peak memory while serving, for a model the catalogue does not list. (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RuntimePlan
+     */
+    open class func runtimePlan(service: String? = nil, model: String? = nil, ctx: Int? = nil, needMb: Int? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> RuntimePlan {
+        return try await runtimePlanWithRequestBuilder(service: service, model: model, ctx: ctx, needMb: needMb, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+     - GET /v1/runtime/plan
+     - Checked against what Heatwatch (an optional macOS tool on `127.0.0.1:7878`) says is reclaimable NOW, with the apps to close when it is short — or, without Heatwatch, against the machine's total memory, and `source` says which (`heatwatch` | `total-memory`). The KV cache is counted from the model's `config.json` when it is in the gateway's model cache (`contextCounted` says whether it was). A model the catalogue does not list needs `need_mb`. A native service's start makes the same check and refuses a model that does not fit what is free, unless the start says `force: true`. `runtime.heatwatch: false` stops the gateway asking Heatwatch. 
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter service: (query)  (optional, default to "mlx")
+     - parameter model: (query) A catalogue id or a Hugging Face owner/name; the service&#39;s current model when absent. (optional)
+     - parameter ctx: (query) The context in tokens; the service&#39;s own window when absent. (optional)
+     - parameter needMb: (query) The model&#39;s peak memory while serving, for a model the catalogue does not list. (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<RuntimePlan> 
+     */
+    open class func runtimePlanWithRequestBuilder(service: String? = nil, model: String? = nil, ctx: Int? = nil, needMb: Int? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<RuntimePlan> {
+        let localVariablePath = "/v1/runtime/plan"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "service": (wrappedValue: service?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+            "model": (wrappedValue: model?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+            "ctx": (wrappedValue: ctx?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+            "need_mb": (wrappedValue: needMb?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<RuntimePlan>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
      * enum for parameter id
      */
     public enum Id_runtimeService: String, Sendable, CaseIterable {

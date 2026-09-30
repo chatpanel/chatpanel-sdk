@@ -7,6 +7,7 @@ All URIs are relative to http://127.0.0.1:4320, except if the operation defines 
 | Method | HTTP request | Description |
 | ------------- | ------------- | ------------- |
 | [**runtimeEngine()**](RuntimeApi.md#runtimeEngine) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed). |
+| [**runtimePlan()**](RuntimeApi.md#runtimePlan) | **GET** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free. |
 | [**runtimeService()**](RuntimeApi.md#runtimeService) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it. |
 | [**runtimeStatus()**](RuntimeApi.md#runtimeStatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services. |
 
@@ -72,6 +73,72 @@ try {
 ### HTTP request headers
 
 - **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+[[Back to top]](#) [[Back to API list]](../../README.md#endpoints)
+[[Back to Model list]](../../README.md#models)
+[[Back to README]](../../README.md)
+
+## `runtimePlan()`
+
+```php
+runtimePlan($service, $model, $ctx, $need_mb): \ChatPanelSdk\Model\RuntimePlan
+```
+
+Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+
+Checked against what Heatwatch (an optional macOS tool on `127.0.0.1:7878`) says is reclaimable NOW, with the apps to close when it is short — or, without Heatwatch, against the machine's total memory, and `source` says which (`heatwatch` | `total-memory`). The KV cache is counted from the model's `config.json` when it is in the gateway's model cache (`contextCounted` says whether it was). A model the catalogue does not list needs `need_mb`. A native service's start makes the same check and refuses a model that does not fit what is free, unless the start says `force: true`. `runtime.heatwatch: false` stops the gateway asking Heatwatch.
+
+### Example
+
+```php
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+
+// Configure Bearer authorization: gatewayToken
+$config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setAccessToken('YOUR_ACCESS_TOKEN');
+
+
+$apiInstance = new ChatPanelSdk\Api\RuntimeApi(
+    // If you want use custom http client, pass your client which implements `GuzzleHttp\ClientInterface`.
+    // This is optional, `GuzzleHttp\Client` will be used as default.
+    new GuzzleHttp\Client(),
+    $config
+);
+$service = 'mlx'; // string
+$model = 'model_example'; // string | A catalogue id or a Hugging Face owner/name; the service's current model when absent.
+$ctx = 56; // int | The context in tokens; the service's own window when absent.
+$need_mb = 56; // int | The model's peak memory while serving, for a model the catalogue does not list.
+
+try {
+    $result = $apiInstance->runtimePlan($service, $model, $ctx, $need_mb);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling RuntimeApi->runtimePlan: ', $e->getMessage(), PHP_EOL;
+}
+```
+
+### Parameters
+
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **service** | **string**|  | [optional] [default to &#39;mlx&#39;] |
+| **model** | **string**| A catalogue id or a Hugging Face owner/name; the service&#39;s current model when absent. | [optional] |
+| **ctx** | **int**| The context in tokens; the service&#39;s own window when absent. | [optional] |
+| **need_mb** | **int**| The model&#39;s peak memory while serving, for a model the catalogue does not list. | [optional] |
+
+### Return type
+
+[**\ChatPanelSdk\Model\RuntimePlan**](../Model/RuntimePlan.md)
+
+### Authorization
+
+[gatewayToken](../../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
 - **Accept**: `application/json`
 
 [[Back to top]](#) [[Back to API list]](../../README.md#endpoints)

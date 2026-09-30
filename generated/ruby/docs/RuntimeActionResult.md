@@ -14,6 +14,7 @@
 | **model** | **String** | The model the container runs, on a start or a model pick (gateway 0.22+). | [optional] |
 | **restarted** | **Boolean** | A model pick re-created a running container. | [optional] |
 | **note** | **String** | A model pick that fits but is tight for the engine&#39;s memory. | [optional] |
+| **plan** | [**RuntimePlan**](RuntimePlan.md) |  | [optional] |
 
 ## Example
 
@@ -30,7 +31,8 @@ instance = ChatPanel::RuntimeActionResult.new(
   provides: null,
   model: null,
   restarted: null,
-  note: null
+  note: null,
+  plan: null
 )
 ```
 

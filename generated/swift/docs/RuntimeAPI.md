@@ -5,6 +5,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**runtimeEngine**](RuntimeAPI.md#runtimeengine) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed).
+[**runtimePlan**](RuntimeAPI.md#runtimeplan) | **GET** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
 [**runtimeService**](RuntimeAPI.md#runtimeservice) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it.
 [**runtimeStatus**](RuntimeAPI.md#runtimestatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
 
@@ -61,6 +62,62 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **runtimePlan**
+```swift
+    open class func runtimePlan(service: String? = nil, model: String? = nil, ctx: Int? = nil, needMb: Int? = nil, completion: @escaping (_ data: RuntimePlan?, _ error: Error?) -> Void)
+```
+
+Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+
+Checked against what Heatwatch (an optional macOS tool on `127.0.0.1:7878`) says is reclaimable NOW, with the apps to close when it is short — or, without Heatwatch, against the machine's total memory, and `source` says which (`heatwatch` | `total-memory`). The KV cache is counted from the model's `config.json` when it is in the gateway's model cache (`contextCounted` says whether it was). A model the catalogue does not list needs `need_mb`. A native service's start makes the same check and refuses a model that does not fit what is free, unless the start says `force: true`. `runtime.heatwatch: false` stops the gateway asking Heatwatch. 
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import ChatPanel
+
+let service = "service_example" // String |  (optional) (default to "mlx")
+let model = "model_example" // String | A catalogue id or a Hugging Face owner/name; the service's current model when absent. (optional)
+let ctx = 987 // Int | The context in tokens; the service's own window when absent. (optional)
+let needMb = 987 // Int | The model's peak memory while serving, for a model the catalogue does not list. (optional)
+
+// Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+RuntimeAPI.runtimePlan(service: service, model: model, ctx: ctx, needMb: needMb) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **service** | **String** |  | [optional] [default to &quot;mlx&quot;]
+ **model** | **String** | A catalogue id or a Hugging Face owner/name; the service&#39;s current model when absent. | [optional] 
+ **ctx** | **Int** | The context in tokens; the service&#39;s own window when absent. | [optional] 
+ **needMb** | **Int** | The model&#39;s peak memory while serving, for a model the catalogue does not list. | [optional] 
+
+### Return type
+
+[**RuntimePlan**](RuntimePlan.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **runtimeService**
 ```swift
     open class func runtimeService(id: Id_runtimeService, runtimeServiceRequest: RuntimeServiceRequest? = nil, completion: @escaping (_ data: RuntimeActionResult?, _ error: Error?) -> Void)
@@ -76,7 +133,7 @@ Start or stop a catalogue service, or pick a capability container's model — ea
 import ChatPanel
 
 let id = "id_example" // String | 
-let runtimeServiceRequest = runtime_service_request(action: "action_example", model: "model_example") // RuntimeServiceRequest |  (optional)
+let runtimeServiceRequest = runtime_service_request(action: "action_example", model: "model_example", force: false) // RuntimeServiceRequest |  (optional)
 
 // Start or stop a catalogue service, or pick a capability container's model — each runs loopback-only and the gateway points at it.
 RuntimeAPI.runtimeService(id: id, runtimeServiceRequest: runtimeServiceRequest) { (response, error) in

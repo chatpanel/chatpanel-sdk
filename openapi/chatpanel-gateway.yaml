@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.39.0
+  version: 0.40.0
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -1431,6 +1431,39 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/RuntimeDocument' }
 
+  /v1/runtime/plan:
+    get:
+      operationId: runtime.plan
+      tags: [runtime]
+      summary: Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+      description: |
+        Checked against what Heatwatch (an optional macOS tool on `127.0.0.1:7878`) says is
+        reclaimable NOW, with the apps to close when it is short — or, without Heatwatch, against
+        the machine's total memory, and `source` says which (`heatwatch` | `total-memory`). The
+        KV cache is counted from the model's `config.json` when it is in the gateway's model
+        cache (`contextCounted` says whether it was). A model the catalogue does not list needs
+        `need_mb`. A native service's start makes the same check and refuses a model that does
+        not fit what is free, unless the start says `force: true`. `runtime.heatwatch: false`
+        stops the gateway asking Heatwatch.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.74.0'
+      parameters:
+        - { name: service, in: query, required: false, schema: { type: string, default: mlx, maxLength: 32 } }
+        - { name: model, in: query, required: false, description: "A catalogue id or a Hugging Face owner/name; the service's current model when absent.", schema: { type: string, maxLength: 256 } }
+        - { name: ctx, in: query, required: false, description: The context in tokens; the service's own window when absent., schema: { type: integer, minimum: 1 } }
+        - { name: need_mb, in: query, required: false, description: "The model's peak memory while serving, for a model the catalogue does not list.", schema: { type: integer, minimum: 1 } }
+      responses:
+        '200':
+          description: The plan.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RuntimePlan' }
+        '400':
+          description: Unknown service, a service that takes no model, or an unlisted model without `need_mb`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RuntimeActionResult' }
+
   /v1/runtime/engines/{name}:
     post:
       operationId: runtime.engine
@@ -1490,6 +1523,7 @@ paths:
               properties:
                 action: { type: string, enum: [start, stop, model], default: start }
                 model: { type: string, description: "With `action: model` — a catalogue id or a Hugging Face owner/name." }
+                force: { type: boolean, description: "With `action: start` (gateway 0.74+) — start a native model past the live-memory check (`GET /v1/runtime/plan`)." }
       responses:
         '200': { description: Done; `url` and `answering` on a start., content: { application/json: { schema: { $ref: '#/components/schemas/RuntimeActionResult' } } } }
         '400': { description: Could not; `install` when there is no engine., content: { application/json: { schema: { $ref: '#/components/schemas/RuntimeActionResult' } } } }
@@ -2737,6 +2771,35 @@ components:
         model: { type: string, description: "The model the container runs, on a start or a model pick (gateway 0.22+)." }
         restarted: { type: boolean, description: "A model pick re-created a running container." }
         note: { type: string, description: "A model pick that fits but is tight for the engine's memory." }
+        plan: { $ref: '#/components/schemas/RuntimePlan' }
+      required: [ok]
+    RuntimePlan:
+      type: object
+      description: "Whether a local model fits in memory (gateway 0.74+) — `GET /v1/runtime/plan`, and on a start the live-memory check refused."
+      properties:
+        ok: { type: boolean }
+        service: { type: string }
+        model: { type: string }
+        needMB: { type: integer, description: Weights + KV cache + 10% headroom. }
+        weightsMB: { type: integer }
+        kvMB: { type: integer, nullable: true, description: "The KV cache for the context; null when the model's config.json is not on disk." }
+        context: { type: integer, nullable: true }
+        contextCounted: { type: boolean }
+        source: { type: string, enum: [heatwatch, total-memory] }
+        fits: { type: boolean }
+        live:
+          type: object
+          nullable: true
+          description: Heatwatch's answer; null without it.
+          properties:
+            fits: { type: boolean }
+            needMB: { type: integer, nullable: true }
+            availableMB: { type: integer, nullable: true }
+            shortfallMB: { type: integer }
+            fitsGPULimit: { type: boolean, nullable: true }
+            gpuWiredLimitMB: { type: integer, nullable: true }
+            close: { type: array, items: { type: string }, description: The apps to close to make room. }
+        advice: { type: string, description: One sentence for the person. }
       required: [ok]
     CapabilitiesDocument:
       type: object

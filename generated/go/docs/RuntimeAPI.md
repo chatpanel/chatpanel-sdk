@@ -5,6 +5,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**RuntimeEngine**](RuntimeAPI.md#RuntimeEngine) | **Post** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed).
+[**RuntimePlan**](RuntimeAPI.md#RuntimePlan) | **Get** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
 [**RuntimeService**](RuntimeAPI.md#RuntimeService) | **Post** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it.
 [**RuntimeStatus**](RuntimeAPI.md#RuntimeStatus) | **Get** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
 
@@ -75,6 +76,78 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
 - **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
+
+
+## RuntimePlan
+
+> RuntimePlan RuntimePlan(ctx).Service(service).Model(model).Ctx(ctx).NeedMb(needMb).Execute()
+
+Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+
+
+
+### Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	openapiclient "github.com/chatpanel/chatpanel-sdk"
+)
+
+func main() {
+	service := "service_example" // string |  (optional) (default to "mlx")
+	model := "model_example" // string | A catalogue id or a Hugging Face owner/name; the service's current model when absent. (optional)
+	ctx := int32(56) // int32 | The context in tokens; the service's own window when absent. (optional)
+	needMb := int32(56) // int32 | The model's peak memory while serving, for a model the catalogue does not list. (optional)
+
+	configuration := openapiclient.NewConfiguration()
+	apiClient := openapiclient.NewAPIClient(configuration)
+	resp, r, err := apiClient.RuntimeAPI.RuntimePlan(context.Background()).Service(service).Model(model).Ctx(ctx).NeedMb(needMb).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `RuntimeAPI.RuntimePlan``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `RuntimePlan`: RuntimePlan
+	fmt.Fprintf(os.Stdout, "Response from `RuntimeAPI.RuntimePlan`: %v\n", resp)
+}
+```
+
+### Path Parameters
+
+
+
+### Other Parameters
+
+Other parameters are passed through a pointer to a apiRuntimePlanRequest struct via the builder pattern
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **service** | **string** |  | [default to &quot;mlx&quot;]
+ **model** | **string** | A catalogue id or a Hugging Face owner/name; the service&#39;s current model when absent. | 
+ **ctx** | **int32** | The context in tokens; the service&#39;s own window when absent. | 
+ **needMb** | **int32** | The model&#39;s peak memory while serving, for a model the catalogue does not list. | 
+
+### Return type
+
+[**RuntimePlan**](RuntimePlan.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)

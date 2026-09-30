@@ -165,6 +165,8 @@ import 'package:chatpanel/src/model/runtime_document.dart';
 import 'package:chatpanel/src/model/runtime_document_bridge.dart';
 import 'package:chatpanel/src/model/runtime_document_processes.dart';
 import 'package:chatpanel/src/model/runtime_engine_request.dart';
+import 'package:chatpanel/src/model/runtime_plan.dart';
+import 'package:chatpanel/src/model/runtime_plan_live.dart';
 import 'package:chatpanel/src/model/runtime_service_request.dart';
 import 'package:chatpanel/src/model/search_filters.dart';
 import 'package:chatpanel/src/model/search_hit.dart';
@@ -351,6 +353,8 @@ part 'serializers.g.dart';
   RuntimeDocumentBridge,
   RuntimeDocumentProcesses,
   RuntimeEngineRequest,
+  RuntimePlan,
+  RuntimePlanLive,
   RuntimeServiceRequest,
   SearchFilters,$SearchFilters,
   SearchHit,

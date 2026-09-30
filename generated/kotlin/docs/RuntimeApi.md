@@ -5,6 +5,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | Method | HTTP request | Description |
 | ------------- | ------------- | ------------- |
 | [**runtimeEngine**](RuntimeApi.md#runtimeEngine) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed). |
+| [**runtimePlan**](RuntimeApi.md#runtimePlan) | **GET** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free. |
 | [**runtimeService**](RuntimeApi.md#runtimeService) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it. |
 | [**runtimeStatus**](RuntimeApi.md#runtimeStatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services. |
 
@@ -66,6 +67,66 @@ apiInstance.accessTokenProvider = { "" }
 ### HTTP request headers
 
  - **Content-Type**: application/json
+ - **Accept**: application/json
+
+<a id="runtimePlan"></a>
+# **runtimePlan**
+> RuntimePlan runtimePlan(service, model, ctx, needMb)
+
+Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+
+Checked against what Heatwatch (an optional macOS tool on &#x60;127.0.0.1:7878&#x60;) says is reclaimable NOW, with the apps to close when it is short — or, without Heatwatch, against the machine&#39;s total memory, and &#x60;source&#x60; says which (&#x60;heatwatch&#x60; | &#x60;total-memory&#x60;). The KV cache is counted from the model&#39;s &#x60;config.json&#x60; when it is in the gateway&#39;s model cache (&#x60;contextCounted&#x60; says whether it was). A model the catalogue does not list needs &#x60;need_mb&#x60;. A native service&#39;s start makes the same check and refuses a model that does not fit what is free, unless the start says &#x60;force: true&#x60;. &#x60;runtime.heatwatch: false&#x60; stops the gateway asking Heatwatch. 
+
+### Example
+```kotlin
+// Import classes:
+//import net.chatpanel.sdk.infrastructure.*
+//import net.chatpanel.sdk.models.*
+
+val apiInstance = RuntimeApi()
+val service : kotlin.String = service_example // kotlin.String | 
+val model : kotlin.String = model_example // kotlin.String | A catalogue id or a Hugging Face owner/name; the service's current model when absent.
+val ctx : kotlin.Int = 56 // kotlin.Int | The context in tokens; the service's own window when absent.
+val needMb : kotlin.Int = 56 // kotlin.Int | The model's peak memory while serving, for a model the catalogue does not list.
+try {
+    val result : RuntimePlan = apiInstance.runtimePlan(service, model, ctx, needMb)
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling RuntimeApi#runtimePlan")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling RuntimeApi#runtimePlan")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **service** | **kotlin.String**|  | [optional] [default to &quot;mlx&quot;] |
+| **model** | **kotlin.String**| A catalogue id or a Hugging Face owner/name; the service&#39;s current model when absent. | [optional] |
+| **ctx** | **kotlin.Int**| The context in tokens; the service&#39;s own window when absent. | [optional] |
+| **needMb** | **kotlin.Int**| The model&#39;s peak memory while serving, for a model the catalogue does not list. | [optional] |
+
+### Return type
+
+[**RuntimePlan**](RuntimePlan.md)
+
+### Authorization
+
+
+Configure gatewayToken statically:
+```kotlin
+ApiClient.accessToken = ""
+```
+Configure gatewayToken dynamically:
+```kotlin
+apiInstance.accessTokenProvider = { "" }
+```
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 <a id="runtimeService"></a>

@@ -27,6 +27,7 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.ShouldSpec
 
 import net.chatpanel.sdk.models.RuntimeActionResult
+import net.chatpanel.sdk.models.RuntimePlan
 
 class RuntimeActionResultTest : ShouldSpec() {
     init {
@@ -91,6 +92,12 @@ class RuntimeActionResultTest : ShouldSpec() {
         should("test note") {
             // uncomment below to test the property
             //modelInstance.note shouldBe ("TODO")
+        }
+
+        // to test the property `plan`
+        should("test plan") {
+            // uncomment below to test the property
+            //modelInstance.plan shouldBe ("TODO")
         }
 
     }

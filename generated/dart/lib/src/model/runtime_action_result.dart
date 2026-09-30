@@ -5,6 +5,7 @@
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/json_object.dart';
+import 'package:chatpanel/src/model/runtime_plan.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -23,6 +24,7 @@ part 'runtime_action_result.g.dart';
 /// * [model] - The model the container runs, on a start or a model pick (gateway 0.22+).
 /// * [restarted] - A model pick re-created a running container.
 /// * [note] - A model pick that fits but is tight for the engine's memory.
+/// * [plan] 
 @BuiltValue()
 abstract class RuntimeActionResult implements Built<RuntimeActionResult, RuntimeActionResultBuilder> {
   @BuiltValueField(wireName: r'ok')
@@ -59,6 +61,9 @@ abstract class RuntimeActionResult implements Built<RuntimeActionResult, Runtime
   /// A model pick that fits but is tight for the engine's memory.
   @BuiltValueField(wireName: r'note')
   String? get note;
+
+  @BuiltValueField(wireName: r'plan')
+  RuntimePlan? get plan;
 
   RuntimeActionResult._();
 
@@ -149,6 +154,13 @@ class _$RuntimeActionResultSerializer implements PrimitiveSerializer<RuntimeActi
       yield serializers.serialize(
         object.note,
         specifiedType: const FullType(String),
+      );
+    }
+    if (object.plan != null) {
+      yield r'plan';
+      yield serializers.serialize(
+        object.plan,
+        specifiedType: const FullType(RuntimePlan),
       );
     }
   }
@@ -252,6 +264,14 @@ class _$RuntimeActionResultSerializer implements PrimitiveSerializer<RuntimeActi
           ) as String?;
           if (valueDes == null) continue;
           result.note = valueDes;
+          break;
+        case r'plan':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(RuntimePlan),
+          ) as RuntimePlan?;
+          if (valueDes == null) continue;
+          result.plan.replace(valueDes);
           break;
         default:
           unhandled.add(key);

@@ -23,6 +23,7 @@
 
 package net.chatpanel.sdk.models
 
+import net.chatpanel.sdk.models.RuntimePlan
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -40,6 +41,7 @@ import com.squareup.moshi.JsonClass
  * @param model The model the container runs, on a start or a model pick (gateway 0.22+).
  * @param restarted A model pick re-created a running container.
  * @param note A model pick that fits but is tight for the engine's memory.
+ * @param plan 
  */
 
 
@@ -78,7 +80,10 @@ data class RuntimeActionResult (
 
     /* A model pick that fits but is tight for the engine's memory. */
     @Json(name = "note")
-    val note: kotlin.String? = null
+    val note: kotlin.String? = null,
+
+    @Json(name = "plan")
+    val plan: RuntimePlan? = null
 
 ) {
 

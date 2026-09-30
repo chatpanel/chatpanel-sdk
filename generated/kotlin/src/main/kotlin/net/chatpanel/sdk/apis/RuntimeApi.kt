@@ -31,6 +31,7 @@ import net.chatpanel.sdk.models.ErrorResponse
 import net.chatpanel.sdk.models.RuntimeActionResult
 import net.chatpanel.sdk.models.RuntimeDocument
 import net.chatpanel.sdk.models.RuntimeEngineRequest
+import net.chatpanel.sdk.models.RuntimePlan
 import net.chatpanel.sdk.models.RuntimeServiceRequest
 
 import com.squareup.moshi.Json
@@ -144,6 +145,102 @@ open class RuntimeApi(basePath: kotlin.String = defaultBasePath, client: Call.Fa
         return RequestConfig(
             method = RequestMethod.POST,
             path = "/v1/runtime/engines/{name}".replace("{"+"name"+"}", encodeURIComponent(name.value.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * GET /v1/runtime/plan
+     * Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+     * Checked against what Heatwatch (an optional macOS tool on &#x60;127.0.0.1:7878&#x60;) says is reclaimable NOW, with the apps to close when it is short — or, without Heatwatch, against the machine&#39;s total memory, and &#x60;source&#x60; says which (&#x60;heatwatch&#x60; | &#x60;total-memory&#x60;). The KV cache is counted from the model&#39;s &#x60;config.json&#x60; when it is in the gateway&#39;s model cache (&#x60;contextCounted&#x60; says whether it was). A model the catalogue does not list needs &#x60;need_mb&#x60;. A native service&#39;s start makes the same check and refuses a model that does not fit what is free, unless the start says &#x60;force: true&#x60;. &#x60;runtime.heatwatch: false&#x60; stops the gateway asking Heatwatch. 
+     * @param service  (optional, default to "mlx")
+     * @param model A catalogue id or a Hugging Face owner/name; the service&#39;s current model when absent. (optional)
+     * @param ctx The context in tokens; the service&#39;s own window when absent. (optional)
+     * @param needMb The model&#39;s peak memory while serving, for a model the catalogue does not list. (optional)
+     * @return RuntimePlan
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun runtimePlan(service: kotlin.String? = "mlx", model: kotlin.String? = null, ctx: kotlin.Int? = null, needMb: kotlin.Int? = null) : RuntimePlan {
+        val localVarResponse = runtimePlanWithHttpInfo(service = service, model = model, ctx = ctx, needMb = needMb)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as RuntimePlan
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * GET /v1/runtime/plan
+     * Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+     * Checked against what Heatwatch (an optional macOS tool on &#x60;127.0.0.1:7878&#x60;) says is reclaimable NOW, with the apps to close when it is short — or, without Heatwatch, against the machine&#39;s total memory, and &#x60;source&#x60; says which (&#x60;heatwatch&#x60; | &#x60;total-memory&#x60;). The KV cache is counted from the model&#39;s &#x60;config.json&#x60; when it is in the gateway&#39;s model cache (&#x60;contextCounted&#x60; says whether it was). A model the catalogue does not list needs &#x60;need_mb&#x60;. A native service&#39;s start makes the same check and refuses a model that does not fit what is free, unless the start says &#x60;force: true&#x60;. &#x60;runtime.heatwatch: false&#x60; stops the gateway asking Heatwatch. 
+     * @param service  (optional, default to "mlx")
+     * @param model A catalogue id or a Hugging Face owner/name; the service&#39;s current model when absent. (optional)
+     * @param ctx The context in tokens; the service&#39;s own window when absent. (optional)
+     * @param needMb The model&#39;s peak memory while serving, for a model the catalogue does not list. (optional)
+     * @return ApiResponse<RuntimePlan?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun runtimePlanWithHttpInfo(service: kotlin.String?, model: kotlin.String?, ctx: kotlin.Int?, needMb: kotlin.Int?) : ApiResponse<RuntimePlan?> {
+        val localVariableConfig = runtimePlanRequestConfig(service = service, model = model, ctx = ctx, needMb = needMb)
+
+        return request<Unit, RuntimePlan>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation runtimePlan
+     *
+     * @param service  (optional, default to "mlx")
+     * @param model A catalogue id or a Hugging Face owner/name; the service&#39;s current model when absent. (optional)
+     * @param ctx The context in tokens; the service&#39;s own window when absent. (optional)
+     * @param needMb The model&#39;s peak memory while serving, for a model the catalogue does not list. (optional)
+     * @return RequestConfig
+     */
+    fun runtimePlanRequestConfig(service: kotlin.String?, model: kotlin.String?, ctx: kotlin.Int?, needMb: kotlin.Int?) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf<kotlin.String, kotlin.collections.List<kotlin.String>>()
+            .apply {
+                if (service != null) {
+                    put("service", listOf(service.toString()))
+                }
+                if (model != null) {
+                    put("model", listOf(model.toString()))
+                }
+                if (ctx != null) {
+                    put("ctx", listOf(ctx.toString()))
+                }
+                if (needMb != null) {
+                    put("need_mb", listOf(needMb.toString()))
+                }
+            }
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.GET,
+            path = "/v1/runtime/plan",
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,

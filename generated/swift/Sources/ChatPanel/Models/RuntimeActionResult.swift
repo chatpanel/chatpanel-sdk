@@ -24,8 +24,9 @@ public struct RuntimeActionResult: Sendable, Codable, Hashable {
     public var restarted: Bool?
     /** A model pick that fits but is tight for the engine's memory. */
     public var note: String?
+    public var plan: RuntimePlan?
 
-    public init(ok: Bool, error: String? = nil, already: Bool? = nil, url: String? = nil, answering: Bool? = nil, install: [String: JSONValue]? = nil, provides: [String]? = nil, model: String? = nil, restarted: Bool? = nil, note: String? = nil) {
+    public init(ok: Bool, error: String? = nil, already: Bool? = nil, url: String? = nil, answering: Bool? = nil, install: [String: JSONValue]? = nil, provides: [String]? = nil, model: String? = nil, restarted: Bool? = nil, note: String? = nil, plan: RuntimePlan? = nil) {
         self.ok = ok
         self.error = error
         self.already = already
@@ -36,6 +37,7 @@ public struct RuntimeActionResult: Sendable, Codable, Hashable {
         self.model = model
         self.restarted = restarted
         self.note = note
+        self.plan = plan
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -49,6 +51,7 @@ public struct RuntimeActionResult: Sendable, Codable, Hashable {
         case model
         case restarted
         case note
+        case plan
     }
 
     // Encodable protocol methods
@@ -65,6 +68,7 @@ public struct RuntimeActionResult: Sendable, Codable, Hashable {
         try container.encodeIfPresent(model, forKey: .model)
         try container.encodeIfPresent(restarted, forKey: .restarted)
         try container.encodeIfPresent(note, forKey: .note)
+        try container.encodeIfPresent(plan, forKey: .plan)
     }
 }
 

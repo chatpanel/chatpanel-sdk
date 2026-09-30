@@ -5,6 +5,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | Method | HTTP request | Description |
 |--------|--------------|-------------|
 | [**RuntimeEngine**](RuntimeApi.md#runtimeengine) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed). |
+| [**RuntimePlan**](RuntimeApi.md#runtimeplan) | **GET** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free. |
 | [**RuntimeService**](RuntimeApi.md#runtimeservice) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it. |
 | [**RuntimeStatus**](RuntimeApi.md#runtimestatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services. |
 
@@ -44,6 +45,46 @@ Start the container engine (Podman — creates and starts its machine where one 
 | **200** | Started |  -  |
 | **400** | Could not start; &#x60;install&#x60; when the engine is not installed. |  -  |
 | **403** | The caller lacks the token this route needs. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
+
+<a id="runtimeplan"></a>
+# **RuntimePlan**
+> RuntimePlan RuntimePlan (string service = null, string model = null, int ctx = null, int needMb = null)
+
+Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+
+Checked against what Heatwatch (an optional macOS tool on `127.0.0.1:7878`) says is reclaimable NOW, with the apps to close when it is short — or, without Heatwatch, against the machine's total memory, and `source` says which (`heatwatch` | `total-memory`). The KV cache is counted from the model's `config.json` when it is in the gateway's model cache (`contextCounted` says whether it was). A model the catalogue does not list needs `need_mb`. A native service's start makes the same check and refuses a model that does not fit what is free, unless the start says `force: true`. `runtime.heatwatch: false` stops the gateway asking Heatwatch. 
+
+
+### Parameters
+
+| Name | Type | Description | Notes |
+|------|------|-------------|-------|
+| **service** | **string** |  | [optional] [default to &quot;mlx&quot;] |
+| **model** | **string** | A catalogue id or a Hugging Face owner/name; the service&#39;s current model when absent. | [optional]  |
+| **ctx** | **int** | The context in tokens; the service&#39;s own window when absent. | [optional]  |
+| **needMb** | **int** | The model&#39;s peak memory while serving, for a model the catalogue does not list. | [optional]  |
+
+### Return type
+
+[**RuntimePlan**](RuntimePlan.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | The plan. |  -  |
+| **400** | Unknown service, a service that takes no model, or an unlisted model without &#x60;need_mb&#x60;. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
 

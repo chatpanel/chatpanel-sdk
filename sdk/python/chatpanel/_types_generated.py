@@ -145,6 +145,23 @@ class RuntimeActionResult(TypedDict, total=False):
     model: NotRequired[str]  # The model the container runs, on a start or a model pick (gateway 0.22+).
     restarted: NotRequired[bool]  # A model pick re-created a running container.
     note: NotRequired[str]  # A model pick that fits but is tight for the engine's memory.
+    plan: NotRequired["RuntimePlan"]
+
+
+class RuntimePlan(TypedDict, total=False):
+    """Whether a local model fits in memory (gateway 0.74+) — `GET /v1/runtime/plan`, and on a start the live-memory check refused."""
+    ok: bool
+    service: NotRequired[str]
+    model: NotRequired[str]
+    needMB: NotRequired[int]  # Weights + KV cache + 10% headroom.
+    weightsMB: NotRequired[int]
+    kvMB: NotRequired[int]  # The KV cache for the context; null when the model's config.json is not on disk.
+    context: NotRequired[int]
+    contextCounted: NotRequired[bool]
+    source: NotRequired[Literal["heatwatch", "total-memory"]]
+    fits: NotRequired[bool]
+    live: NotRequired[Dict[str, Any]]  # Heatwatch's answer; null without it.
+    advice: NotRequired[str]  # One sentence for the person.
 
 
 class CapabilitiesDocument(TypedDict, total=False):

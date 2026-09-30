@@ -70,6 +70,7 @@ export const OPERATIONS = {
   "agents.rate": { id: "agents.rate", method: "POST", path: "/v1/agents/{agentId}/scorecard", auth: "open", since: "0.6.87", stream: null, pathParams: ["agentId"], queryParams: [] },
   "capabilities.list": { id: "capabilities.list", method: "GET", path: "/v1/capabilities", auth: "open", since: "0.13.0", stream: null, pathParams: [], queryParams: [] },
   "runtime.status": { id: "runtime.status", method: "GET", path: "/v1/runtime", auth: "open", since: "0.19.0", stream: null, pathParams: [], queryParams: [] },
+  "runtime.plan": { id: "runtime.plan", method: "GET", path: "/v1/runtime/plan", auth: "open", since: "0.74.0", stream: null, pathParams: [], queryParams: ["service","model","ctx","need_mb"] },
   "runtime.engine": { id: "runtime.engine", method: "POST", path: "/v1/runtime/engines/{name}", auth: "token", since: "0.19.0", stream: null, pathParams: ["name"], queryParams: [] },
   "runtime.service": { id: "runtime.service", method: "POST", path: "/v1/runtime/services/{id}", auth: "token", since: "0.19.0", stream: null, pathParams: ["id"], queryParams: [] },
   "capabilities.detect": { id: "capabilities.detect", method: "POST", path: "/v1/detect", auth: "open", since: "0.13.0", stream: null, pathParams: [], queryParams: [] },
@@ -659,6 +660,10 @@ export class RuntimeApi {
   status(opts?: RequestOptions): Promise<T.RuntimeDocument> {
     return this.rt.request(OPERATIONS["runtime.status"], { path: {  }, query: undefined, headers: opts?.headers, body: undefined, opts });
   }
+  /** Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free. Checked against what Heatwatch (an optional macOS tool on `127.0.0.1:7878`) says is reclaimable NOW, with the apps to close when it is short — or, without Heatwatch, against the machine's total memory, and `source` says which (`heatwatch` | `total-memory`). The KV cache is counted from the model's `config.json` when it is in the gateway's model cache (`contextCounted` says whether it was). A model the catalogue does not list needs `need_mb`. A native service's start makes the same check and refuses a model that does not fit what is free, unless the start says `force: true`. `runtime.heatwatch: false` stops the gateway asking Heatwatch. — Gateway 0.74.0+. */
+  plan(query?: { service?: string; model?: string; ctx?: number; need_mb?: number }, opts?: RequestOptions): Promise<T.RuntimePlan> {
+    return this.rt.request(OPERATIONS["runtime.plan"], { path: {  }, query: query, headers: opts?.headers, body: undefined, opts });
+  }
   /** Start the container engine (Podman — creates and starts its machine where one is needed). `{ action: 'start' }`. Podman on macOS and Windows runs containers in a machine: made on first start (`podman machine init`), then started. Linux Podman is rootless and needs nothing. Docker is not started by the gateway — the response says so. — Requires the gateway token. Gateway 0.19.0+. */
   engine(name: string, body: {
     action?: "start";
@@ -670,6 +675,8 @@ export class RuntimeApi {
     action?: "start" | "stop" | "model";
     /** With `action: model` — a catalogue id or a Hugging Face owner/name. */
     model?: string;
+    /** With `action: start` (gateway 0.74+) — start a native model past the live-memory check (`GET /v1/runtime/plan`). */
+    force?: boolean;
   }, opts?: RequestOptions): Promise<T.RuntimeActionResult> {
     return this.rt.request(OPERATIONS["runtime.service"], { path: { id }, query: undefined, headers: opts?.headers, body: body, opts });
   }

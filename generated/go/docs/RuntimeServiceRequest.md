@@ -6,6 +6,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Action** | Pointer to **string** |  | [optional] [default to "start"]
 **Model** | Pointer to **string** | With &#x60;action: model&#x60; — a catalogue id or a Hugging Face owner/name. | [optional] 
+**Force** | Pointer to **bool** | With &#x60;action: start&#x60; (gateway 0.74+) — start a native model past the live-memory check (&#x60;GET /v1/runtime/plan&#x60;). | [optional] 
 
 ## Methods
 
@@ -75,6 +76,31 @@ SetModel sets Model field to given value.
 `func (o *RuntimeServiceRequest) HasModel() bool`
 
 HasModel returns a boolean if a field has been set.
+
+### GetForce
+
+`func (o *RuntimeServiceRequest) GetForce() bool`
+
+GetForce returns the Force field if non-nil, zero value otherwise.
+
+### GetForceOk
+
+`func (o *RuntimeServiceRequest) GetForceOk() (*bool, bool)`
+
+GetForceOk returns a tuple with the Force field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetForce
+
+`func (o *RuntimeServiceRequest) SetForce(v bool)`
+
+SetForce sets Force field to given value.
+
+### HasForce
+
+`func (o *RuntimeServiceRequest) HasForce() bool`
+
+HasForce returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

@@ -32,6 +32,7 @@ import com.squareup.moshi.JsonClass
  *
  * @param action 
  * @param model With `action: model` — a catalogue id or a Hugging Face owner/name.
+ * @param force With `action: start` (gateway 0.74+) — start a native model past the live-memory check (`GET /v1/runtime/plan`).
  */
 
 
@@ -42,7 +43,11 @@ data class RuntimeServiceRequest (
 
     /* With `action: model` — a catalogue id or a Hugging Face owner/name. */
     @Json(name = "model")
-    val model: kotlin.String? = null
+    val model: kotlin.String? = null,
+
+    /* With `action: start` (gateway 0.74+) — start a native model past the live-memory check (`GET /v1/runtime/plan`). */
+    @Json(name = "force")
+    val force: kotlin.Boolean? = null
 
 ) {
 

@@ -183,6 +183,8 @@ export 'package:chatpanel/src/model/runtime_document.dart';
 export 'package:chatpanel/src/model/runtime_document_bridge.dart';
 export 'package:chatpanel/src/model/runtime_document_processes.dart';
 export 'package:chatpanel/src/model/runtime_engine_request.dart';
+export 'package:chatpanel/src/model/runtime_plan.dart';
+export 'package:chatpanel/src/model/runtime_plan_live.dart';
 export 'package:chatpanel/src/model/runtime_service_request.dart';
 export 'package:chatpanel/src/model/search_filters.dart';
 export 'package:chatpanel/src/model/search_hit.dart';

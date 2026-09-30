@@ -45,5 +45,11 @@ class RuntimeServiceRequestTest : ShouldSpec() {
             //modelInstance.model shouldBe ("TODO")
         }
 
+        // to test the property `force` - With `action: start` (gateway 0.74+) — start a native model past the live-memory check (`GET /v1/runtime/plan`).
+        should("test force") {
+            // uncomment below to test the property
+            //modelInstance.force shouldBe ("TODO")
+        }
+
     }
 }

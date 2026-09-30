@@ -14,6 +14,7 @@ part 'runtime_service_request.g.dart';
 /// Properties:
 /// * [action] 
 /// * [model] - With `action: model` — a catalogue id or a Hugging Face owner/name.
+/// * [force] - With `action: start` (gateway 0.74+) — start a native model past the live-memory check (`GET /v1/runtime/plan`).
 @BuiltValue()
 abstract class RuntimeServiceRequest implements Built<RuntimeServiceRequest, RuntimeServiceRequestBuilder> {
   @BuiltValueField(wireName: r'action')
@@ -23,6 +24,10 @@ abstract class RuntimeServiceRequest implements Built<RuntimeServiceRequest, Run
   /// With `action: model` — a catalogue id or a Hugging Face owner/name.
   @BuiltValueField(wireName: r'model')
   String? get model;
+
+  /// With `action: start` (gateway 0.74+) — start a native model past the live-memory check (`GET /v1/runtime/plan`).
+  @BuiltValueField(wireName: r'force')
+  bool? get force;
 
   RuntimeServiceRequest._();
 
@@ -60,6 +65,13 @@ class _$RuntimeServiceRequestSerializer implements PrimitiveSerializer<RuntimeSe
       yield serializers.serialize(
         object.model,
         specifiedType: const FullType(String),
+      );
+    }
+    if (object.force != null) {
+      yield r'force';
+      yield serializers.serialize(
+        object.force,
+        specifiedType: const FullType(bool),
       );
     }
   }
@@ -100,6 +112,14 @@ class _$RuntimeServiceRequestSerializer implements PrimitiveSerializer<RuntimeSe
           ) as String?;
           if (valueDes == null) continue;
           result.model = valueDes;
+          break;
+        case r'force':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(bool),
+          ) as bool?;
+          if (valueDes == null) continue;
+          result.force = valueDes;
           break;
         default:
           unhandled.add(key);

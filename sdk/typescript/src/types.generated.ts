@@ -191,6 +191,36 @@ export interface RuntimeActionResult {
   restarted?: boolean;
   /** A model pick that fits but is tight for the engine's memory. */
   note?: string;
+  plan?: RuntimePlan;
+}
+
+/** Whether a local model fits in memory (gateway 0.74+) — `GET /v1/runtime/plan`, and on a start the live-memory check refused. */
+export interface RuntimePlan {
+  ok: boolean;
+  service?: string;
+  model?: string;
+  /** Weights + KV cache + 10% headroom. */
+  needMB?: number;
+  weightsMB?: number;
+  /** The KV cache for the context; null when the model's config.json is not on disk. */
+  kvMB?: number;
+  context?: number;
+  contextCounted?: boolean;
+  source?: "heatwatch" | "total-memory";
+  fits?: boolean;
+  /** Heatwatch's answer; null without it. */
+  live?: {
+    fits?: boolean;
+    needMB?: number;
+    availableMB?: number;
+    shortfallMB?: number;
+    fitsGPULimit?: boolean;
+    gpuWiredLimitMB?: number;
+    /** The apps to close to make room. */
+    close?: Array<string>;
+  };
+  /** One sentence for the person. */
+  advice?: string;
 }
 
 export interface CapabilitiesDocument {

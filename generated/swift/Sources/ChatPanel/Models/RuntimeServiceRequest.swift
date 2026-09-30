@@ -17,15 +17,19 @@ public struct RuntimeServiceRequest: Sendable, Codable, Hashable {
     public var action: Action? = .start
     /** With `action: model` — a catalogue id or a Hugging Face owner/name. */
     public var model: String?
+    /** With `action: start` (gateway 0.74+) — start a native model past the live-memory check (`GET /v1/runtime/plan`). */
+    public var force: Bool?
 
-    public init(action: Action? = .start, model: String? = nil) {
+    public init(action: Action? = .start, model: String? = nil, force: Bool? = nil) {
         self.action = action
         self.model = model
+        self.force = force
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case action
         case model
+        case force
     }
 
     // Encodable protocol methods
@@ -34,6 +38,7 @@ public struct RuntimeServiceRequest: Sendable, Codable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(action, forKey: .action)
         try container.encodeIfPresent(model, forKey: .model)
+        try container.encodeIfPresent(force, forKey: .force)
     }
 }
 
