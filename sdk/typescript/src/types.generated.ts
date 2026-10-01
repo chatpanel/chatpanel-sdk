@@ -274,6 +274,8 @@ export interface DetectRequest {
   labels?: Array<string>;
   /** Refused before running if the provider's record predicts it cannot be met. */
   budgetMs?: number;
+  /** Return every span the provider finds, second-guessing none (redaction strictness 'strict'). A provider that does not filter ignores it. Since gateway 0.76.0. */
+  strict?: boolean;
 }
 
 export interface DetectedEntity {

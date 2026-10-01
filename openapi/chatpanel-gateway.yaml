@@ -2849,6 +2849,7 @@ components:
         model: { type: string, description: "A model this provider lists; 404 otherwise." }
         labels: { type: array, items: { type: string }, description: "Keep only these of the model's labels." }
         budgetMs: { type: number, minimum: 0, description: "Refused before running if the provider's record predicts it cannot be met." }
+        strict: { type: boolean, description: "Return every span the provider finds, second-guessing none (redaction strictness 'strict'). A provider that does not filter ignores it. Since gateway 0.76.0." }
     DetectedEntity:
       type: object
       required: [value, type, start, end, score]

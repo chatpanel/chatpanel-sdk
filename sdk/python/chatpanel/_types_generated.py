@@ -202,6 +202,7 @@ class DetectRequest(TypedDict, total=False):
     model: NotRequired[str]  # A model this provider lists; 404 otherwise.
     labels: NotRequired[List[str]]  # Keep only these of the model's labels.
     budgetMs: NotRequired[float]  # Refused before running if the provider's record predicts it cannot be met.
+    strict: NotRequired[bool]  # Return every span the provider finds, second-guessing none (redaction strictness 'strict'). A provider that does not filter ignores it. Since gateway 0.76.0.
 
 
 class DetectedEntity(TypedDict, total=False):
