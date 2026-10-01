@@ -25,6 +25,8 @@ const CLI = process.env.CHATPANEL_CLI_REPO || join(ROOT, '..', 'chatpanel-cli');
 const NOT_IN_SDK = {
   '/': 'a plain-text "the gateway is running" for a person who typed the address into a browser tab — not an API (gateway 0.81.0)',
   '/admin/token': 'the extension\'s Origin→token handshake; an SDK holds the token already',
+  '/pair/ask': 'a browser extension the gateway does not recognise asks to be paired, and the person answers in a dialog on the computer — refused to anything but an extension origin; an app pairs with a code (/pair) or holds the token (gateway 0.82.0)',
+  '/pair/ask/result': 'collects the answer to /pair/ask — the same extension-only reach (gateway 0.82.0)',
   '/config': 'rewrites the gateway\'s routing/redaction config — admin UI, not an app',
   '/channels': 'Telegram/WhatsApp setup — bot tokens and pairing, admin-gated like /config (0.11.5)',
   '/v1/link': 'lists the phones paired to this gateway — the local settings page, admin-gated (gateway 0.60.0)',
