@@ -23,6 +23,7 @@ const CLI = process.env.CHATPANEL_CLI_REPO || join(ROOT, '..', 'chatpanel-cli');
 
 // Served by the gateway, deliberately NOT in the SDK contract. Each line says why.
 const NOT_IN_SDK = {
+  '/': 'a plain-text "the gateway is running" for a person who typed the address into a browser tab — not an API (gateway 0.81.0)',
   '/admin/token': 'the extension\'s Origin→token handshake; an SDK holds the token already',
   '/config': 'rewrites the gateway\'s routing/redaction config — admin UI, not an app',
   '/channels': 'Telegram/WhatsApp setup — bot tokens and pairing, admin-gated like /config (0.11.5)',
