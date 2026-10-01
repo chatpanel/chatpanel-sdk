@@ -23,8 +23,9 @@ public struct WebSearchResponse: Sendable, Codable, Hashable {
     public var query: String?
     public var provider: String
     public var ms: Double
+    public var trail: SearchTrail?
 
-    public init(results: [WebSearchResult], answers: [String]? = nil, suggestions: [String]? = nil, engines: [String]? = nil, unresponsive: [String]? = nil, redacted: Bool? = nil, query: String? = nil, provider: String, ms: Double) {
+    public init(results: [WebSearchResult], answers: [String]? = nil, suggestions: [String]? = nil, engines: [String]? = nil, unresponsive: [String]? = nil, redacted: Bool? = nil, query: String? = nil, provider: String, ms: Double, trail: SearchTrail? = nil) {
         self.results = results
         self.answers = answers
         self.suggestions = suggestions
@@ -34,6 +35,7 @@ public struct WebSearchResponse: Sendable, Codable, Hashable {
         self.query = query
         self.provider = provider
         self.ms = ms
+        self.trail = trail
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -46,6 +48,7 @@ public struct WebSearchResponse: Sendable, Codable, Hashable {
         case query
         case provider
         case ms
+        case trail
     }
 
     // Encodable protocol methods
@@ -61,6 +64,7 @@ public struct WebSearchResponse: Sendable, Codable, Hashable {
         try container.encodeIfPresent(query, forKey: .query)
         try container.encode(provider, forKey: .provider)
         try container.encode(ms, forKey: .ms)
+        try container.encodeIfPresent(trail, forKey: .trail)
     }
 }
 

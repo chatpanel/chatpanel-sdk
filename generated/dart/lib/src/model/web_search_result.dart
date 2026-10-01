@@ -17,7 +17,8 @@ part 'web_search_result.g.dart';
 /// * [url] 
 /// * [title] 
 /// * [snippet] 
-/// * [engine] - The engine that produced it (SearXNG: the first of `engines`; serp: the results page asked).
+/// * [engine] - The engine that produced it (SearXNG: the first of `engines`; serp: the engine asked — `duckduckgo`, `startpage`, `bing`, or `api:<id>` for a search API such as `api:exa`). Since gateway 0.79.0 every result carries it; the provider id when nothing finer is known.
+/// * [via] - The kind of door it came through: `gateway` · `searxng` · `api` (a search API) · `page` (a results page read) · `browser` (the person's own browser). A client meeting a value it does not know shows it as it is. Since gateway 0.79.0.
 /// * [engines] - SearXNG: every engine that returned it.
 /// * [score] - SearXNG's fused score.
 /// * [publishedDate] 
@@ -36,9 +37,13 @@ abstract class WebSearchResult implements Built<WebSearchResult, WebSearchResult
   @BuiltValueField(wireName: r'snippet')
   String get snippet;
 
-  /// The engine that produced it (SearXNG: the first of `engines`; serp: the results page asked).
+  /// The engine that produced it (SearXNG: the first of `engines`; serp: the engine asked — `duckduckgo`, `startpage`, `bing`, or `api:<id>` for a search API such as `api:exa`). Since gateway 0.79.0 every result carries it; the provider id when nothing finer is known.
   @BuiltValueField(wireName: r'engine')
   String? get engine;
+
+  /// The kind of door it came through: `gateway` · `searxng` · `api` (a search API) · `page` (a results page read) · `browser` (the person's own browser). A client meeting a value it does not know shows it as it is. Since gateway 0.79.0.
+  @BuiltValueField(wireName: r'via')
+  String? get via;
 
   /// SearXNG: every engine that returned it.
   @BuiltValueField(wireName: r'engines')
@@ -102,6 +107,13 @@ class _$WebSearchResultSerializer implements PrimitiveSerializer<WebSearchResult
       yield r'engine';
       yield serializers.serialize(
         object.engine,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.via != null) {
+      yield r'via';
+      yield serializers.serialize(
+        object.via,
         specifiedType: const FullType(String),
       );
     }
@@ -191,6 +203,14 @@ class _$WebSearchResultSerializer implements PrimitiveSerializer<WebSearchResult
           ) as String?;
           if (valueDes == null) continue;
           result.engine = valueDes;
+          break;
+        case r'via':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.via = valueDes;
           break;
         case r'engines':
           final valueDes = serializers.deserialize(

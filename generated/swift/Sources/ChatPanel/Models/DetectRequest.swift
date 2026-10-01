@@ -17,12 +17,15 @@ public struct DetectRequest: Sendable, Codable, Hashable {
     public var labels: [String]?
     /** Refused before running if the provider's record predicts it cannot be met. */
     public var budgetMs: Double?
+    /** Return every span the provider finds, second-guessing none (redaction strictness 'strict'). A provider that does not filter ignores it. Since gateway 0.76.0. */
+    public var strict: Bool?
 
-    public init(text: String, model: String? = nil, labels: [String]? = nil, budgetMs: Double? = nil) {
+    public init(text: String, model: String? = nil, labels: [String]? = nil, budgetMs: Double? = nil, strict: Bool? = nil) {
         self.text = text
         self.model = model
         self.labels = labels
         self.budgetMs = budgetMs
+        self.strict = strict
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -30,6 +33,7 @@ public struct DetectRequest: Sendable, Codable, Hashable {
         case model
         case labels
         case budgetMs
+        case strict
     }
 
     // Encodable protocol methods
@@ -40,6 +44,7 @@ public struct DetectRequest: Sendable, Codable, Hashable {
         try container.encodeIfPresent(model, forKey: .model)
         try container.encodeIfPresent(labels, forKey: .labels)
         try container.encodeIfPresent(budgetMs, forKey: .budgetMs)
+        try container.encodeIfPresent(strict, forKey: .strict)
     }
 }
 

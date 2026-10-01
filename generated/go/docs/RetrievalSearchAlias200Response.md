@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 **Code** | **int32** |  | 
 **Status** | **int32** |  | 
 **Data** | [**[]RetrievalSearchAlias200ResponseDataInner**](RetrievalSearchAlias200ResponseDataInner.md) |  | 
+**Trail** | Pointer to [**SearchTrail**](SearchTrail.md) |  | [optional] 
 
 ## Methods
 
@@ -86,6 +87,31 @@ and a boolean to check if the value has been set.
 
 SetData sets Data field to given value.
 
+
+### GetTrail
+
+`func (o *RetrievalSearchAlias200Response) GetTrail() SearchTrail`
+
+GetTrail returns the Trail field if non-nil, zero value otherwise.
+
+### GetTrailOk
+
+`func (o *RetrievalSearchAlias200Response) GetTrailOk() (*SearchTrail, bool)`
+
+GetTrailOk returns a tuple with the Trail field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetTrail
+
+`func (o *RetrievalSearchAlias200Response) SetTrail(v SearchTrail)`
+
+SetTrail sets Trail field to given value.
+
+### HasTrail
+
+`func (o *RetrievalSearchAlias200Response) HasTrail() bool`
+
+HasTrail returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

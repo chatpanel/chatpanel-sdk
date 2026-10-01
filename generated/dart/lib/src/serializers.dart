@@ -172,6 +172,9 @@ import 'package:chatpanel/src/model/search_filters.dart';
 import 'package:chatpanel/src/model/search_hit.dart';
 import 'package:chatpanel/src/model/search_request.dart';
 import 'package:chatpanel/src/model/search_response.dart';
+import 'package:chatpanel/src/model/search_trail.dart';
+import 'package:chatpanel/src/model/search_trail_ask.dart';
+import 'package:chatpanel/src/model/search_trail_resting.dart';
 import 'package:chatpanel/src/model/skill.dart';
 import 'package:chatpanel/src/model/skills_get200_response.dart';
 import 'package:chatpanel/src/model/skills_list200_response.dart';
@@ -360,6 +363,9 @@ part 'serializers.g.dart';
   SearchHit,
   SearchRequest,
   SearchResponse,$SearchResponse,
+  SearchTrail,
+  SearchTrailAsk,
+  SearchTrailResting,
   Skill,
   SkillsGet200Response,
   SkillsList200Response,
@@ -425,6 +431,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<TeamRun>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(SearchTrailAsk)]),
+        () => ListBuilder<SearchTrailAsk>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(QuarantinedSkill)]),
         () => ListBuilder<QuarantinedSkill>(),
       )
@@ -459,6 +469,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(Project)]),
         () => ListBuilder<Project>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(SearchTrailResting)]),
+        () => ListBuilder<SearchTrailResting>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType(int)]),

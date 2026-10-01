@@ -22,5 +22,10 @@ void main() {
       // TODO
     });
 
+    // SearchTrail trail
+    test('to test the property `trail`', () async {
+      // TODO
+    });
+
   });
 }

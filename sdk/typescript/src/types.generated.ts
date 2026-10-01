@@ -393,8 +393,10 @@ export interface WebSearchResult {
   url: string;
   title: string;
   snippet: string;
-  /** The engine that produced it (SearXNG: the first of `engines`; serp: the results page asked). */
+  /** The engine that produced it (SearXNG: the first of `engines`; serp: the engine asked — `duckduckgo`, `startpage`, `bing`, or `api:<id>` for a search API such as `api:exa`). Since gateway 0.79.0 every result carries it; the provider id when nothing finer is known. */
   engine?: string;
+  /** The kind of door it came through: `gateway` · `searxng` · `api` (a search API) · `page` (a results page read) · `browser` (the person's own browser). A client meeting a value it does not know shows it as it is. Since gateway 0.79.0. */
+  via?: string;
   /** SearXNG: every engine that returned it. */
   engines?: Array<string>;
   /** SearXNG's fused score. */
@@ -419,6 +421,39 @@ export interface WebSearchResponse {
   query?: string;
   provider: string;
   ms: number;
+  trail?: SearchTrail;
+}
+
+/** What the search did — each provider and engine asked, what it did, which are resting — and how it ended. Optional on every response that carries it; an older gateway sends none. Since gateway 0.79.0. */
+export interface SearchTrail {
+  /** How it ended: `answered` (results came back) · `nothing` (engines answered, none had anything) · `blocked` (every engine asked refused or timed out) · `resting` (nothing was asked: every engine is resting after earlier refusals) · `offline` (every engine failed at the network) · `no-engines`. A client meeting a value it does not know treats it as no results. */
+  status: string;
+  /** In the order asked: the provider tried first (`searxng`, or each engine and API `serp` asked), then the other provider when the first came back empty. */
+  asked: Array<SearchTrailAsk>;
+  /** Engines resting after refusing earlier, and until when. */
+  resting: Array<SearchTrailResting>;
+}
+
+export interface SearchTrailAsk {
+  /** The engine or provider asked — `searxng`, `serp`, `duckduckgo`, `startpage`, `bing`, `api:<id>`. */
+  id: string;
+  /** `answered` · `empty` (answered, found nothing) · `refused` (a refusing status, a timeout or no answer at all). */
+  outcome: string;
+  /** How many results it returned. */
+  found?: number;
+  /** The HTTP status of a refusal (429, 403, …), when there was one. */
+  status?: number;
+  /** It did not answer within its share of the budget. */
+  timedOut?: boolean;
+  /** It failed at the network — no status at all. */
+  network?: boolean;
+}
+
+export interface SearchTrailResting {
+  /** The resting engine. */
+  id: string;
+  /** When it may be asked again, ms since epoch. */
+  until: number;
 }
 
 /** Either `name` + `data` (open a document) or `hash` + `page` (read one page of an open document). */

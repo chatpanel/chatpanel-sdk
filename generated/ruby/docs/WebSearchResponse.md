@@ -13,6 +13,7 @@
 | **query** | **String** | The query as sent, when &#x60;redacted&#x60;. | [optional] |
 | **provider** | **String** |  |  |
 | **ms** | **Float** |  |  |
+| **trail** | [**SearchTrail**](SearchTrail.md) |  | [optional] |
 
 ## Example
 
@@ -28,7 +29,8 @@ instance = ChatPanel::WebSearchResponse.new(
   redacted: null,
   query: null,
   provider: null,
-  ms: null
+  ms: null,
+  trail: null
 )
 ```
 

@@ -24,6 +24,7 @@
 package net.chatpanel.sdk.models
 
 import net.chatpanel.sdk.models.RetrievalSearchAlias200ResponseDataInner
+import net.chatpanel.sdk.models.SearchTrail
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -34,6 +35,7 @@ import com.squareup.moshi.JsonClass
  * @param code 
  * @param status 
  * @param `data` 
+ * @param trail 
  */
 
 
@@ -46,7 +48,10 @@ data class RetrievalSearchAlias200Response (
     val status: kotlin.Int,
 
     @Json(name = "data")
-    val `data`: kotlin.collections.List<RetrievalSearchAlias200ResponseDataInner>
+    val `data`: kotlin.collections.List<RetrievalSearchAlias200ResponseDataInner>,
+
+    @Json(name = "trail")
+    val trail: SearchTrail? = null
 
 ) {
 

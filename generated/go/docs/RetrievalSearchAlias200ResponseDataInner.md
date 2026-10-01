@@ -9,6 +9,8 @@ Name | Type | Description | Notes
 **Description** | **string** |  | 
 **Content** | **string** |  | 
 **PublishedTime** | Pointer to **string** |  | [optional] 
+**Engine** | Pointer to **string** | The engine that produced it, as on &#x60;WebSearchResult.engine&#x60;. Since gateway 0.79.0. | [optional] 
+**Via** | Pointer to **string** | The kind of door it came through, as on &#x60;WebSearchResult.via&#x60;. Since gateway 0.79.0. | [optional] 
 
 ## Methods
 
@@ -133,6 +135,56 @@ SetPublishedTime sets PublishedTime field to given value.
 `func (o *RetrievalSearchAlias200ResponseDataInner) HasPublishedTime() bool`
 
 HasPublishedTime returns a boolean if a field has been set.
+
+### GetEngine
+
+`func (o *RetrievalSearchAlias200ResponseDataInner) GetEngine() string`
+
+GetEngine returns the Engine field if non-nil, zero value otherwise.
+
+### GetEngineOk
+
+`func (o *RetrievalSearchAlias200ResponseDataInner) GetEngineOk() (*string, bool)`
+
+GetEngineOk returns a tuple with the Engine field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetEngine
+
+`func (o *RetrievalSearchAlias200ResponseDataInner) SetEngine(v string)`
+
+SetEngine sets Engine field to given value.
+
+### HasEngine
+
+`func (o *RetrievalSearchAlias200ResponseDataInner) HasEngine() bool`
+
+HasEngine returns a boolean if a field has been set.
+
+### GetVia
+
+`func (o *RetrievalSearchAlias200ResponseDataInner) GetVia() string`
+
+GetVia returns the Via field if non-nil, zero value otherwise.
+
+### GetViaOk
+
+`func (o *RetrievalSearchAlias200ResponseDataInner) GetViaOk() (*string, bool)`
+
+GetViaOk returns a tuple with the Via field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetVia
+
+`func (o *RetrievalSearchAlias200ResponseDataInner) SetVia(v string)`
+
+SetVia sets Via field to given value.
+
+### HasVia
+
+`func (o *RetrievalSearchAlias200ResponseDataInner) HasVia() bool`
+
+HasVia returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

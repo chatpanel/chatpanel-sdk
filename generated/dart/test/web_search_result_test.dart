@@ -27,9 +27,15 @@ void main() {
       // TODO
     });
 
-    // The engine that produced it (SearXNG: the first of `engines`; serp: the results page asked).
+    // The engine that produced it (SearXNG: the first of `engines`; serp: the engine asked — `duckduckgo`, `startpage`, `bing`, or `api:<id>` for a search API such as `api:exa`). Since gateway 0.79.0 every result carries it; the provider id when nothing finer is known.
     // String engine
     test('to test the property `engine`', () async {
+      // TODO
+    });
+
+    // The kind of door it came through: `gateway` · `searxng` · `api` (a search API) · `page` (a results page read) · `browser` (the person's own browser). A client meeting a value it does not know shows it as it is. Since gateway 0.79.0.
+    // String via
+    test('to test the property `via`', () async {
       // TODO
     });
 

@@ -13,5 +13,6 @@ Name | Type | Description | Notes
 **query** | **string** | The query as sent, when &#x60;redacted&#x60;. | [optional]
 **provider** | **string** |  |
 **ms** | **float** |  |
+**trail** | [**\ChatPanelSdk\Model\SearchTrail**](SearchTrail.md) |  | [optional]
 
 [[Back to Model list]](../../README.md#models) [[Back to API list]](../../README.md#endpoints) [[Back to README]](../../README.md)

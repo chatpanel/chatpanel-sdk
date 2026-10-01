@@ -16,6 +16,8 @@ part 'retrieval_search_alias200_response_data_inner.g.dart';
 /// * [description] 
 /// * [content] 
 /// * [publishedTime] 
+/// * [engine] - The engine that produced it, as on `WebSearchResult.engine`. Since gateway 0.79.0.
+/// * [via] - The kind of door it came through, as on `WebSearchResult.via`. Since gateway 0.79.0.
 @BuiltValue()
 abstract class RetrievalSearchAlias200ResponseDataInner implements Built<RetrievalSearchAlias200ResponseDataInner, RetrievalSearchAlias200ResponseDataInnerBuilder> {
   @BuiltValueField(wireName: r'url')
@@ -32,6 +34,14 @@ abstract class RetrievalSearchAlias200ResponseDataInner implements Built<Retriev
 
   @BuiltValueField(wireName: r'publishedTime')
   String? get publishedTime;
+
+  /// The engine that produced it, as on `WebSearchResult.engine`. Since gateway 0.79.0.
+  @BuiltValueField(wireName: r'engine')
+  String? get engine;
+
+  /// The kind of door it came through, as on `WebSearchResult.via`. Since gateway 0.79.0.
+  @BuiltValueField(wireName: r'via')
+  String? get via;
 
   RetrievalSearchAlias200ResponseDataInner._();
 
@@ -80,6 +90,20 @@ class _$RetrievalSearchAlias200ResponseDataInnerSerializer implements PrimitiveS
       yield r'publishedTime';
       yield serializers.serialize(
         object.publishedTime,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.engine != null) {
+      yield r'engine';
+      yield serializers.serialize(
+        object.engine,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.via != null) {
+      yield r'via';
+      yield serializers.serialize(
+        object.via,
         specifiedType: const FullType(String),
       );
     }
@@ -141,6 +165,22 @@ class _$RetrievalSearchAlias200ResponseDataInnerSerializer implements PrimitiveS
           ) as String?;
           if (valueDes == null) continue;
           result.publishedTime = valueDes;
+          break;
+        case r'engine':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.engine = valueDes;
+          break;
+        case r'via':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.via = valueDes;
           break;
         default:
           unhandled.add(key);

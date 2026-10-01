@@ -6,6 +6,7 @@ Name | Type | Description | Notes
 **code** | **Int** |  | 
 **status** | **Int** |  | 
 **data** | [RetrievalSearchAlias200ResponseDataInner] |  | 
+**trail** | [**SearchTrail**](SearchTrail.md) |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

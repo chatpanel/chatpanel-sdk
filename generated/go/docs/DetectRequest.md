@@ -8,6 +8,7 @@ Name | Type | Description | Notes
 **Model** | Pointer to **string** | A model this provider lists; 404 otherwise. | [optional] 
 **Labels** | Pointer to **[]string** | Keep only these of the model&#39;s labels. | [optional] 
 **BudgetMs** | Pointer to **float32** | Refused before running if the provider&#39;s record predicts it cannot be met. | [optional] 
+**Strict** | Pointer to **bool** | Return every span the provider finds, second-guessing none (redaction strictness &#39;strict&#39;). A provider that does not filter ignores it. Since gateway 0.76.0. | [optional] 
 
 ## Methods
 
@@ -122,6 +123,31 @@ SetBudgetMs sets BudgetMs field to given value.
 `func (o *DetectRequest) HasBudgetMs() bool`
 
 HasBudgetMs returns a boolean if a field has been set.
+
+### GetStrict
+
+`func (o *DetectRequest) GetStrict() bool`
+
+GetStrict returns the Strict field if non-nil, zero value otherwise.
+
+### GetStrictOk
+
+`func (o *DetectRequest) GetStrictOk() (*bool, bool)`
+
+GetStrictOk returns a tuple with the Strict field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetStrict
+
+`func (o *DetectRequest) SetStrict(v bool)`
+
+SetStrict sets Strict field to given value.
+
+### HasStrict
+
+`func (o *DetectRequest) HasStrict() bool`
+
+HasStrict returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

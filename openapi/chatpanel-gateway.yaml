@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.40.0
+  version: 0.41.0
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -1673,6 +1673,15 @@ paths:
         covers the search and its reads and is refused (503 `over_budget`) from the provider's
         record. `engines` names what was actually asked, so an empty list can be told from a
         blocked one.
+
+        Since gateway 0.78.0 `serp` asks one built-in engine per search (DuckDuckGo, Startpage,
+        Bing) plus any search API the person added in the gateway's settings (Exa, Brave,
+        Tavily, Serper, SerpApi, Google Programmable Search, Jina, Mwmbl, or one they describe —
+        keyed ones first); an engine that refuses rests for a while. Since gateway 0.79.0 every
+        result is tagged with its `engine` and `via` (the kind of door it came through), and
+        `trail` says what each provider and engine asked did and, when nothing came back, why —
+        `nothing` (they answered, found nothing) reads differently from `blocked`, `resting` or
+        `offline`. Both are optional: an older gateway sends neither.
       x-chatpanel-auth: open
       x-chatpanel-since: '0.15.0'
       x-chatpanel-scope: the query (after layer-1 redaction), to the configured provider; the top pages when `read` is set
@@ -1712,7 +1721,9 @@ paths:
         in the shape the shipped ChatPanel extension's *Web search API* engine already reads:
         `{ code, status, data: [{ url, title, description, content, publishedTime? }] }` where
         `content` is the page's Markdown when it was read and the snippet otherwise — nothing
-        needs fetching on the client. A Bearer token is accepted and ignored.
+        needs fetching on the client. A Bearer token is accepted and ignored. Since gateway
+        0.79.0 each item may carry `engine` and `via`, and the top level `trail`, exactly as
+        `POST /v1/search` does (a Jina reader ignores them).
       x-chatpanel-auth: open
       x-chatpanel-since: '0.15.0'
       x-chatpanel-scope: the query (after layer-1 redaction), to the configured provider; the top pages
@@ -1741,6 +1752,9 @@ paths:
                         description: { type: string }
                         content: { type: string }
                         publishedTime: { type: string }
+                        engine: { type: string, description: "The engine that produced it, as on `WebSearchResult.engine`. Since gateway 0.79.0." }
+                        via: { type: string, description: "The kind of door it came through, as on `WebSearchResult.via`. Since gateway 0.79.0." }
+                  trail: { $ref: '#/components/schemas/SearchTrail' }
         '400': { $ref: '#/components/responses/Error' }
         '502': { $ref: '#/components/responses/Error' }
         '503': { $ref: '#/components/responses/Error' }
@@ -2967,7 +2981,8 @@ components:
         url: { type: string }
         title: { type: string }
         snippet: { type: string }
-        engine: { type: string, description: "The engine that produced it (SearXNG: the first of `engines`; serp: the results page asked)." }
+        engine: { type: string, description: "The engine that produced it (SearXNG: the first of `engines`; serp: the engine asked — `duckduckgo`, `startpage`, `bing`, or `api:<id>` for a search API such as `api:exa`). Since gateway 0.79.0 every result carries it; the provider id when nothing finer is known." }
+        via: { type: string, description: "The kind of door it came through: `gateway` · `searxng` · `api` (a search API) · `page` (a results page read) · `browser` (the person's own browser). A client meeting a value it does not know shows it as it is. Since gateway 0.79.0." }
         engines: { type: array, items: { type: string }, description: "SearXNG: every engine that returned it." }
         score: { type: number, description: "SearXNG's fused score." }
         publishedDate: { type: string }
@@ -2985,6 +3000,34 @@ components:
         query: { type: string, description: "The query as sent, when `redacted`." }
         provider: { type: string }
         ms: { type: number }
+        trail: { $ref: '#/components/schemas/SearchTrail' }
+    SearchTrail:
+      type: object
+      x-chatpanel-since: '0.79.0'
+      description: "What the search did — each provider and engine asked, what it did, which are resting — and how it ended. Optional on every response that carries it; an older gateway sends none. Since gateway 0.79.0."
+      required: [status, asked, resting]
+      properties:
+        status: { type: string, description: "How it ended: `answered` (results came back) · `nothing` (engines answered, none had anything) · `blocked` (every engine asked refused or timed out) · `resting` (nothing was asked: every engine is resting after earlier refusals) · `offline` (every engine failed at the network) · `no-engines`. A client meeting a value it does not know treats it as no results." }
+        asked: { type: array, items: { $ref: '#/components/schemas/SearchTrailAsk' }, description: "In the order asked: the provider tried first (`searxng`, or each engine and API `serp` asked), then the other provider when the first came back empty." }
+        resting: { type: array, items: { $ref: '#/components/schemas/SearchTrailResting' }, description: "Engines resting after refusing earlier, and until when." }
+    SearchTrailAsk:
+      type: object
+      x-chatpanel-since: '0.79.0'
+      required: [id, outcome]
+      properties:
+        id: { type: string, description: "The engine or provider asked — `searxng`, `serp`, `duckduckgo`, `startpage`, `bing`, `api:<id>`." }
+        outcome: { type: string, description: "`answered` · `empty` (answered, found nothing) · `refused` (a refusing status, a timeout or no answer at all)." }
+        found: { type: integer, minimum: 0, description: "How many results it returned." }
+        status: { type: integer, description: "The HTTP status of a refusal (429, 403, …), when there was one." }
+        timedOut: { type: boolean, description: "It did not answer within its share of the budget." }
+        network: { type: boolean, description: "It failed at the network — no status at all." }
+    SearchTrailResting:
+      type: object
+      x-chatpanel-since: '0.79.0'
+      required: [id, until]
+      properties:
+        id: { type: string, description: "The resting engine." }
+        until: { type: integer, format: int64, description: "When it may be asked again, ms since epoch." }
     ExtractRequest:
       type: object
       description: "Either `name` + `data` (open a document) or `hash` + `page` (read one page of an open document)."

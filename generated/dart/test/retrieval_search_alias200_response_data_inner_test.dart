@@ -32,5 +32,17 @@ void main() {
       // TODO
     });
 
+    // The engine that produced it, as on `WebSearchResult.engine`. Since gateway 0.79.0.
+    // String engine
+    test('to test the property `engine`', () async {
+      // TODO
+    });
+
+    // The kind of door it came through, as on `WebSearchResult.via`. Since gateway 0.79.0.
+    // String via
+    test('to test the property `via`', () async {
+      // TODO
+    });
+
   });
 }

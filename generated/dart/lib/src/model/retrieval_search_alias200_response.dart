@@ -5,6 +5,7 @@
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
 import 'package:chatpanel/src/model/retrieval_search_alias200_response_data_inner.dart';
+import 'package:chatpanel/src/model/search_trail.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -16,6 +17,7 @@ part 'retrieval_search_alias200_response.g.dart';
 /// * [code] 
 /// * [status] 
 /// * [data] 
+/// * [trail] 
 @BuiltValue()
 abstract class RetrievalSearchAlias200Response implements Built<RetrievalSearchAlias200Response, RetrievalSearchAlias200ResponseBuilder> {
   @BuiltValueField(wireName: r'code')
@@ -26,6 +28,9 @@ abstract class RetrievalSearchAlias200Response implements Built<RetrievalSearchA
 
   @BuiltValueField(wireName: r'data')
   BuiltList<RetrievalSearchAlias200ResponseDataInner> get data;
+
+  @BuiltValueField(wireName: r'trail')
+  SearchTrail? get trail;
 
   RetrievalSearchAlias200Response._();
 
@@ -65,6 +70,13 @@ class _$RetrievalSearchAlias200ResponseSerializer implements PrimitiveSerializer
       object.data,
       specifiedType: const FullType(BuiltList, [FullType(RetrievalSearchAlias200ResponseDataInner)]),
     );
+    if (object.trail != null) {
+      yield r'trail';
+      yield serializers.serialize(
+        object.trail,
+        specifiedType: const FullType(SearchTrail),
+      );
+    }
   }
 
   @override
@@ -108,6 +120,14 @@ class _$RetrievalSearchAlias200ResponseSerializer implements PrimitiveSerializer
             specifiedType: const FullType(BuiltList, [FullType(RetrievalSearchAlias200ResponseDataInner)]),
           ) as BuiltList<RetrievalSearchAlias200ResponseDataInner>;
           result.data.replace(valueDes);
+          break;
+        case r'trail':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(SearchTrail),
+          ) as SearchTrail?;
+          if (valueDes == null) continue;
+          result.trail.replace(valueDes);
           break;
         default:
           unhandled.add(key);

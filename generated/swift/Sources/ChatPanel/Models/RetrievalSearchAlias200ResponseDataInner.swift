@@ -14,13 +14,19 @@ public struct RetrievalSearchAlias200ResponseDataInner: Sendable, Codable, Hasha
     public var description: String
     public var content: String
     public var publishedTime: String?
+    /** The engine that produced it, as on `WebSearchResult.engine`. Since gateway 0.79.0. */
+    public var engine: String?
+    /** The kind of door it came through, as on `WebSearchResult.via`. Since gateway 0.79.0. */
+    public var via: String?
 
-    public init(url: String, title: String, description: String, content: String, publishedTime: String? = nil) {
+    public init(url: String, title: String, description: String, content: String, publishedTime: String? = nil, engine: String? = nil, via: String? = nil) {
         self.url = url
         self.title = title
         self.description = description
         self.content = content
         self.publishedTime = publishedTime
+        self.engine = engine
+        self.via = via
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -29,6 +35,8 @@ public struct RetrievalSearchAlias200ResponseDataInner: Sendable, Codable, Hasha
         case description
         case content
         case publishedTime
+        case engine
+        case via
     }
 
     // Encodable protocol methods
@@ -40,6 +48,8 @@ public struct RetrievalSearchAlias200ResponseDataInner: Sendable, Codable, Hasha
         try container.encode(description, forKey: .description)
         try container.encode(content, forKey: .content)
         try container.encodeIfPresent(publishedTime, forKey: .publishedTime)
+        try container.encodeIfPresent(engine, forKey: .engine)
+        try container.encodeIfPresent(via, forKey: .via)
     }
 }
 

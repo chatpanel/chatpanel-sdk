@@ -35,6 +35,8 @@ import com.squareup.moshi.JsonClass
  * @param description 
  * @param content 
  * @param publishedTime 
+ * @param engine The engine that produced it, as on `WebSearchResult.engine`. Since gateway 0.79.0.
+ * @param via The kind of door it came through, as on `WebSearchResult.via`. Since gateway 0.79.0.
  */
 
 
@@ -53,7 +55,15 @@ data class RetrievalSearchAlias200ResponseDataInner (
     val content: kotlin.String,
 
     @Json(name = "publishedTime")
-    val publishedTime: kotlin.String? = null
+    val publishedTime: kotlin.String? = null,
+
+    /* The engine that produced it, as on `WebSearchResult.engine`. Since gateway 0.79.0. */
+    @Json(name = "engine")
+    val engine: kotlin.String? = null,
+
+    /* The kind of door it came through, as on `WebSearchResult.via`. Since gateway 0.79.0. */
+    @Json(name = "via")
+    val via: kotlin.String? = null
 
 ) {
 

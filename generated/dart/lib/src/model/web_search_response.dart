@@ -5,6 +5,7 @@
 // ignore_for_file: unused_element
 import 'package:chatpanel/src/model/web_search_result.dart';
 import 'package:built_collection/built_collection.dart';
+import 'package:chatpanel/src/model/search_trail.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -22,6 +23,7 @@ part 'web_search_response.g.dart';
 /// * [query] - The query as sent, when `redacted`.
 /// * [provider] 
 /// * [ms] 
+/// * [trail] 
 @BuiltValue()
 abstract class WebSearchResponse implements Built<WebSearchResponse, WebSearchResponseBuilder> {
   @BuiltValueField(wireName: r'results')
@@ -55,6 +57,9 @@ abstract class WebSearchResponse implements Built<WebSearchResponse, WebSearchRe
 
   @BuiltValueField(wireName: r'ms')
   num get ms;
+
+  @BuiltValueField(wireName: r'trail')
+  SearchTrail? get trail;
 
   WebSearchResponse._();
 
@@ -136,6 +141,13 @@ class _$WebSearchResponseSerializer implements PrimitiveSerializer<WebSearchResp
       object.ms,
       specifiedType: const FullType(num),
     );
+    if (object.trail != null) {
+      yield r'trail';
+      yield serializers.serialize(
+        object.trail,
+        specifiedType: const FullType(SearchTrail),
+      );
+    }
   }
 
   @override
@@ -227,6 +239,14 @@ class _$WebSearchResponseSerializer implements PrimitiveSerializer<WebSearchResp
             specifiedType: const FullType(num),
           ) as num;
           result.ms = valueDes;
+          break;
+        case r'trail':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(SearchTrail),
+          ) as SearchTrail?;
+          if (valueDes == null) continue;
+          result.trail.replace(valueDes);
           break;
         default:
           unhandled.add(key);

@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **Query** | Pointer to **string** | The query as sent, when &#x60;redacted&#x60;. | [optional] 
 **Provider** | **string** |  | 
 **Ms** | **float32** |  | 
+**Trail** | Pointer to [**SearchTrail**](SearchTrail.md) |  | [optional] 
 
 ## Methods
 
@@ -242,6 +243,31 @@ and a boolean to check if the value has been set.
 
 SetMs sets Ms field to given value.
 
+
+### GetTrail
+
+`func (o *WebSearchResponse) GetTrail() SearchTrail`
+
+GetTrail returns the Trail field if non-nil, zero value otherwise.
+
+### GetTrailOk
+
+`func (o *WebSearchResponse) GetTrailOk() (*SearchTrail, bool)`
+
+GetTrailOk returns a tuple with the Trail field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetTrail
+
+`func (o *WebSearchResponse) SetTrail(v SearchTrail)`
+
+SetTrail sets Trail field to given value.
+
+### HasTrail
+
+`func (o *WebSearchResponse) HasTrail() bool`
+
+HasTrail returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

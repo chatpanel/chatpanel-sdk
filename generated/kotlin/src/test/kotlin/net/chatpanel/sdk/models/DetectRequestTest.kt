@@ -57,5 +57,11 @@ class DetectRequestTest : ShouldSpec() {
             //modelInstance.budgetMs shouldBe ("TODO")
         }
 
+        // to test the property `strict` - Return every span the provider finds, second-guessing none (redaction strictness 'strict'). A provider that does not filter ignores it. Since gateway 0.76.0.
+        should("test strict") {
+            // uncomment below to test the property
+            //modelInstance.strict shouldBe ("TODO")
+        }
+
     }
 }

@@ -30,5 +30,11 @@ void main() {
       // TODO
     });
 
+    // Return every span the provider finds, second-guessing none (redaction strictness 'strict'). A provider that does not filter ignores it. Since gateway 0.76.0.
+    // bool strict
+    test('to test the property `strict`', () async {
+      // TODO
+    });
+
   });
 }

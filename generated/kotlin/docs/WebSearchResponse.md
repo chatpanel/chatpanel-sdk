@@ -13,6 +13,7 @@
 | **unresponsive** | **kotlin.collections.List&lt;kotlin.String&gt;** | SearXNG engines that did not answer. |  [optional] |
 | **redacted** | **kotlin.Boolean** | Layer-1 redaction removed something from the query. |  [optional] |
 | **query** | **kotlin.String** | The query as sent, when &#x60;redacted&#x60;. |  [optional] |
+| **trail** | [**SearchTrail**](SearchTrail.md) |  |  [optional] |
 
 
 

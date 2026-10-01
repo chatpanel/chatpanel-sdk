@@ -35,7 +35,8 @@ import com.squareup.moshi.JsonClass
  * @param url 
  * @param title 
  * @param snippet 
- * @param engine The engine that produced it (SearXNG: the first of `engines`; serp: the results page asked).
+ * @param engine The engine that produced it (SearXNG: the first of `engines`; serp: the engine asked — `duckduckgo`, `startpage`, `bing`, or `api:<id>` for a search API such as `api:exa`). Since gateway 0.79.0 every result carries it; the provider id when nothing finer is known.
+ * @param via The kind of door it came through: `gateway` · `searxng` · `api` (a search API) · `page` (a results page read) · `browser` (the person's own browser). A client meeting a value it does not know shows it as it is. Since gateway 0.79.0.
  * @param engines SearXNG: every engine that returned it.
  * @param score SearXNG's fused score.
  * @param publishedDate 
@@ -57,9 +58,13 @@ data class WebSearchResult (
     @Json(name = "snippet")
     val snippet: kotlin.String,
 
-    /* The engine that produced it (SearXNG: the first of `engines`; serp: the results page asked). */
+    /* The engine that produced it (SearXNG: the first of `engines`; serp: the engine asked — `duckduckgo`, `startpage`, `bing`, or `api:<id>` for a search API such as `api:exa`). Since gateway 0.79.0 every result carries it; the provider id when nothing finer is known. */
     @Json(name = "engine")
     val engine: kotlin.String? = null,
+
+    /* The kind of door it came through: `gateway` · `searxng` · `api` (a search API) · `page` (a results page read) · `browser` (the person's own browser). A client meeting a value it does not know shows it as it is. Since gateway 0.79.0. */
+    @Json(name = "via")
+    val via: kotlin.String? = null,
 
     /* SearXNG: every engine that returned it. */
     @Json(name = "engines")

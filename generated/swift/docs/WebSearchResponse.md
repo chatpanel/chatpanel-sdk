@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **query** | **String** | The query as sent, when &#x60;redacted&#x60;. | [optional] 
 **provider** | **String** |  | 
 **ms** | **Double** |  | 
+**trail** | [**SearchTrail**](SearchTrail.md) |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

@@ -24,7 +24,7 @@ info:
   license:
     name: Apache-2.0
   title: ChatPanel Gateway API
-  version: 0.40.0
+  version: 0.41.0
 servers:
 - description: The local gateway. Loopback only.
   url: http://127.0.0.1:4320
@@ -2364,6 +2364,15 @@ paths:
         covers the search and its reads and is refused (503 `over_budget`) from the provider's
         record. `engines` names what was actually asked, so an empty list can be told from a
         blocked one.
+
+        Since gateway 0.78.0 `serp` asks one built-in engine per search (DuckDuckGo, Startpage,
+        Bing) plus any search API the person added in the gateway's settings (Exa, Brave,
+        Tavily, Serper, SerpApi, Google Programmable Search, Jina, Mwmbl, or one they describe —
+        keyed ones first); an engine that refuses rests for a while. Since gateway 0.79.0 every
+        result is tagged with its `engine` and `via` (the kind of door it came through), and
+        `trail` says what each provider and engine asked did and, when nothing came back, why —
+        `nothing` (they answered, found nothing) reads differently from `blocked`, `resting` or
+        `offline`. Both are optional: an older gateway sends neither.
       operationId: retrieval.search
       requestBody:
         content:
@@ -2429,7 +2438,9 @@ paths:
         in the shape the shipped ChatPanel extension's *Web search API* engine already reads:
         `{ code, status, data: [{ url, title, description, content, publishedTime? }] }` where
         `content` is the page's Markdown when it was read and the snippet otherwise — nothing
-        needs fetching on the client. A Bearer token is accepted and ignored.
+        needs fetching on the client. A Bearer token is accepted and ignored. Since gateway
+        0.79.0 each item may carry `engine` and `via`, and the top level `trail`, exactly as
+        `POST /v1/search` does (a Jina reader ignores them).
       operationId: retrieval.searchAlias
       parameters:
       - description: "The query, percent-encoded."
@@ -4468,6 +4479,7 @@ components:
         - labels
         - labels
         budgetMs: 0.08008281904610115
+        strict: true
       properties:
         text:
           type: string
@@ -4485,6 +4497,11 @@ components:
             cannot be met.
           minimum: 0
           type: number
+        strict:
+          description: "Return every span the provider finds, second-guessing none\
+            \ (redaction strictness 'strict'). A provider that does not filter ignores\
+            \ it. Since gateway 0.76.0."
+          type: boolean
       required:
       - text
     DetectedEntity:
@@ -4840,6 +4857,7 @@ components:
         title: title
         snippet: snippet
         engine: engine
+        via: via
         engines:
         - engines
         - engines
@@ -4858,7 +4876,15 @@ components:
           type: string
         engine:
           description: "The engine that produced it (SearXNG: the first of `engines`;\
-            \ serp: the results page asked)."
+            \ serp: the engine asked — `duckduckgo`, `startpage`, `bing`, or `api:<id>`\
+            \ for a search API such as `api:exa`). Since gateway 0.79.0 every result\
+            \ carries it; the provider id when nothing finer is known."
+          type: string
+        via:
+          description: "The kind of door it came through: `gateway` · `searxng` ·\
+            \ `api` (a search API) · `page` (a results page read) · `browser` (the\
+            \ person's own browser). A client meeting a value it does not know shows\
+            \ it as it is. Since gateway 0.79.0."
           type: string
         engines:
           description: "SearXNG: every engine that returned it."
@@ -4888,6 +4914,7 @@ components:
           title: title
           snippet: snippet
           engine: engine
+          via: via
           engines:
           - engines
           - engines
@@ -4899,6 +4926,7 @@ components:
           title: title
           snippet: snippet
           engine: engine
+          via: via
           engines:
           - engines
           - engines
@@ -4921,6 +4949,26 @@ components:
         query: query
         provider: provider
         ms: 1.4658129805029452
+        trail:
+          status: status
+          asked:
+          - id: id
+            outcome: outcome
+            found: 0
+            status: 5
+            timedOut: true
+            network: true
+          - id: id
+            outcome: outcome
+            found: 0
+            status: 5
+            timedOut: true
+            network: true
+          resting:
+          - id: id
+            until: 2
+          - id: id
+            until: 2
       properties:
         results:
           items:
@@ -4960,10 +5008,115 @@ components:
           type: string
         ms:
           type: number
+        trail:
+          $ref: "#/components/schemas/SearchTrail"
       required:
       - ms
       - provider
       - results
+    SearchTrail:
+      description: "What the search did — each provider and engine asked, what it\
+        \ did, which are resting — and how it ended. Optional on every response that\
+        \ carries it; an older gateway sends none. Since gateway 0.79.0."
+      example:
+        status: status
+        asked:
+        - id: id
+          outcome: outcome
+          found: 0
+          status: 5
+          timedOut: true
+          network: true
+        - id: id
+          outcome: outcome
+          found: 0
+          status: 5
+          timedOut: true
+          network: true
+        resting:
+        - id: id
+          until: 2
+        - id: id
+          until: 2
+      properties:
+        status:
+          description: "How it ended: `answered` (results came back) · `nothing` (engines\
+            \ answered, none had anything) · `blocked` (every engine asked refused\
+            \ or timed out) · `resting` (nothing was asked: every engine is resting\
+            \ after earlier refusals) · `offline` (every engine failed at the network)\
+            \ · `no-engines`. A client meeting a value it does not know treats it\
+            \ as no results."
+          type: string
+        asked:
+          description: "In the order asked: the provider tried first (`searxng`, or\
+            \ each engine and API `serp` asked), then the other provider when the\
+            \ first came back empty."
+          items:
+            $ref: "#/components/schemas/SearchTrailAsk"
+          type: array
+          default: null
+        resting:
+          description: "Engines resting after refusing earlier, and until when."
+          items:
+            $ref: "#/components/schemas/SearchTrailResting"
+          type: array
+          default: null
+      required:
+      - asked
+      - resting
+      - status
+      x-chatpanel-since: 0.79.0
+    SearchTrailAsk:
+      example:
+        id: id
+        outcome: outcome
+        found: 0
+        status: 5
+        timedOut: true
+        network: true
+      properties:
+        id:
+          description: "The engine or provider asked — `searxng`, `serp`, `duckduckgo`,\
+            \ `startpage`, `bing`, `api:<id>`."
+          type: string
+        outcome:
+          description: "`answered` · `empty` (answered, found nothing) · `refused`\
+            \ (a refusing status, a timeout or no answer at all)."
+          type: string
+        found:
+          description: How many results it returned.
+          minimum: 0
+          type: integer
+        status:
+          description: "The HTTP status of a refusal (429, 403, …), when there was\
+            \ one."
+          type: integer
+        timedOut:
+          description: It did not answer within its share of the budget.
+          type: boolean
+        network:
+          description: It failed at the network — no status at all.
+          type: boolean
+      required:
+      - id
+      - outcome
+      x-chatpanel-since: 0.79.0
+    SearchTrailResting:
+      example:
+        id: id
+        until: 2
+      properties:
+        id:
+          description: The resting engine.
+          type: string
+        until:
+          description: "When it may be asked again, ms since epoch."
+          format: int64
+          type: integer
+      required:
+      - id
+      - until
+      x-chatpanel-since: 0.79.0
     ExtractRequest:
       description: Either `name` + `data` (open a document) or `hash` + `page` (read
         one page of an open document).
@@ -8023,6 +8176,8 @@ components:
         description: description
         content: content
         publishedTime: publishedTime
+        engine: engine
+        via: via
       properties:
         url:
           type: string
@@ -8033,6 +8188,14 @@ components:
         content:
           type: string
         publishedTime:
+          type: string
+        engine:
+          description: "The engine that produced it, as on `WebSearchResult.engine`.\
+            \ Since gateway 0.79.0."
+          type: string
+        via:
+          description: "The kind of door it came through, as on `WebSearchResult.via`.\
+            \ Since gateway 0.79.0."
           type: string
       required:
       - content
@@ -8049,11 +8212,35 @@ components:
           description: description
           content: content
           publishedTime: publishedTime
+          engine: engine
+          via: via
         - url: url
           title: title
           description: description
           content: content
           publishedTime: publishedTime
+          engine: engine
+          via: via
+        trail:
+          status: status
+          asked:
+          - id: id
+            outcome: outcome
+            found: 0
+            status: 5
+            timedOut: true
+            network: true
+          - id: id
+            outcome: outcome
+            found: 0
+            status: 5
+            timedOut: true
+            network: true
+          resting:
+          - id: id
+            until: 2
+          - id: id
+            until: 2
       properties:
         code:
           type: integer
@@ -8064,6 +8251,8 @@ components:
             $ref: "#/components/schemas/retrieval_searchAlias_200_response_data_inner"
           type: array
           default: null
+        trail:
+          $ref: "#/components/schemas/SearchTrail"
       required:
       - code
       - data

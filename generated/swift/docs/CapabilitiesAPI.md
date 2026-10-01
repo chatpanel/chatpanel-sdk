@@ -74,7 +74,7 @@ The standard `detect` signature over the in-process entity detector. Labels are 
 // The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
 import ChatPanel
 
-let detectRequest = DetectRequest(text: "text_example", model: "model_example", labels: ["labels_example"], budgetMs: 123) // DetectRequest | 
+let detectRequest = DetectRequest(text: "text_example", model: "model_example", labels: ["labels_example"], budgetMs: 123, strict: false) // DetectRequest | 
 
 // Find entities in text — the model's own labels, with offsets and scores.
 CapabilitiesAPI.capabilitiesDetect(detectRequest: detectRequest) { (response, error) in

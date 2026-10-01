@@ -27,6 +27,7 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.ShouldSpec
 
 import net.chatpanel.sdk.models.WebSearchResponse
+import net.chatpanel.sdk.models.SearchTrail
 import net.chatpanel.sdk.models.WebSearchResult
 
 class WebSearchResponseTest : ShouldSpec() {
@@ -86,6 +87,12 @@ class WebSearchResponseTest : ShouldSpec() {
         should("test query") {
             // uncomment below to test the property
             //modelInstance.query shouldBe ("TODO")
+        }
+
+        // to test the property `trail`
+        should("test trail") {
+            // uncomment below to test the property
+            //modelInstance.trail shouldBe ("TODO")
         }
 
     }

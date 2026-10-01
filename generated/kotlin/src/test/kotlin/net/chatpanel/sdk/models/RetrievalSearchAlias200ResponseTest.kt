@@ -28,6 +28,7 @@ import io.kotlintest.specs.ShouldSpec
 
 import net.chatpanel.sdk.models.RetrievalSearchAlias200Response
 import net.chatpanel.sdk.models.RetrievalSearchAlias200ResponseDataInner
+import net.chatpanel.sdk.models.SearchTrail
 
 class RetrievalSearchAlias200ResponseTest : ShouldSpec() {
     init {
@@ -50,6 +51,12 @@ class RetrievalSearchAlias200ResponseTest : ShouldSpec() {
         should("test `data`") {
             // uncomment below to test the property
             //modelInstance.`data` shouldBe ("TODO")
+        }
+
+        // to test the property `trail`
+        should("test trail") {
+            // uncomment below to test the property
+            //modelInstance.trail shouldBe ("TODO")
         }
 
     }

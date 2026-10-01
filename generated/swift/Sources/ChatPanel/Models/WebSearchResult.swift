@@ -14,8 +14,10 @@ public struct WebSearchResult: Sendable, Codable, Hashable {
     public var url: String
     public var title: String
     public var snippet: String
-    /** The engine that produced it (SearXNG: the first of `engines`; serp: the results page asked). */
+    /** The engine that produced it (SearXNG: the first of `engines`; serp: the engine asked — `duckduckgo`, `startpage`, `bing`, or `api:<id>` for a search API such as `api:exa`). Since gateway 0.79.0 every result carries it; the provider id when nothing finer is known. */
     public var engine: String?
+    /** The kind of door it came through: `gateway` · `searxng` · `api` (a search API) · `page` (a results page read) · `browser` (the person's own browser). A client meeting a value it does not know shows it as it is. Since gateway 0.79.0. */
+    public var via: String?
     /** SearXNG: every engine that returned it. */
     public var engines: [String]?
     /** SearXNG's fused score. */
@@ -24,12 +26,13 @@ public struct WebSearchResult: Sendable, Codable, Hashable {
     /** Present for the top `read` results. */
     public var read: ReadResponse?
 
-    public init(rank: Int, url: String, title: String, snippet: String, engine: String? = nil, engines: [String]? = nil, score: Double? = nil, publishedDate: String? = nil, read: ReadResponse? = nil) {
+    public init(rank: Int, url: String, title: String, snippet: String, engine: String? = nil, via: String? = nil, engines: [String]? = nil, score: Double? = nil, publishedDate: String? = nil, read: ReadResponse? = nil) {
         self.rank = rank
         self.url = url
         self.title = title
         self.snippet = snippet
         self.engine = engine
+        self.via = via
         self.engines = engines
         self.score = score
         self.publishedDate = publishedDate
@@ -42,6 +45,7 @@ public struct WebSearchResult: Sendable, Codable, Hashable {
         case title
         case snippet
         case engine
+        case via
         case engines
         case score
         case publishedDate
@@ -57,6 +61,7 @@ public struct WebSearchResult: Sendable, Codable, Hashable {
         try container.encode(title, forKey: .title)
         try container.encode(snippet, forKey: .snippet)
         try container.encodeIfPresent(engine, forKey: .engine)
+        try container.encodeIfPresent(via, forKey: .via)
         try container.encodeIfPresent(engines, forKey: .engines)
         try container.encodeIfPresent(score, forKey: .score)
         try container.encodeIfPresent(publishedDate, forKey: .publishedDate)

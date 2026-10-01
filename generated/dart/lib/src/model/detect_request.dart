@@ -16,6 +16,7 @@ part 'detect_request.g.dart';
 /// * [model] - A model this provider lists; 404 otherwise.
 /// * [labels] - Keep only these of the model's labels.
 /// * [budgetMs] - Refused before running if the provider's record predicts it cannot be met.
+/// * [strict] - Return every span the provider finds, second-guessing none (redaction strictness 'strict'). A provider that does not filter ignores it. Since gateway 0.76.0.
 @BuiltValue()
 abstract class DetectRequest implements Built<DetectRequest, DetectRequestBuilder> {
   @BuiltValueField(wireName: r'text')
@@ -32,6 +33,10 @@ abstract class DetectRequest implements Built<DetectRequest, DetectRequestBuilde
   /// Refused before running if the provider's record predicts it cannot be met.
   @BuiltValueField(wireName: r'budgetMs')
   num? get budgetMs;
+
+  /// Return every span the provider finds, second-guessing none (redaction strictness 'strict'). A provider that does not filter ignores it. Since gateway 0.76.0.
+  @BuiltValueField(wireName: r'strict')
+  bool? get strict;
 
   DetectRequest._();
 
@@ -80,6 +85,13 @@ class _$DetectRequestSerializer implements PrimitiveSerializer<DetectRequest> {
       yield serializers.serialize(
         object.budgetMs,
         specifiedType: const FullType(num),
+      );
+    }
+    if (object.strict != null) {
+      yield r'strict';
+      yield serializers.serialize(
+        object.strict,
+        specifiedType: const FullType(bool),
       );
     }
   }
@@ -135,6 +147,14 @@ class _$DetectRequestSerializer implements PrimitiveSerializer<DetectRequest> {
           ) as num?;
           if (valueDes == null) continue;
           result.budgetMs = valueDes;
+          break;
+        case r'strict':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(bool),
+          ) as bool?;
+          if (valueDes == null) continue;
+          result.strict = valueDes;
           break;
         default:
           unhandled.add(key);

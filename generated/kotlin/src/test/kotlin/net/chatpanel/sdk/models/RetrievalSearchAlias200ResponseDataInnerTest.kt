@@ -63,5 +63,17 @@ class RetrievalSearchAlias200ResponseDataInnerTest : ShouldSpec() {
             //modelInstance.publishedTime shouldBe ("TODO")
         }
 
+        // to test the property `engine` - The engine that produced it, as on `WebSearchResult.engine`. Since gateway 0.79.0.
+        should("test engine") {
+            // uncomment below to test the property
+            //modelInstance.engine shouldBe ("TODO")
+        }
+
+        // to test the property `via` - The kind of door it came through, as on `WebSearchResult.via`. Since gateway 0.79.0.
+        should("test via") {
+            // uncomment below to test the property
+            //modelInstance.via shouldBe ("TODO")
+        }
+
     }
 }

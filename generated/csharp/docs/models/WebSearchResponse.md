@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **Unresponsive** | **List&lt;string&gt;** | SearXNG engines that did not answer. | [optional] 
 **Redacted** | **bool** | Layer-1 redaction removed something from the query. | [optional] 
 **Query** | **string** | The query as sent, when &#x60;redacted&#x60;. | [optional] 
+**Trail** | [**SearchTrail**](SearchTrail.md) |  | [optional] 
 
 [[Back to Model list]](../../README.md#documentation-for-models) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to README]](../../README.md)
 

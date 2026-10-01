@@ -8,7 +8,8 @@ Name | Type | Description | Notes
 **Url** | **string** |  | 
 **Title** | **string** |  | 
 **Snippet** | **string** |  | 
-**Engine** | Pointer to **string** | The engine that produced it (SearXNG: the first of &#x60;engines&#x60;; serp: the results page asked). | [optional] 
+**Engine** | Pointer to **string** | The engine that produced it (SearXNG: the first of &#x60;engines&#x60;; serp: the engine asked — &#x60;duckduckgo&#x60;, &#x60;startpage&#x60;, &#x60;bing&#x60;, or &#x60;api:&lt;id&gt;&#x60; for a search API such as &#x60;api:exa&#x60;). Since gateway 0.79.0 every result carries it; the provider id when nothing finer is known. | [optional] 
+**Via** | Pointer to **string** | The kind of door it came through: &#x60;gateway&#x60; · &#x60;searxng&#x60; · &#x60;api&#x60; (a search API) · &#x60;page&#x60; (a results page read) · &#x60;browser&#x60; (the person&#39;s own browser). A client meeting a value it does not know shows it as it is. Since gateway 0.79.0. | [optional] 
 **Engines** | Pointer to **[]string** | SearXNG: every engine that returned it. | [optional] 
 **Score** | Pointer to **float32** | SearXNG&#39;s fused score. | [optional] 
 **PublishedDate** | Pointer to **string** |  | [optional] 
@@ -137,6 +138,31 @@ SetEngine sets Engine field to given value.
 `func (o *WebSearchResult) HasEngine() bool`
 
 HasEngine returns a boolean if a field has been set.
+
+### GetVia
+
+`func (o *WebSearchResult) GetVia() string`
+
+GetVia returns the Via field if non-nil, zero value otherwise.
+
+### GetViaOk
+
+`func (o *WebSearchResult) GetViaOk() (*string, bool)`
+
+GetViaOk returns a tuple with the Via field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetVia
+
+`func (o *WebSearchResult) SetVia(v string)`
+
+SetVia sets Via field to given value.
+
+### HasVia
+
+`func (o *WebSearchResult) HasVia() bool`
+
+HasVia returns a boolean if a field has been set.
 
 ### GetEngines
 

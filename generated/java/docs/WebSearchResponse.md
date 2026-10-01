@@ -16,6 +16,7 @@
 |**query** | **String** | The query as sent, when &#x60;redacted&#x60;. |  [optional] |
 |**provider** | **String** |  |  |
 |**ms** | **BigDecimal** |  |  |
+|**trail** | [**SearchTrail**](SearchTrail.md) |  |  [optional] |
 
 
 

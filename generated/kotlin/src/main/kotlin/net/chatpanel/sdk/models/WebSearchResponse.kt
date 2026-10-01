@@ -23,6 +23,7 @@
 
 package net.chatpanel.sdk.models
 
+import net.chatpanel.sdk.models.SearchTrail
 import net.chatpanel.sdk.models.WebSearchResult
 
 import com.squareup.moshi.Json
@@ -40,6 +41,7 @@ import com.squareup.moshi.JsonClass
  * @param unresponsive SearXNG engines that did not answer.
  * @param redacted Layer-1 redaction removed something from the query.
  * @param query The query as sent, when `redacted`.
+ * @param trail 
  */
 
 
@@ -75,7 +77,10 @@ data class WebSearchResponse (
 
     /* The query as sent, when `redacted`. */
     @Json(name = "query")
-    val query: kotlin.String? = null
+    val query: kotlin.String? = null,
+
+    @Json(name = "trail")
+    val trail: SearchTrail? = null
 
 ) {
 

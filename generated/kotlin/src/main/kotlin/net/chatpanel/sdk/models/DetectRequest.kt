@@ -34,6 +34,7 @@ import com.squareup.moshi.JsonClass
  * @param model A model this provider lists; 404 otherwise.
  * @param labels Keep only these of the model's labels.
  * @param budgetMs Refused before running if the provider's record predicts it cannot be met.
+ * @param strict Return every span the provider finds, second-guessing none (redaction strictness 'strict'). A provider that does not filter ignores it. Since gateway 0.76.0.
  */
 
 
@@ -52,7 +53,11 @@ data class DetectRequest (
 
     /* Refused before running if the provider's record predicts it cannot be met. */
     @Json(name = "budgetMs")
-    val budgetMs: java.math.BigDecimal? = null
+    val budgetMs: java.math.BigDecimal? = null,
+
+    /* Return every span the provider finds, second-guessing none (redaction strictness 'strict'). A provider that does not filter ignores it. Since gateway 0.76.0. */
+    @Json(name = "strict")
+    val strict: kotlin.Boolean? = null
 
 ) {
 

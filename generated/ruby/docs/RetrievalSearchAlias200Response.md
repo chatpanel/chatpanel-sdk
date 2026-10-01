@@ -7,6 +7,7 @@
 | **code** | **Integer** |  |  |
 | **status** | **Integer** |  |  |
 | **data** | [**Array&lt;RetrievalSearchAlias200ResponseDataInner&gt;**](RetrievalSearchAlias200ResponseDataInner.md) |  |  |
+| **trail** | [**SearchTrail**](SearchTrail.md) |  | [optional] |
 
 ## Example
 
@@ -16,7 +17,8 @@ require 'chatpanel'
 instance = ChatPanel::RetrievalSearchAlias200Response.new(
   code: null,
   status: null,
-  data: null
+  data: null,
+  trail: null
 )
 ```
 

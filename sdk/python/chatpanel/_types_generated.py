@@ -305,7 +305,8 @@ class WebSearchResult(TypedDict, total=False):
     url: str
     title: str
     snippet: str
-    engine: NotRequired[str]  # The engine that produced it (SearXNG: the first of `engines`; serp: the results page asked).
+    engine: NotRequired[str]  # The engine that produced it (SearXNG: the first of `engines`; serp: the engine asked — `duckduckgo`, `startpage`, `bing`, or `api:<id>` for a search API such as `api:exa`). Since gateway 0.79.0 every result carries it; the provider id when nothing finer is known.
+    via: NotRequired[str]  # The kind of door it came through: `gateway` · `searxng` · `api` (a search API) · `page` (a results page read) · `browser` (the person's own browser). A client meeting a value it does not know shows it as it is. Since gateway 0.79.0.
     engines: NotRequired[List[str]]  # SearXNG: every engine that returned it.
     score: NotRequired[float]  # SearXNG's fused score.
     publishedDate: NotRequired[str]
@@ -323,6 +324,30 @@ class WebSearchResponse(TypedDict, total=False):
     query: NotRequired[str]  # The query as sent, when `redacted`.
     provider: str
     ms: float
+    trail: NotRequired["SearchTrail"]
+
+
+class SearchTrail(TypedDict, total=False):
+    """What the search did — each provider and engine asked, what it did, which are resting — and how it ended. Optional on every response that carries it; an older gateway sends none. Since gateway 0.79.0."""
+    status: str  # How it ended: `answered` (results came back) · `nothing` (engines answered, none had anything) · `blocked` (every engine asked refused or timed out) · `resting` (nothing was asked: every engine is resting after earlier refusals) · `offline` (every engine failed at the network) · `no-engines`. A client meeting a value it does not know treats it as no results.
+    asked: List["SearchTrailAsk"]  # In the order asked: the provider tried first (`searxng`, or each engine and API `serp` asked), then the other provider when the first came back empty.
+    resting: List["SearchTrailResting"]  # Engines resting after refusing earlier, and until when.
+
+
+class SearchTrailAsk(TypedDict, total=False):
+    """SearchTrailAsk"""
+    id: str  # The engine or provider asked — `searxng`, `serp`, `duckduckgo`, `startpage`, `bing`, `api:<id>`.
+    outcome: str  # `answered` · `empty` (answered, found nothing) · `refused` (a refusing status, a timeout or no answer at all).
+    found: NotRequired[int]  # How many results it returned.
+    status: NotRequired[int]  # The HTTP status of a refusal (429, 403, …), when there was one.
+    timedOut: NotRequired[bool]  # It did not answer within its share of the budget.
+    network: NotRequired[bool]  # It failed at the network — no status at all.
+
+
+class SearchTrailResting(TypedDict, total=False):
+    """SearchTrailResting"""
+    id: str  # The resting engine.
+    until: int  # When it may be asked again, ms since epoch.
 
 
 class ExtractRequest(TypedDict, total=False):

@@ -12,17 +12,20 @@ public struct RetrievalSearchAlias200Response: Sendable, Codable, Hashable {
     public var code: Int
     public var status: Int
     public var data: [RetrievalSearchAlias200ResponseDataInner]
+    public var trail: SearchTrail?
 
-    public init(code: Int, status: Int, data: [RetrievalSearchAlias200ResponseDataInner]) {
+    public init(code: Int, status: Int, data: [RetrievalSearchAlias200ResponseDataInner], trail: SearchTrail? = nil) {
         self.code = code
         self.status = status
         self.data = data
+        self.trail = trail
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case code
         case status
         case data
+        case trail
     }
 
     // Encodable protocol methods
@@ -32,6 +35,7 @@ public struct RetrievalSearchAlias200Response: Sendable, Codable, Hashable {
         try container.encode(code, forKey: .code)
         try container.encode(status, forKey: .status)
         try container.encode(data, forKey: .data)
+        try container.encodeIfPresent(trail, forKey: .trail)
     }
 }
 
