@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.41.0
+  version: 0.43.0
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -100,6 +100,8 @@ tags:
     description: What runs processes for the user and how — the process sandbox (through the bridge), the container engine on this machine, and the services the gateway runs for the user (docs/sandboxing.md S1).
   - name: browser
     description: A local client using the person's own browser through the ChatPanel extension — the browser holds a stream, a client's page-tool call is carried to it and its result back. Every action still passes the extension's site grant, its commit confirmation and its bot-check hand-off.
+  - name: link
+    description: ChatPanel Link — the person's phones and the partner servers they chose reach this gateway end-to-end encrypted (Noise) through a relay or the person's own tunnel, with no port open. Pairing, listing and removing devices is the owner's, at their own computer — token only, and never over Link itself.
   - name: events
     description: The durable event log, merged across every client and served as one CloudEvents 1.0 stream — metadata only (refs and counts, never content), ordered by `(host, seq)` and `causes`, never by clock (docs/event-stream-sync.md E1).
 
@@ -2503,6 +2505,281 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/Error' }
 
+  /v1/link:
+    get:
+      operationId: link.status
+      tags: [link]
+      summary: The Link route and every paired device — phones and partner servers — with what each may reach.
+      description: |
+        No keys, tokens or secrets. A partner device (gateway 0.89.0+) carries `kind: partner`, its
+        `partner.name`, `scopes`, the `route` it was paired on and the `host` it connects to; a
+        phone carries `kind: phone` and follows the gateway's route. Changing the route never
+        moves a partner: one whose tunnel door shut with the route says `routeClosed`.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.60.0'
+      x-chatpanel-scope: paired devices
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      responses:
+        '200':
+          description: The route and the devices.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LinkStatus' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /v1/link/pair:
+    post:
+      operationId: link.pair
+      tags: [link]
+      summary: Start a pairing — a phone's QR, or (with `kind partner`) a partner server's one-time code, shown and confirmed first.
+      description: |
+        **A phone** (no `kind`, or `kind: phone`): a room on the route's relay and the QR the phone
+        scans; the answer carries `uri`, `svg`, `expiresAt`, `room`.
+
+        **A partner server** (`kind: partner`, gateway 0.89.0+): nothing is issued without the
+        owner's yes. Without `confirm: true` the answer is `{ confirmed: false, preview }` — what
+        the partner will be able to do (scopes, agents yes/no), the route and the one host its
+        server will connect to — and nothing is created. With `confirm: true` the answer adds the
+        `code` (`cplink1.…`, one use, 10 minutes), `room`, `route` and `host`. The route is the
+        gateway's own unless `route` names another; a tunnel route reaches the tunnel door with no
+        relay at all, and ChatPanel's hosted relay is used only for `link`. Refused with 403 from a
+        device on Link: a paired device never pairs another.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.60.0'
+      x-chatpanel-scope: paired devices
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LinkPairRequest' }
+      responses:
+        '200':
+          description: The phone's code, or the partner's preview (and, once confirmed, its code).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LinkPairResult' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Error' }
+        '502': { $ref: '#/components/responses/Error' }
+  /v1/link/route:
+    post:
+      operationId: link.route
+      tags: [link]
+      summary: How devices reach this computer — ChatPanel Link, the person's own relay, Tailscale or Cloudflare Tunnel.
+      description: Checked, saved in the gateway's config and applied without a restart. Phones follow it; partner devices keep the route they were paired on, and the answer lists which is on which.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.65.0'
+      x-chatpanel-scope: paired devices
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LinkRouteRequest' }
+      responses:
+        '200':
+          description: The route now in effect, and the devices.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LinkStatus' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Error' }
+  /v1/link/devices/{deviceId}:
+    delete:
+      operationId: link.removeDevice
+      tags: [link]
+      summary: Remove a paired device now — its relay room, its key and its open connection.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.60.0'
+      x-chatpanel-scope: paired devices
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          description: The device's `id` from `link.status`.
+          schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,64}$' }
+      responses:
+        '200':
+          description: Removed.
+          content:
+            application/json:
+              schema: { type: object, required: [ok], properties: { ok: { type: boolean } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/link/approvals:
+    get:
+      operationId: link.approvals
+      tags: [link]
+      summary: What partners' agents are waiting on the owner for — each request a partner's coding agent made that the owner's settings do not already allow.
+      description: |
+        A partner granted `agents` (gateway 0.90.0+) runs them as the owner's own turn does, and never
+        answers their permission prompts: the request waits here for the OWNER (0.91.0+). Nothing that
+        arrives over Link may list or answer these — 403 for a partner and a phone alike. In memory only.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.91.0'
+      x-chatpanel-scope: partner devices
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      responses:
+        '200':
+          description: The waiting requests, oldest first.
+          content:
+            application/json:
+              schema: { type: object, required: [pending], properties: { pending: { type: array, items: { $ref: '#/components/schemas/LinkApproval' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /v1/link/approvals/stream:
+    get:
+      operationId: link.approvalsStream
+      tags: [link]
+      summary: The waiting requests as they change — one `approvals` event with the whole list on each change, and at connect.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.91.0'
+      x-chatpanel-stream: sse
+      x-chatpanel-scope: partner devices
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      responses:
+        '200':
+          description: 'Server-sent events: `event: approvals`, `data: { pending: LinkApproval[] }`.'
+          content:
+            text/event-stream:
+              schema: { type: string }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /v1/link/approvals/{approvalId}:
+    post:
+      operationId: link.answerApproval
+      tags: [link]
+      summary: The owner's answer — once, this action for the rest of the conversation, everything in it, or no.
+      description: No answer within the agent's own wait (10 minutes) is a no; revoking the partner denies what it waits on.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.91.0'
+      x-chatpanel-scope: partner devices
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      parameters:
+        - name: approvalId
+          in: path
+          required: true
+          schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,40}$' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: string, enum: [allow, allow_action, allow_all, deny] }
+      responses:
+        '200':
+          description: Answered; the agent carries on.
+          content:
+            application/json:
+              schema: { type: object, required: [ok], properties: { ok: { type: boolean } } }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/link/files:
+    get:
+      operationId: link.listFiles
+      tags: [link]
+      summary: A partner's own folder, from its side — every file it may hold there, with size and last change.
+      description: |
+        Called BY A PARTNER over Link (`createLinkFetch`), granted `files` (0.92.0+; needs `agents`). The
+        folder is the one the owner chose at pairing, where its agents work; a partner may hold its data
+        (`data/`), skills (`.claude/skills/`, `.agents/skills/`), subagents (`.claude/agents/*.md`) and
+        instructions (`CLAUDE.md`, `AGENTS.md`) — never what configures the agent. `GET
+        /v1/link/files/data` lists one root.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.92.0'
+      x-chatpanel-scope: partner devices
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      responses:
+        '200':
+          description: The files.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [files]
+                properties:
+                  folder: { type: string }
+                  files: { type: array, items: { $ref: '#/components/schemas/LinkPartnerFile' } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /v1/link/files/{path}:
+    get:
+      operationId: link.readFile
+      tags: [link]
+      summary: Read back a file from the partner's folder — what its agents wrote there.
+      description: 'The raw bytes (`application/octet-stream`). `path` is relative to the folder; slashes may be sent encoded.'
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.92.0'
+      x-chatpanel-sdk: manual
+      x-chatpanel-scope: partner devices
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/LinkFilePath' }
+      responses:
+        '200':
+          description: The file.
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/Error' }
+    put:
+      operationId: link.writeFile
+      tags: [link]
+      summary: Put a file in the partner's folder — its data, a skill, a subagent or instructions.
+      description: |
+        The body is the file's bytes. Refused (400): a path outside what a partner may hold
+        (`.claude/settings*.json`, hooks, `.mcp.json`, `.codex/` among them), and a skill or subagent
+        whose front matter would widen what the agent may do (`allowed-tools`, `hooks`, `permissionMode`,
+        `mcpServers`). Refused (403): a path through a link in the folder. Written atomically, readable by
+        the owner alone. Up to the gateway's body limit (413 past it).
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.92.0'
+      x-chatpanel-sdk: manual
+      x-chatpanel-scope: partner devices
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/LinkFilePath' }
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema: { type: string, format: binary }
+      responses:
+        '200':
+          description: Written.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LinkPartnerFile' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '413': { $ref: '#/components/responses/Error' }
+    delete:
+      operationId: link.deleteFile
+      tags: [link]
+      summary: Remove a file from the partner's folder (never a folder).
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.92.0'
+      x-chatpanel-sdk: manual
+      x-chatpanel-scope: partner devices
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/LinkFilePath' }
+      responses:
+        '200':
+          description: Removed.
+          content:
+            application/json:
+              schema: { type: object, required: [ok], properties: { ok: { type: boolean } } }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/Error' }
+
 components:
   securitySchemes:
     gatewayToken:
@@ -2516,6 +2793,12 @@ components:
       description: The same token, for a client that cannot set Authorization.
 
   parameters:
+    LinkFilePath:
+      name: path
+      in: path
+      required: true
+      description: 'Relative to the partner''s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/<name>.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F).'
+      schema: { type: string, maxLength: 512 }
     RunId:
       name: runId
       in: path
@@ -3822,6 +4105,112 @@ components:
       properties:
         kind: { type: string, enum: [chrome, edge, firefox, brave, opera, chromium, other] }
         version: { type: string }
+    LinkPairRequest:
+      type: object
+      properties:
+        kind: { type: string, enum: [phone, partner], description: Absent is a phone. }
+        name: { type: string, maxLength: 60, description: A phone pairing — what the phone calls this computer. }
+        partner:
+          type: object
+          required: [name]
+          properties:
+            name: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9 ._-]{0,39}$', description: What the owner calls the partner. }
+        scopes:
+          description: 'What the partner may reach: `models` (GET /v1/models), `chat` (POST /v1/chat/completions and /v1/messages to API models), `agents` (also the coding agents, as the owner''s own turn runs them — the Coding Agents settings, the sandbox and the org policy decide what they may do, in the partner''s own folder, and the owner answers their approval prompts; needs chat; 0.90.0+), `files` (its data, skills, subagents and instructions in that folder — /v1/link/files; needs agents; 0.92.0+). An array or a comma list; absent is models and chat.'
+          oneOf:
+            - { type: array, items: { type: string, enum: [models, chat, agents, files] } }
+            - { type: string }
+        route: { type: string, enum: [link, relay, tailscale, cloudflare], description: The partner's one path. Absent is the gateway's own route. }
+        relay: { type: string, format: uri, description: The https relay for `route relay`. }
+        folder: { type: string, maxLength: 1024, description: 'Where the partner''s agents work (with `agents`, 0.90.0+): an absolute path or ~/…; absent is ~/.chatpanel/partners/<name>. Never the disk or the home folder.' }
+        confirm: { type: boolean, description: The owner saw the preview and said yes. Without it nothing is issued. }
+    LinkPartnerPreview:
+      type: object
+      required: [partner, scopes, agents, route, host, lines]
+      properties:
+        partner: { type: string }
+        scopes: { type: array, items: { type: string } }
+        agents: { type: boolean }
+        route: { type: string }
+        host: { type: string, description: The one host the partner's server will connect to. }
+        folder: { type: string, description: Where its agents will work (with agents). }
+        lines: { type: array, items: { type: string }, description: The confirmation as the owner reads it. }
+    LinkPairResult:
+      type: object
+      properties:
+        uri: { type: string, description: A phone's QR text. }
+        svg: { type: string, description: The QR as SVG. }
+        expiresAt: { type: integer, format: int64, description: Epoch ms when the code stops working. }
+        room: { type: string, description: The device id it pairs. }
+        confirmed: { type: boolean, description: Partner pairings — false is a preview only. }
+        preview: { $ref: '#/components/schemas/LinkPartnerPreview' }
+        code: { type: string, description: 'A partner''s one-time `cplink1.` code — give it to the partner through a channel you trust.' }
+        kind: { type: string }
+        partner: { type: object, properties: { name: { type: string } } }
+        scopes: { type: array, items: { type: string } }
+        route: { type: string }
+        host: { type: string }
+    LinkRouteRequest:
+      type: object
+      required: [route]
+      properties:
+        route: { type: string, enum: [link, relay, tailscale, cloudflare] }
+        url: { type: string, description: The relay (relay) or this computer's tunnel address (tailscale, cloudflare). }
+        fallback: { type: boolean, description: A tunnel route keeps ChatPanel Link as the phones' fallback unless false. }
+    LinkApproval:
+      type: object
+      required: [id, partner, title, body, createdAt, expiresAt]
+      properties:
+        id: { type: string }
+        partner: { type: string, description: The partner whose agent asks. }
+        device: { type: string }
+        conversation: { type: string, description: 'The partner''s conversation (`partner.<device>.<thread>`), or the turn''s own.' }
+        title: { type: string, description: 'Who asks and what kind of action — "Atlas’s agent asks — run a command?"' }
+        body: { type: string, description: The command, path or tool, and what "for the conversation" would also cover. }
+        tool: { type: string }
+        createdAt: { type: integer, format: int64 }
+        expiresAt: { type: integer, format: int64, description: When it becomes a no. }
+    LinkPartnerFile:
+      type: object
+      required: [path, size]
+      properties:
+        path: { type: string, description: Relative to the partner's folder. }
+        size: { type: integer, format: int64 }
+        modifiedAt: { type: integer, format: int64 }
+    LinkDevice:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string }
+        kind: { type: string, enum: [phone, partner] }
+        name: { type: string }
+        pairedAt: { type: [integer, 'null'], format: int64 }
+        lastSeen: { type: [integer, 'null'], format: int64 }
+        online: { type: boolean }
+        via: { type: [string, 'null'], description: 'tunnel or relay, while online.' }
+        partner: { type: object, properties: { name: { type: string } } }
+        scopes: { type: array, items: { type: string } }
+        route: { type: [string, 'null'], description: A partner's route, kept from its pairing. }
+        host: { type: string }
+        routeClosed: { type: boolean, description: A tunnel partner whose door shut when the gateway's route moved — pair it again to move it. }
+        folder: { type: string, description: 'Where a partner''s agents work (0.90.0+, with agents).' }
+        staleRelay: { type: string }
+        tunnelNeedsRelink: { type: boolean }
+    LinkStatus:
+      type: object
+      required: [enabled, devices]
+      properties:
+        enabled: { type: boolean }
+        route: { type: string }
+        relay: { type: [string, 'null'] }
+        tunnel: { type: [string, 'null'] }
+        problem: { type: string }
+        routes: { type: array, items: { type: object, additionalProperties: true } }
+        setup: { type: object, additionalProperties: true }
+        devices: { type: array, items: { $ref: '#/components/schemas/LinkDevice' } }
+        pairing: { type: [object, 'null'], additionalProperties: true, description: A phone code waiting to be scanned. }
+        partnerPairing: { type: [object, 'null'], additionalProperties: true, description: A partner code waiting to be used. }
+        agentSessions: { type: boolean }
     BrowserStatus:
       type: object
       required: [connected, pending]

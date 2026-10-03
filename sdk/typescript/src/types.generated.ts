@@ -1249,6 +1249,143 @@ export interface BrowserInfo {
   version?: string;
 }
 
+export interface LinkPairRequest {
+  /** Absent is a phone. */
+  kind?: "phone" | "partner";
+  /** A phone pairing — what the phone calls this computer. */
+  name?: string;
+  partner?: {
+    /** What the owner calls the partner. */
+    name: string;
+  };
+  /** What the partner may reach: `models` (GET /v1/models), `chat` (POST /v1/chat/completions and /v1/messages to API models), `agents` (also the coding agents, as the owner's own turn runs them — the Coding Agents settings, the sandbox and the org policy decide what they may do, in the partner's own folder, and the owner answers their approval prompts; needs chat; 0.90.0+), `files` (its data, skills, subagents and instructions in that folder — /v1/link/files; needs agents; 0.92.0+). An array or a comma list; absent is models and chat. */
+  scopes?: Array<"models" | "chat" | "agents" | "files"> | string;
+  /** The partner's one path. Absent is the gateway's own route. */
+  route?: "link" | "relay" | "tailscale" | "cloudflare";
+  /** The https relay for `route relay`. */
+  relay?: string;
+  /** Where the partner's agents work (with `agents`, 0.90.0+): an absolute path or ~/…; absent is ~/.chatpanel/partners/<name>. Never the disk or the home folder. */
+  folder?: string;
+  /** The owner saw the preview and said yes. Without it nothing is issued. */
+  confirm?: boolean;
+}
+
+export interface LinkPartnerPreview {
+  partner: string;
+  scopes: Array<string>;
+  agents: boolean;
+  route: string;
+  /** The one host the partner's server will connect to. */
+  host: string;
+  /** Where its agents will work (with agents). */
+  folder?: string;
+  /** The confirmation as the owner reads it. */
+  lines: Array<string>;
+}
+
+export interface LinkPairResult {
+  /** A phone's QR text. */
+  uri?: string;
+  /** The QR as SVG. */
+  svg?: string;
+  /** Epoch ms when the code stops working. */
+  expiresAt?: number;
+  /** The device id it pairs. */
+  room?: string;
+  /** Partner pairings — false is a preview only. */
+  confirmed?: boolean;
+  preview?: LinkPartnerPreview;
+  /** A partner's one-time `cplink1.` code — give it to the partner through a channel you trust. */
+  code?: string;
+  kind?: string;
+  partner?: {
+    name?: string;
+  };
+  scopes?: Array<string>;
+  route?: string;
+  host?: string;
+}
+
+export interface LinkRouteRequest {
+  route: "link" | "relay" | "tailscale" | "cloudflare";
+  /** The relay (relay) or this computer's tunnel address (tailscale */
+  url?: string;
+  /** A tunnel route keeps ChatPanel Link as the phones' fallback unless false. */
+  fallback?: boolean;
+}
+
+export interface LinkApproval {
+  id: string;
+  /** The partner whose agent asks. */
+  partner: string;
+  device?: string;
+  /** The partner's conversation (`partner.<device>.<thread>`), or the turn's own. */
+  conversation?: string;
+  /** Who asks and what kind of action — "Atlas’s agent asks — run a command?" */
+  title: string;
+  /** The command */
+  body: string;
+  tool?: string;
+  createdAt: number;
+  /** When it becomes a no. */
+  expiresAt: number;
+}
+
+export interface LinkPartnerFile {
+  /** Relative to the partner's folder. */
+  path: string;
+  size: number;
+  modifiedAt?: number;
+}
+
+export interface LinkDevice {
+  id: string;
+  kind?: "phone" | "partner";
+  name: string;
+  pairedAt?: number | null;
+  lastSeen?: number | null;
+  online?: boolean;
+  /** tunnel or relay, while online. */
+  via?: string | null;
+  partner?: {
+    name?: string;
+  };
+  scopes?: Array<string>;
+  /** A partner's route */
+  route?: string | null;
+  host?: string;
+  /** A tunnel partner whose door shut when the gateway's route moved — pair it again to move it. */
+  routeClosed?: boolean;
+  /** Where a partner's agents work (0.90.0+, with agents). */
+  folder?: string;
+  staleRelay?: string;
+  tunnelNeedsRelink?: boolean;
+}
+
+export interface LinkStatus {
+  enabled: boolean;
+  route?: string;
+  relay?: string | null;
+  tunnel?: string | null;
+  problem?: string;
+  routes?: Array<{
+    [key: string]: unknown;
+  }>;
+  setup?: {
+    [key: string]: unknown;
+  };
+  devices: Array<LinkDevice>;
+  /** A phone code waiting to be scanned. */
+  pairing?: {
+    [key: string]: unknown;
+  } | null;
+  /** A partner code waiting to be used. */
+  partnerPairing?: {
+    [key: string]: unknown;
+  } | null;
+  agentSessions?: boolean;
+}
+
 export interface BrowserStatus {
   connected: boolean;
   /** Calls waiting on the browser. */

@@ -56,6 +56,28 @@ does not store it, so that decision stays with the application.
 - It does not sandbox what a model does with `tools`. A chat request that carries tools
   asks the gateway to relay tool calls back to the caller; running them is the caller's code.
 
+## Remote access for partner servers
+
+A partner server reaches a user's gateway through ChatPanel Link (`@chatpanel/events/link-fetch.js`
+as the SDK's `fetch`) — the same encrypted session the user's phone uses, not a second protocol:
+
+- **Off until the owner pairs.** No partner device exists, no socket is opened and no route is
+  reachable until the gateway's owner runs `chatpanel-gateway link pair --partner <name>` (or the
+  admin API from a local settings surface). The scopes, whether coding agents are reachable, the
+  route and the host are shown first and confirmed; the API issues nothing without `confirm: true`.
+- **End-to-end encrypted and mutually authenticated.** Noise XXpsk3 with the code's one-time secret
+  to pair (the partner checks the gateway's key against the code), Noise IK after — a relay or a
+  tunnel carries ciphertext it cannot read or forge. The code is spent on first use and expires in
+  10 minutes.
+- **Scoped at the gateway.** Every request is checked against the device's scopes before it reaches
+  the gateway's API; a partner's headers pass an allowlist (no credentials, run hints, reach or
+  redaction switch). An agent turn needs the `agents` scope and runs as plain conversation.
+- **Revocable at once.** Removing the device deletes its relay room and its key and closes its
+  connection; the client then rejects every call with `code: 'revoked'`.
+- **What the partner must protect:** the device state from `store.save` holds the device's private
+  key and its relay admission token. Keep it encrypted at rest and never log it; `createLinkFetch`
+  logs nothing.
+
 ## Reporting
 
 Security reports for ChatPanel: see `SECURITY.md` in the `chatpanel/chatpanel` repository.

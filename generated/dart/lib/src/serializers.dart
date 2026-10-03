@@ -102,6 +102,20 @@ import 'package:chatpanel/src/model/ingest_request.dart';
 import 'package:chatpanel/src/model/ingest_request_upserts_inner.dart';
 import 'package:chatpanel/src/model/inline_object.dart';
 import 'package:chatpanel/src/model/inline_object1.dart';
+import 'package:chatpanel/src/model/link_answer_approval_request.dart';
+import 'package:chatpanel/src/model/link_approval.dart';
+import 'package:chatpanel/src/model/link_approvals200_response.dart';
+import 'package:chatpanel/src/model/link_device.dart';
+import 'package:chatpanel/src/model/link_list_files200_response.dart';
+import 'package:chatpanel/src/model/link_pair_request.dart';
+import 'package:chatpanel/src/model/link_pair_request_partner.dart';
+import 'package:chatpanel/src/model/link_pair_request_scopes.dart';
+import 'package:chatpanel/src/model/link_pair_result.dart';
+import 'package:chatpanel/src/model/link_pair_result_partner.dart';
+import 'package:chatpanel/src/model/link_partner_file.dart';
+import 'package:chatpanel/src/model/link_partner_preview.dart';
+import 'package:chatpanel/src/model/link_route_request.dart';
+import 'package:chatpanel/src/model/link_status.dart';
 import 'package:chatpanel/src/model/memory.dart';
 import 'package:chatpanel/src/model/memory_forget200_response.dart';
 import 'package:chatpanel/src/model/memory_forget_request.dart';
@@ -293,6 +307,20 @@ part 'serializers.g.dart';
   IngestRequestUpsertsInner,
   InlineObject,
   InlineObject1,
+  LinkAnswerApprovalRequest,
+  LinkApproval,
+  LinkApprovals200Response,
+  LinkDevice,
+  LinkListFiles200Response,
+  LinkPairRequest,
+  LinkPairRequestPartner,
+  LinkPairRequestScopes,
+  LinkPairResult,
+  LinkPairResultPartner,
+  LinkPartnerFile,
+  LinkPartnerPreview,
+  LinkRouteRequest,
+  LinkStatus,
   Memory,
   MemoryForget200Response,
   MemoryForgetRequest,
@@ -395,6 +423,10 @@ part 'serializers.g.dart';
 ])
 Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(LinkDevice)]),
+        () => ListBuilder<LinkDevice>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ResearchResponseReadInnerSpeakersInner)]),
         () => ListBuilder<ResearchResponseReadInnerSpeakersInner>(),
       )
@@ -495,6 +527,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<Memory>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(LinkPartnerFile)]),
+        () => ListBuilder<LinkPartnerFile>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(DecideAnswerOption)]),
         () => ListBuilder<DecideAnswerOption>(),
       )
@@ -505,6 +541,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType(PrefSection)]),
         () => MapBuilder<String, PrefSection>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(LinkApproval)]),
+        () => ListBuilder<LinkApproval>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AgentCardSupportedInterfacesInner)]),

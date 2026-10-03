@@ -2,7 +2,7 @@
 
 ChatPanel Gateway API
 
-- API version: 0.41.0
+- API version: 0.43.0
 
 - Generator version: 7.25.0
 
@@ -60,7 +60,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>net.chatpanel</groupId>
   <artifactId>chatpanel-sdk</artifactId>
-  <version>0.41.0</version>
+  <version>0.43.0</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -70,7 +70,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "net.chatpanel:chatpanel-sdk:0.41.0"
+compile "net.chatpanel:chatpanel-sdk:0.43.0"
 ```
 
 ### Others
@@ -83,7 +83,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/chatpanel-sdk-0.41.0.jar`
+- `target/chatpanel-sdk-0.43.0.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -222,6 +222,28 @@ Class | Method | HTTP request | Description
 *HistoryApi* | [**historyStatusWithHttpInfo**](docs/HistoryApi.md#historyStatusWithHttpInfo) | **GET** /v1/history/status | Size and freshness of the warm index (and the lossless tier from 0.10.0).
 *HistoryApi* | [**historyStream**](docs/HistoryApi.md#historyStream) | **GET** /v1/history/stream | Live record changes — &#x60;hello&#x60; once, then a &#x60;records&#x60; event per change.
 *HistoryApi* | [**historyStreamWithHttpInfo**](docs/HistoryApi.md#historyStreamWithHttpInfo) | **GET** /v1/history/stream | Live record changes — &#x60;hello&#x60; once, then a &#x60;records&#x60; event per change.
+*LinkApi* | [**linkAnswerApproval**](docs/LinkApi.md#linkAnswerApproval) | **POST** /v1/link/approvals/{approvalId} | The owner&#39;s answer — once, this action for the rest of the conversation, everything in it, or no.
+*LinkApi* | [**linkAnswerApprovalWithHttpInfo**](docs/LinkApi.md#linkAnswerApprovalWithHttpInfo) | **POST** /v1/link/approvals/{approvalId} | The owner&#39;s answer — once, this action for the rest of the conversation, everything in it, or no.
+*LinkApi* | [**linkApprovals**](docs/LinkApi.md#linkApprovals) | **GET** /v1/link/approvals | What partners&#39; agents are waiting on the owner for — each request a partner&#39;s coding agent made that the owner&#39;s settings do not already allow.
+*LinkApi* | [**linkApprovalsWithHttpInfo**](docs/LinkApi.md#linkApprovalsWithHttpInfo) | **GET** /v1/link/approvals | What partners&#39; agents are waiting on the owner for — each request a partner&#39;s coding agent made that the owner&#39;s settings do not already allow.
+*LinkApi* | [**linkApprovalsStream**](docs/LinkApi.md#linkApprovalsStream) | **GET** /v1/link/approvals/stream | The waiting requests as they change — one &#x60;approvals&#x60; event with the whole list on each change, and at connect.
+*LinkApi* | [**linkApprovalsStreamWithHttpInfo**](docs/LinkApi.md#linkApprovalsStreamWithHttpInfo) | **GET** /v1/link/approvals/stream | The waiting requests as they change — one &#x60;approvals&#x60; event with the whole list on each change, and at connect.
+*LinkApi* | [**linkDeleteFile**](docs/LinkApi.md#linkDeleteFile) | **DELETE** /v1/link/files/{path} | Remove a file from the partner&#39;s folder (never a folder).
+*LinkApi* | [**linkDeleteFileWithHttpInfo**](docs/LinkApi.md#linkDeleteFileWithHttpInfo) | **DELETE** /v1/link/files/{path} | Remove a file from the partner&#39;s folder (never a folder).
+*LinkApi* | [**linkListFiles**](docs/LinkApi.md#linkListFiles) | **GET** /v1/link/files | A partner&#39;s own folder, from its side — every file it may hold there, with size and last change.
+*LinkApi* | [**linkListFilesWithHttpInfo**](docs/LinkApi.md#linkListFilesWithHttpInfo) | **GET** /v1/link/files | A partner&#39;s own folder, from its side — every file it may hold there, with size and last change.
+*LinkApi* | [**linkPair**](docs/LinkApi.md#linkPair) | **POST** /v1/link/pair | Start a pairing — a phone&#39;s QR, or (with &#x60;kind partner&#x60;) a partner server&#39;s one-time code, shown and confirmed first.
+*LinkApi* | [**linkPairWithHttpInfo**](docs/LinkApi.md#linkPairWithHttpInfo) | **POST** /v1/link/pair | Start a pairing — a phone&#39;s QR, or (with &#x60;kind partner&#x60;) a partner server&#39;s one-time code, shown and confirmed first.
+*LinkApi* | [**linkReadFile**](docs/LinkApi.md#linkReadFile) | **GET** /v1/link/files/{path} | Read back a file from the partner&#39;s folder — what its agents wrote there.
+*LinkApi* | [**linkReadFileWithHttpInfo**](docs/LinkApi.md#linkReadFileWithHttpInfo) | **GET** /v1/link/files/{path} | Read back a file from the partner&#39;s folder — what its agents wrote there.
+*LinkApi* | [**linkRemoveDevice**](docs/LinkApi.md#linkRemoveDevice) | **DELETE** /v1/link/devices/{deviceId} | Remove a paired device now — its relay room, its key and its open connection.
+*LinkApi* | [**linkRemoveDeviceWithHttpInfo**](docs/LinkApi.md#linkRemoveDeviceWithHttpInfo) | **DELETE** /v1/link/devices/{deviceId} | Remove a paired device now — its relay room, its key and its open connection.
+*LinkApi* | [**linkRoute**](docs/LinkApi.md#linkRoute) | **POST** /v1/link/route | How devices reach this computer — ChatPanel Link, the person&#39;s own relay, Tailscale or Cloudflare Tunnel.
+*LinkApi* | [**linkRouteWithHttpInfo**](docs/LinkApi.md#linkRouteWithHttpInfo) | **POST** /v1/link/route | How devices reach this computer — ChatPanel Link, the person&#39;s own relay, Tailscale or Cloudflare Tunnel.
+*LinkApi* | [**linkStatus**](docs/LinkApi.md#linkStatus) | **GET** /v1/link | The Link route and every paired device — phones and partner servers — with what each may reach.
+*LinkApi* | [**linkStatusWithHttpInfo**](docs/LinkApi.md#linkStatusWithHttpInfo) | **GET** /v1/link | The Link route and every paired device — phones and partner servers — with what each may reach.
+*LinkApi* | [**linkWriteFile**](docs/LinkApi.md#linkWriteFile) | **PUT** /v1/link/files/{path} | Put a file in the partner&#39;s folder — its data, a skill, a subagent or instructions.
+*LinkApi* | [**linkWriteFileWithHttpInfo**](docs/LinkApi.md#linkWriteFileWithHttpInfo) | **PUT** /v1/link/files/{path} | Put a file in the partner&#39;s folder — its data, a skill, a subagent or instructions.
 *MemoryApi* | [**memoryForget**](docs/MemoryApi.md#memoryForget) | **POST** /v1/memory/forget | Forget memories matching an id or words.
 *MemoryApi* | [**memoryForgetWithHttpInfo**](docs/MemoryApi.md#memoryForgetWithHttpInfo) | **POST** /v1/memory/forget | Forget memories matching an id or words.
 *MemoryApi* | [**memoryList**](docs/MemoryApi.md#memoryList) | **GET** /v1/memory/list | Every memory.
@@ -414,6 +436,20 @@ Class | Method | HTTP request | Description
  - [IngestRequestUpsertsInner](docs/IngestRequestUpsertsInner.md)
  - [InlineObject](docs/InlineObject.md)
  - [InlineObject1](docs/InlineObject1.md)
+ - [LinkAnswerApprovalRequest](docs/LinkAnswerApprovalRequest.md)
+ - [LinkApproval](docs/LinkApproval.md)
+ - [LinkApprovals200Response](docs/LinkApprovals200Response.md)
+ - [LinkDevice](docs/LinkDevice.md)
+ - [LinkListFiles200Response](docs/LinkListFiles200Response.md)
+ - [LinkPairRequest](docs/LinkPairRequest.md)
+ - [LinkPairRequestPartner](docs/LinkPairRequestPartner.md)
+ - [LinkPairRequestScopes](docs/LinkPairRequestScopes.md)
+ - [LinkPairResult](docs/LinkPairResult.md)
+ - [LinkPairResultPartner](docs/LinkPairResultPartner.md)
+ - [LinkPartnerFile](docs/LinkPartnerFile.md)
+ - [LinkPartnerPreview](docs/LinkPartnerPreview.md)
+ - [LinkRouteRequest](docs/LinkRouteRequest.md)
+ - [LinkStatus](docs/LinkStatus.md)
  - [Memory](docs/Memory.md)
  - [MemoryForget200Response](docs/MemoryForget200Response.md)
  - [MemoryForgetRequest](docs/MemoryForgetRequest.md)

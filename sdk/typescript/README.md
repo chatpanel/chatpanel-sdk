@@ -46,6 +46,18 @@ const { token } = await cp.pair(codeTheUserTyped);
 Reads on the `/v1` data plane work without a token; the gateway allows `http://localhost`
 origins and anything in its `allowedOrigins`.
 
+### From a partner server (ChatPanel Link)
+
+A server the user paired by hand (`chatpanel-gateway link pair --partner <name>`) reaches their
+gateway with the Link client as the `fetch` — the base URL stays loopback:
+
+```ts
+import { createLinkFetch } from '@chatpanel/events/link-fetch.js';
+const cp = new ChatPanel({ baseUrl: 'http://127.0.0.1:4320', fetch: await createLinkFetch({ pairing: code, store }) });
+```
+
+Scopes, routes and the security model: the repository README, "Remote access for partner servers".
+
 ### Errors
 
 Every failure is a `ChatPanelError` with `status`, `type` and `operation`:

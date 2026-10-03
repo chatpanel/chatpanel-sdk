@@ -9,6 +9,9 @@
         "withGoMod": true,
         "generateInterfaces": true,
         "disallowAdditionalPropertiesIfNotPresent": false
+      },
+      "parameterNameMappings": {
+        "ctx": "contextTokens"
       }
     },
     "java": {
