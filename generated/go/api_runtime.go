@@ -274,7 +274,7 @@ type ApiRuntimePlanRequest struct {
 	ApiService RuntimeAPI
 	service *string
 	model *string
-	ctx *int32
+	contextTokens *int32
 	needMb *int32
 }
 
@@ -290,8 +290,8 @@ func (r ApiRuntimePlanRequest) Model(model string) ApiRuntimePlanRequest {
 }
 
 // The context in tokens; the service&#39;s own window when absent.
-func (r ApiRuntimePlanRequest) Ctx(ctx int32) ApiRuntimePlanRequest {
-	r.ctx = &ctx
+func (r ApiRuntimePlanRequest) ContextTokens(contextTokens int32) ApiRuntimePlanRequest {
+	r.contextTokens = &contextTokens
 	return r
 }
 
@@ -359,8 +359,8 @@ func (a *RuntimeAPIService) RuntimePlanExecute(r ApiRuntimePlanRequest) (*Runtim
 	if r.model != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "model", r.model, "form", "")
 	}
-	if r.ctx != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "ctx", r.ctx, "form", "")
+	if r.contextTokens != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "ctx", r.contextTokens, "form", "")
 	}
 	if r.needMb != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "need_mb", r.needMb, "form", "")

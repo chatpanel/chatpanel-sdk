@@ -78,6 +78,10 @@ for (const [lang, cfg] of langs) {
     // and an absolute path is machine-specific (and names the developer's home directory).
     '-i', relative(ROOT, SPEC_PATH), '-g', cfg.generator, '-o', tmp,
     '--additional-properties', props(cfg.properties || {}),
+    // A parameter whose wire name is a word the language reserves for itself: Go's client takes a
+    // `ctx context.Context` first, so the gateway's `ctx` query parameter (a context window in
+    // tokens) did not compile there. The name on the wire is unchanged; only the variable is.
+    ...(cfg.parameterNameMappings ? ['--parameter-name-mappings', Object.entries(cfg.parameterNameMappings).map(([k, v]) => `${k}=${v}`).join(',')] : []),
     '--git-user-id', 'chatpanel', '--git-repo-id', 'chatpanel-sdk',
     '--skip-validate-spec',
   ], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'], env: RUN_ENV });
