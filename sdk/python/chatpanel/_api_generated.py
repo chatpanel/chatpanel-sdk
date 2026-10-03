@@ -106,6 +106,10 @@ OPERATIONS: Dict[str, Operation] = {
     "link.pair": Operation(id="link.pair", method="POST", path="/v1/link/pair", auth="token", since="0.60.0", stream=None, path_params=(), query_params=()),
     "link.route": Operation(id="link.route", method="POST", path="/v1/link/route", auth="token", since="0.65.0", stream=None, path_params=(), query_params=()),
     "link.removeDevice": Operation(id="link.removeDevice", method="DELETE", path="/v1/link/devices/{deviceId}", auth="token", since="0.60.0", stream=None, path_params=("deviceId",), query_params=()),
+    "link.approvals": Operation(id="link.approvals", method="GET", path="/v1/link/approvals", auth="token", since="0.91.0", stream=None, path_params=(), query_params=()),
+    "link.approvalsStream": Operation(id="link.approvalsStream", method="GET", path="/v1/link/approvals/stream", auth="token", since="0.91.0", stream="sse", path_params=(), query_params=()),
+    "link.answerApproval": Operation(id="link.answerApproval", method="POST", path="/v1/link/approvals/{approvalId}", auth="token", since="0.91.0", stream=None, path_params=("approvalId",), query_params=()),
+    "link.listFiles": Operation(id="link.listFiles", method="GET", path="/v1/link/files", auth="token", since="0.92.0", stream=None, path_params=(), query_params=()),
 }
 """Every operation in the contract, keyed by operationId — the route table the runtime executes."""
 
@@ -662,6 +666,22 @@ class LinkApi:
     def remove_device(self, device_id: str, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
         """Remove a paired device now — its relay room, its key and its open connection. — Requires the gateway token. Gateway 0.60.0+."""
         return self._rt.request(OPERATIONS["link.removeDevice"], path={"deviceId": device_id}, query=None, headers=headers, body=None, timeout=timeout)
+
+    def approvals(self, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """What partners' agents are waiting on the owner for — each request a partner's coding agent made that the owner's settings do not already allow. A partner granted `agents` (gateway 0.90.0+) runs them as the owner's own turn does, and never answers their permission prompts: the request waits here for the OWNER (0.91.0+). Nothing that arrives over Link may list or answer these — 403 for a partner and a phone alike. In memory only. — Requires the gateway token. Gateway 0.91.0+."""
+        return self._rt.request(OPERATIONS["link.approvals"], path={}, query=None, headers=headers, body=None, timeout=timeout)
+
+    def approvals_stream(self, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Iterator[SseFrame[Dict[str, Any]]]:
+        """The waiting requests as they change — one `approvals` event with the whole list on each change, and at connect. — Requires the gateway token. Gateway 0.91.0+."""
+        return self._rt.stream(OPERATIONS["link.approvalsStream"], path={}, query=None, headers=headers, timeout=timeout)
+
+    def answer_approval(self, approval_id: str, body: Dict[str, Any], query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """The owner's answer — once, this action for the rest of the conversation, everything in it, or no. No answer within the agent's own wait (10 minutes) is a no; revoking the partner denies what it waits on. — Requires the gateway token. Gateway 0.91.0+."""
+        return self._rt.request(OPERATIONS["link.answerApproval"], path={"approvalId": approval_id}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def list_files(self, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """A partner's own folder, from its side — every file it may hold there, with size and last change. Called BY A PARTNER over Link (`createLinkFetch`), granted `files` (0.92.0+; needs `agents`). The folder is the one the owner chose at pairing, where its agents work; a partner may hold its data (`data/`), skills (`.claude/skills/`, `.agents/skills/`), subagents (`.claude/agents/*.md`) and instructions (`CLAUDE.md`, `AGENTS.md`) — never what configures the agent. `GET /v1/link/files/data` lists one root. — Requires the gateway token. Gateway 0.92.0+."""
+        return self._rt.request(OPERATIONS["link.listFiles"], path={}, query=None, headers=headers, body=None, timeout=timeout)
 
 
 class Api:

@@ -16,6 +16,7 @@ Name | Type | Description | Notes
 **Route** | Pointer to **NullableString** | A partner&#39;s route | [optional] 
 **Host** | Pointer to **string** |  | [optional] 
 **RouteClosed** | Pointer to **bool** | A tunnel partner whose door shut when the gateway&#39;s route moved — pair it again to move it. | [optional] 
+**Folder** | Pointer to **string** | Where a partner&#39;s agents work (0.90.0+, with agents). | [optional] 
 **StaleRelay** | Pointer to **string** |  | [optional] 
 **TunnelNeedsRelink** | Pointer to **bool** |  | [optional] 
 
@@ -367,6 +368,31 @@ SetRouteClosed sets RouteClosed field to given value.
 `func (o *LinkDevice) HasRouteClosed() bool`
 
 HasRouteClosed returns a boolean if a field has been set.
+
+### GetFolder
+
+`func (o *LinkDevice) GetFolder() string`
+
+GetFolder returns the Folder field if non-nil, zero value otherwise.
+
+### GetFolderOk
+
+`func (o *LinkDevice) GetFolderOk() (*string, bool)`
+
+GetFolderOk returns a tuple with the Folder field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetFolder
+
+`func (o *LinkDevice) SetFolder(v string)`
+
+SetFolder sets Folder field to given value.
+
+### HasFolder
+
+`func (o *LinkDevice) HasFolder() bool`
+
+HasFolder returns a boolean if a field has been set.
 
 ### GetStaleRelay
 

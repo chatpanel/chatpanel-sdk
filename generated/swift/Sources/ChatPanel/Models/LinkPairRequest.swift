@@ -20,6 +20,7 @@ public struct LinkPairRequest: Sendable, Codable, Hashable {
         case cloudflare = "cloudflare"
     }
     public static let nameRule = StringRule(minLength: nil, maxLength: 60, pattern: nil)
+    public static let folderRule = StringRule(minLength: nil, maxLength: 1024, pattern: nil)
     /** Absent is a phone. */
     public var kind: Kind?
     /** A phone pairing — what the phone calls this computer. */
@@ -30,16 +31,19 @@ public struct LinkPairRequest: Sendable, Codable, Hashable {
     public var route: Route?
     /** The https relay for `route relay`. */
     public var relay: String?
+    /** Where the partner's agents work (with `agents`, 0.90.0+): an absolute path or ~/…; absent is ~/.chatpanel/partners/<name>. Never the disk or the home folder. */
+    public var folder: String?
     /** The owner saw the preview and said yes. Without it nothing is issued. */
     public var confirm: Bool?
 
-    public init(kind: Kind? = nil, name: String? = nil, partner: LinkPairRequestPartner? = nil, scopes: LinkPairRequestScopes? = nil, route: Route? = nil, relay: String? = nil, confirm: Bool? = nil) {
+    public init(kind: Kind? = nil, name: String? = nil, partner: LinkPairRequestPartner? = nil, scopes: LinkPairRequestScopes? = nil, route: Route? = nil, relay: String? = nil, folder: String? = nil, confirm: Bool? = nil) {
         self.kind = kind
         self.name = name
         self.partner = partner
         self.scopes = scopes
         self.route = route
         self.relay = relay
+        self.folder = folder
         self.confirm = confirm
     }
 
@@ -50,6 +54,7 @@ public struct LinkPairRequest: Sendable, Codable, Hashable {
         case scopes
         case route
         case relay
+        case folder
         case confirm
     }
 
@@ -63,6 +68,7 @@ public struct LinkPairRequest: Sendable, Codable, Hashable {
         try container.encodeIfPresent(scopes, forKey: .scopes)
         try container.encodeIfPresent(route, forKey: .route)
         try container.encodeIfPresent(relay, forKey: .relay)
+        try container.encodeIfPresent(folder, forKey: .folder)
         try container.encodeIfPresent(confirm, forKey: .confirm)
     }
 }

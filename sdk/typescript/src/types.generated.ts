@@ -1258,12 +1258,14 @@ export interface LinkPairRequest {
     /** What the owner calls the partner. */
     name: string;
   };
-  /** What the partner may reach: `models` (GET /v1/models), `chat` (POST /v1/chat/completions and /v1/messages to API models), `agents` (also the coding agents, as plain conversation; needs chat). An array or a comma list; absent is models and chat. */
-  scopes?: Array<"models" | "chat" | "agents"> | string;
+  /** What the partner may reach: `models` (GET /v1/models), `chat` (POST /v1/chat/completions and /v1/messages to API models), `agents` (also the coding agents, as the owner's own turn runs them — the Coding Agents settings, the sandbox and the org policy decide what they may do, in the partner's own folder, and the owner answers their approval prompts; needs chat; 0.90.0+), `files` (its data, skills, subagents and instructions in that folder — /v1/link/files; needs agents; 0.92.0+). An array or a comma list; absent is models and chat. */
+  scopes?: Array<"models" | "chat" | "agents" | "files"> | string;
   /** The partner's one path. Absent is the gateway's own route. */
   route?: "link" | "relay" | "tailscale" | "cloudflare";
   /** The https relay for `route relay`. */
   relay?: string;
+  /** Where the partner's agents work (with `agents`, 0.90.0+): an absolute path or ~/…; absent is ~/.chatpanel/partners/<name>. Never the disk or the home folder. */
+  folder?: string;
   /** The owner saw the preview and said yes. Without it nothing is issued. */
   confirm?: boolean;
 }
@@ -1275,6 +1277,8 @@ export interface LinkPartnerPreview {
   route: string;
   /** The one host the partner's server will connect to. */
   host: string;
+  /** Where its agents will work (with agents). */
+  folder?: string;
   /** The confirmation as the owner reads it. */
   lines: Array<string>;
 }
@@ -1310,6 +1314,30 @@ export interface LinkRouteRequest {
   fallback?: boolean;
 }
 
+export interface LinkApproval {
+  id: string;
+  /** The partner whose agent asks. */
+  partner: string;
+  device?: string;
+  /** The partner's conversation (`partner.<device>.<thread>`), or the turn's own. */
+  conversation?: string;
+  /** Who asks and what kind of action — "Atlas’s agent asks — run a command?" */
+  title: string;
+  /** The command */
+  body: string;
+  tool?: string;
+  createdAt: number;
+  /** When it becomes a no. */
+  expiresAt: number;
+}
+
+export interface LinkPartnerFile {
+  /** Relative to the partner's folder. */
+  path: string;
+  size: number;
+  modifiedAt?: number;
+}
+
 export interface LinkDevice {
   id: string;
   kind?: "phone" | "partner";
@@ -1328,6 +1356,8 @@ export interface LinkDevice {
   host?: string;
   /** A tunnel partner whose door shut when the gateway's route moved — pair it again to move it. */
   routeClosed?: boolean;
+  /** Where a partner's agents work (0.90.0+, with agents). */
+  folder?: string;
   staleRelay?: string;
   tunnelNeedsRelink?: boolean;
 }

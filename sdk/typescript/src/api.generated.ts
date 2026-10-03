@@ -106,6 +106,10 @@ export const OPERATIONS = {
   "link.pair": { id: "link.pair", method: "POST", path: "/v1/link/pair", auth: "token", since: "0.60.0", stream: null, pathParams: [], queryParams: [] },
   "link.route": { id: "link.route", method: "POST", path: "/v1/link/route", auth: "token", since: "0.65.0", stream: null, pathParams: [], queryParams: [] },
   "link.removeDevice": { id: "link.removeDevice", method: "DELETE", path: "/v1/link/devices/{deviceId}", auth: "token", since: "0.60.0", stream: null, pathParams: ["deviceId"], queryParams: [] },
+  "link.approvals": { id: "link.approvals", method: "GET", path: "/v1/link/approvals", auth: "token", since: "0.91.0", stream: null, pathParams: [], queryParams: [] },
+  "link.approvalsStream": { id: "link.approvalsStream", method: "GET", path: "/v1/link/approvals/stream", auth: "token", since: "0.91.0", stream: "sse", pathParams: [], queryParams: [] },
+  "link.answerApproval": { id: "link.answerApproval", method: "POST", path: "/v1/link/approvals/{approvalId}", auth: "token", since: "0.91.0", stream: null, pathParams: ["approvalId"], queryParams: [] },
+  "link.listFiles": { id: "link.listFiles", method: "GET", path: "/v1/link/files", auth: "token", since: "0.92.0", stream: null, pathParams: [], queryParams: [] },
 } as const satisfies Record<string, Operation>;
 
 export type OperationId = keyof typeof OPERATIONS;
@@ -892,6 +896,31 @@ export class LinkApi {
     ok: boolean;
   }> {
     return this.rt.request(OPERATIONS["link.removeDevice"], { path: { deviceId }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+  /** What partners' agents are waiting on the owner for — each request a partner's coding agent made that the owner's settings do not already allow. A partner granted `agents` (gateway 0.90.0+) runs them as the owner's own turn does, and never answers their permission prompts: the request waits here for the OWNER (0.91.0+). Nothing that arrives over Link may list or answer these — 403 for a partner and a phone alike. In memory only. — Requires the gateway token. Gateway 0.91.0+. */
+  approvals(opts?: RequestOptions): Promise<{
+    pending: Array<T.LinkApproval>;
+  }> {
+    return this.rt.request(OPERATIONS["link.approvals"], { path: {  }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+  /** The waiting requests as they change — one `approvals` event with the whole list on each change, and at connect. — Requires the gateway token. Gateway 0.91.0+. */
+  approvalsStream(opts?: RequestOptions): AsyncIterable<SseFrame<unknown>> {
+    return this.rt.stream<unknown>(OPERATIONS["link.approvalsStream"], { path: {  }, query: undefined, headers: opts?.headers, opts });
+  }
+  /** The owner's answer — once, this action for the rest of the conversation, everything in it, or no. No answer within the agent's own wait (10 minutes) is a no; revoking the partner denies what it waits on. — Requires the gateway token. Gateway 0.91.0+. */
+  answerApproval(approvalId: string, body: {
+    decision: "allow" | "allow_action" | "allow_all" | "deny";
+  }, opts?: RequestOptions): Promise<{
+    ok: boolean;
+  }> {
+    return this.rt.request(OPERATIONS["link.answerApproval"], { path: { approvalId }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** A partner's own folder, from its side — every file it may hold there, with size and last change. Called BY A PARTNER over Link (`createLinkFetch`), granted `files` (0.92.0+; needs `agents`). The folder is the one the owner chose at pairing, where its agents work; a partner may hold its data (`data/`), skills (`.claude/skills/`, `.agents/skills/`), subagents (`.claude/agents/*.md`) and instructions (`CLAUDE.md`, `AGENTS.md`) — never what configures the agent. `GET /v1/link/files/data` lists one root. — Requires the gateway token. Gateway 0.92.0+. */
+  listFiles(opts?: RequestOptions): Promise<{
+    folder?: string;
+    files: Array<T.LinkPartnerFile>;
+  }> {
+    return this.rt.request(OPERATIONS["link.listFiles"], { path: {  }, query: undefined, headers: opts?.headers, body: undefined, opts });
   }
 }
 

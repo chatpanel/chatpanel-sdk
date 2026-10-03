@@ -41,6 +41,12 @@ void main() {
       // TODO
     });
 
+    // Where the partner's agents work (with `agents`, 0.90.0+): an absolute path or ~/…; absent is ~/.chatpanel/partners/<name>. Never the disk or the home folder.
+    // String folder
+    test('to test the property `folder`', () async {
+      // TODO
+    });
+
     // The owner saw the preview and said yes. Without it nothing is issued.
     // bool confirm
     test('to test the property `confirm`', () async {

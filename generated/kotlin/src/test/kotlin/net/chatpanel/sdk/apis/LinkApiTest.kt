@@ -29,8 +29,12 @@ import io.kotlintest.specs.ShouldSpec
 import net.chatpanel.sdk.apis.LinkApi
 import net.chatpanel.sdk.models.BrowserAnnounce200Response
 import net.chatpanel.sdk.models.ErrorResponse
+import net.chatpanel.sdk.models.LinkAnswerApprovalRequest
+import net.chatpanel.sdk.models.LinkApprovals200Response
+import net.chatpanel.sdk.models.LinkListFiles200Response
 import net.chatpanel.sdk.models.LinkPairRequest
 import net.chatpanel.sdk.models.LinkPairResult
+import net.chatpanel.sdk.models.LinkPartnerFile
 import net.chatpanel.sdk.models.LinkRouteRequest
 import net.chatpanel.sdk.models.LinkStatus
 
@@ -39,11 +43,57 @@ class LinkApiTest : ShouldSpec() {
         // uncomment below to create an instance of LinkApi
         //val apiInstance = LinkApi()
 
+        // to test linkAnswerApproval
+        should("test linkAnswerApproval") {
+            // uncomment below to test linkAnswerApproval
+            //val approvalId : kotlin.String = approvalId_example // kotlin.String | 
+            //val linkAnswerApprovalRequest : LinkAnswerApprovalRequest =  // LinkAnswerApprovalRequest | 
+            //val result : BrowserAnnounce200Response = apiInstance.linkAnswerApproval(approvalId, linkAnswerApprovalRequest)
+            //result shouldBe ("TODO")
+        }
+
+        // to test linkApprovals
+        should("test linkApprovals") {
+            // uncomment below to test linkApprovals
+            //val result : LinkApprovals200Response = apiInstance.linkApprovals()
+            //result shouldBe ("TODO")
+        }
+
+        // to test linkApprovalsStream
+        should("test linkApprovalsStream") {
+            // uncomment below to test linkApprovalsStream
+            //val result : kotlin.String = apiInstance.linkApprovalsStream()
+            //result shouldBe ("TODO")
+        }
+
+        // to test linkDeleteFile
+        should("test linkDeleteFile") {
+            // uncomment below to test linkDeleteFile
+            //val path : kotlin.String = path_example // kotlin.String | Relative to the partner's folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/<name>.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F).
+            //val result : BrowserAnnounce200Response = apiInstance.linkDeleteFile(path)
+            //result shouldBe ("TODO")
+        }
+
+        // to test linkListFiles
+        should("test linkListFiles") {
+            // uncomment below to test linkListFiles
+            //val result : LinkListFiles200Response = apiInstance.linkListFiles()
+            //result shouldBe ("TODO")
+        }
+
         // to test linkPair
         should("test linkPair") {
             // uncomment below to test linkPair
             //val linkPairRequest : LinkPairRequest =  // LinkPairRequest | 
             //val result : LinkPairResult = apiInstance.linkPair(linkPairRequest)
+            //result shouldBe ("TODO")
+        }
+
+        // to test linkReadFile
+        should("test linkReadFile") {
+            // uncomment below to test linkReadFile
+            //val path : kotlin.String = path_example // kotlin.String | Relative to the partner's folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/<name>.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F).
+            //val result : java.io.File = apiInstance.linkReadFile(path)
             //result shouldBe ("TODO")
         }
 
@@ -67,6 +117,15 @@ class LinkApiTest : ShouldSpec() {
         should("test linkStatus") {
             // uncomment below to test linkStatus
             //val result : LinkStatus = apiInstance.linkStatus()
+            //result shouldBe ("TODO")
+        }
+
+        // to test linkWriteFile
+        should("test linkWriteFile") {
+            // uncomment below to test linkWriteFile
+            //val path : kotlin.String = path_example // kotlin.String | Relative to the partner's folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/<name>.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F).
+            //val body : java.io.File = BINARY_DATA_HERE // java.io.File | 
+            //val result : LinkPartnerFile = apiInstance.linkWriteFile(path, body)
             //result shouldBe ("TODO")
         }
 

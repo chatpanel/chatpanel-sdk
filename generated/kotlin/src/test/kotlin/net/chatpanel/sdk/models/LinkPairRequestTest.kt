@@ -71,6 +71,12 @@ class LinkPairRequestTest : ShouldSpec() {
             //modelInstance.relay shouldBe ("TODO")
         }
 
+        // to test the property `folder` - Where the partner's agents work (with `agents`, 0.90.0+): an absolute path or ~/…; absent is ~/.chatpanel/partners/<name>. Never the disk or the home folder.
+        should("test folder") {
+            // uncomment below to test the property
+            //modelInstance.folder shouldBe ("TODO")
+        }
+
         // to test the property `confirm` - The owner saw the preview and said yes. Without it nothing is issued.
         should("test confirm") {
             // uncomment below to test the property

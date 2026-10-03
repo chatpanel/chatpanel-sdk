@@ -106,6 +106,12 @@ class LinkDeviceTest : ShouldSpec() {
             //modelInstance.routeClosed shouldBe ("TODO")
         }
 
+        // to test the property `folder` - Where a partner's agents work (0.90.0+, with agents).
+        should("test folder") {
+            // uncomment below to test the property
+            //modelInstance.folder shouldBe ("TODO")
+        }
+
         // to test the property `staleRelay`
         should("test staleRelay") {
             // uncomment below to test the property

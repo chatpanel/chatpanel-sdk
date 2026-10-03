@@ -43,6 +43,7 @@ import com.squareup.moshi.JsonClass
  * @param route A partner's route
  * @param host 
  * @param routeClosed A tunnel partner whose door shut when the gateway's route moved — pair it again to move it.
+ * @param folder Where a partner's agents work (0.90.0+, with agents).
  * @param staleRelay 
  * @param tunnelNeedsRelink 
  */
@@ -88,6 +89,10 @@ data class LinkDevice (
     /* A tunnel partner whose door shut when the gateway's route moved — pair it again to move it. */
     @Json(name = "routeClosed")
     val routeClosed: kotlin.Boolean? = null,
+
+    /* Where a partner's agents work (0.90.0+, with agents). */
+    @Json(name = "folder")
+    val folder: kotlin.String? = null,
 
     @Json(name = "staleRelay")
     val staleRelay: kotlin.String? = null,

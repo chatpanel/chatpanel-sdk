@@ -17,6 +17,7 @@ part 'link_partner_preview.g.dart';
 /// * [agents] 
 /// * [route] 
 /// * [host] - The one host the partner's server will connect to.
+/// * [folder] - Where its agents will work (with agents).
 /// * [lines] - The confirmation as the owner reads it.
 @BuiltValue()
 abstract class LinkPartnerPreview implements Built<LinkPartnerPreview, LinkPartnerPreviewBuilder> {
@@ -35,6 +36,10 @@ abstract class LinkPartnerPreview implements Built<LinkPartnerPreview, LinkPartn
   /// The one host the partner's server will connect to.
   @BuiltValueField(wireName: r'host')
   String get host;
+
+  /// Where its agents will work (with agents).
+  @BuiltValueField(wireName: r'folder')
+  String? get folder;
 
   /// The confirmation as the owner reads it.
   @BuiltValueField(wireName: r'lines')
@@ -88,6 +93,13 @@ class _$LinkPartnerPreviewSerializer implements PrimitiveSerializer<LinkPartnerP
       object.host,
       specifiedType: const FullType(String),
     );
+    if (object.folder != null) {
+      yield r'folder';
+      yield serializers.serialize(
+        object.folder,
+        specifiedType: const FullType(String),
+      );
+    }
     yield r'lines';
     yield serializers.serialize(
       object.lines,
@@ -150,6 +162,14 @@ class _$LinkPartnerPreviewSerializer implements PrimitiveSerializer<LinkPartnerP
             specifiedType: const FullType(String),
           ) as String;
           result.host = valueDes;
+          break;
+        case r'folder':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.folder = valueDes;
           break;
         case r'lines':
           final valueDes = serializers.deserialize(

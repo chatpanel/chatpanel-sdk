@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **agents** | **bool** |  | 
 **route** | **String** |  | 
 **host** | **String** | The one host the partner's server will connect to. | 
+**folder** | Option<**String**> | Where its agents will work (with agents). | [optional]
 **lines** | **Vec<String>** | The confirmation as the owner reads it. | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

@@ -25,6 +25,7 @@ part 'link_device.g.dart';
 /// * [route] - A partner's route
 /// * [host] 
 /// * [routeClosed] - A tunnel partner whose door shut when the gateway's route moved — pair it again to move it.
+/// * [folder] - Where a partner's agents work (0.90.0+, with agents).
 /// * [staleRelay] 
 /// * [tunnelNeedsRelink] 
 @BuiltValue()
@@ -68,6 +69,10 @@ abstract class LinkDevice implements Built<LinkDevice, LinkDeviceBuilder> {
   /// A tunnel partner whose door shut when the gateway's route moved — pair it again to move it.
   @BuiltValueField(wireName: r'routeClosed')
   bool? get routeClosed;
+
+  /// Where a partner's agents work (0.90.0+, with agents).
+  @BuiltValueField(wireName: r'folder')
+  String? get folder;
 
   @BuiltValueField(wireName: r'staleRelay')
   String? get staleRelay;
@@ -176,6 +181,13 @@ class _$LinkDeviceSerializer implements PrimitiveSerializer<LinkDevice> {
       yield serializers.serialize(
         object.routeClosed,
         specifiedType: const FullType(bool),
+      );
+    }
+    if (object.folder != null) {
+      yield r'folder';
+      yield serializers.serialize(
+        object.folder,
+        specifiedType: const FullType(String),
       );
     }
     if (object.staleRelay != null) {
@@ -308,6 +320,14 @@ class _$LinkDeviceSerializer implements PrimitiveSerializer<LinkDevice> {
           ) as bool?;
           if (valueDes == null) continue;
           result.routeClosed = valueDes;
+          break;
+        case r'folder':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.folder = valueDes;
           break;
         case r'staleRelay':
           final valueDes = serializers.deserialize(

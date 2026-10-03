@@ -162,9 +162,16 @@ for await (const text of cp.chat.text({ model: data[0].id, messages: [{ role: 'u
 The base URL stays loopback, so the SDK's loopback rule holds; `linkFetch` carries only the
 path to the user's gateway. What the partner may reach is the gateway's decision, by the scopes
 the owner granted: `models` (GET /v1/models), `chat` (chat completions and messages to API
-models), and — only when named at pairing — `agents` (the coding agents, as plain conversation:
-no files, shell, web or MCP tools). Everything else answers 403: pairing, settings, prefs,
-history, memory, the event log. The owner sees each partner in `chatpanel-gateway link`, in
+models), and — only when named at pairing — `agents` and `files`. With `agents` (gateway 0.90.0+)
+the coding agents run as the owner's own turn does — the owner's Coding Agents settings, the
+sandbox and the org policy decide what they may do — in a folder of the partner's own, where its
+skills, subagents and instructions live; the partner chooses none of that, and when an agent asks
+to do something those settings do not already allow, the OWNER answers (0.91.0+) while the
+partner's streamed response waits. Name a conversation with `X-ChatPanel-Run: {"thread":{"id":…}}`
+and its agent session carries on across calls. With `files` (0.92.0+) the partner puts its data,
+skills, subagents and instructions in that folder and reads back what its agents wrote —
+`GET /v1/link/files`, `PUT`/`GET`/`DELETE /v1/link/files/<path>` — never what configures the
+agent. Everything else answers 403: pairing, settings, prefs, history, memory, the event log. The owner sees each partner in `chatpanel-gateway link`, in
 `chatpanel-gateway --audit` and in Settings › Link › Servers (where a server can also be
 connected without a terminal), and removes it there or with `chatpanel-gateway link revoke <id>` (the open connection is closed; later calls reject with
 `code: 'revoked'`). One process should own a device's connection at a time: a second socket for

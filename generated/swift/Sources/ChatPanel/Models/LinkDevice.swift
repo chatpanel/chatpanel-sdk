@@ -28,10 +28,12 @@ public struct LinkDevice: Sendable, Codable, Hashable {
     public var host: String?
     /** A tunnel partner whose door shut when the gateway's route moved — pair it again to move it. */
     public var routeClosed: Bool?
+    /** Where a partner's agents work (0.90.0+, with agents). */
+    public var folder: String?
     public var staleRelay: String?
     public var tunnelNeedsRelink: Bool?
 
-    public init(id: String, kind: Kind? = nil, name: String, pairedAt: Int64? = nil, lastSeen: Int64? = nil, online: Bool? = nil, via: String? = nil, partner: LinkPairResultPartner? = nil, scopes: [String]? = nil, route: String? = nil, host: String? = nil, routeClosed: Bool? = nil, staleRelay: String? = nil, tunnelNeedsRelink: Bool? = nil) {
+    public init(id: String, kind: Kind? = nil, name: String, pairedAt: Int64? = nil, lastSeen: Int64? = nil, online: Bool? = nil, via: String? = nil, partner: LinkPairResultPartner? = nil, scopes: [String]? = nil, route: String? = nil, host: String? = nil, routeClosed: Bool? = nil, folder: String? = nil, staleRelay: String? = nil, tunnelNeedsRelink: Bool? = nil) {
         self.id = id
         self.kind = kind
         self.name = name
@@ -44,6 +46,7 @@ public struct LinkDevice: Sendable, Codable, Hashable {
         self.route = route
         self.host = host
         self.routeClosed = routeClosed
+        self.folder = folder
         self.staleRelay = staleRelay
         self.tunnelNeedsRelink = tunnelNeedsRelink
     }
@@ -61,6 +64,7 @@ public struct LinkDevice: Sendable, Codable, Hashable {
         case route
         case host
         case routeClosed
+        case folder
         case staleRelay
         case tunnelNeedsRelink
     }
@@ -81,6 +85,7 @@ public struct LinkDevice: Sendable, Codable, Hashable {
         try container.encodeIfPresent(route, forKey: .route)
         try container.encodeIfPresent(host, forKey: .host)
         try container.encodeIfPresent(routeClosed, forKey: .routeClosed)
+        try container.encodeIfPresent(folder, forKey: .folder)
         try container.encodeIfPresent(staleRelay, forKey: .staleRelay)
         try container.encodeIfPresent(tunnelNeedsRelink, forKey: .tunnelNeedsRelink)
     }

@@ -20,6 +20,7 @@ Name | Type | Description | Notes
 **route** | **String** | A partner's route | [optional] 
 **host** | **String** |  | [optional] 
 **routeClosed** | **bool** | A tunnel partner whose door shut when the gateway's route moved — pair it again to move it. | [optional] 
+**folder** | **String** | Where a partner's agents work (0.90.0+, with agents). | [optional] 
 **staleRelay** | **String** |  | [optional] 
 **tunnelNeedsRelink** | **bool** |  | [optional] 
 

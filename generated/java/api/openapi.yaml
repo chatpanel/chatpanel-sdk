@@ -24,7 +24,7 @@ info:
   license:
     name: Apache-2.0
   title: ChatPanel Gateway API
-  version: 0.42.0
+  version: 0.43.0
 servers:
 - description: The local gateway. Loopback only.
   url: http://127.0.0.1:4320
@@ -3710,8 +3710,259 @@ paths:
       x-chatpanel-scope: paired devices
       x-accepts:
       - application/json
+  /v1/link/approvals:
+    get:
+      description: |
+        A partner granted `agents` (gateway 0.90.0+) runs them as the owner's own turn does, and never
+        answers their permission prompts: the request waits here for the OWNER (0.91.0+). Nothing that
+        arrives over Link may list or answer these — 403 for a partner and a phone alike. In memory only.
+      operationId: link.approvals
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/link_approvals_200_response"
+          description: "The waiting requests, oldest first."
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: What partners' agents are waiting on the owner for — each request a
+        partner's coding agent made that the owner's settings do not already allow.
+      tags:
+      - link
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.91.0
+      x-chatpanel-scope: partner devices
+      x-accepts:
+      - application/json
+  /v1/link/approvals/stream:
+    get:
+      operationId: link.approvalsStream
+      responses:
+        "200":
+          content:
+            text/event-stream:
+              schema:
+                type: string
+          description: "Server-sent events: `event: approvals`, `data: { pending:\
+            \ LinkApproval[] }`."
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "The waiting requests as they change — one `approvals` event with the\
+        \ whole list on each change, and at connect."
+      tags:
+      - link
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.91.0
+      x-chatpanel-stream: sse
+      x-chatpanel-scope: partner devices
+      x-accepts:
+      - application/json
+      - text/event-stream
+  /v1/link/approvals/{approvalId}:
+    post:
+      description: No answer within the agent's own wait (10 minutes) is a no; revoking
+        the partner denies what it waits on.
+      operationId: link.answerApproval
+      parameters:
+      - explode: false
+        in: path
+        name: approvalId
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9_-]{1,40}$"
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/link_answerApproval_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/browser_announce_200_response"
+          description: Answered; the agent carries on.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "The owner's answer — once, this action for the rest of the conversation,\
+        \ everything in it, or no."
+      tags:
+      - link
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.91.0
+      x-chatpanel-scope: partner devices
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/link/files:
+    get:
+      description: |
+        Called BY A PARTNER over Link (`createLinkFetch`), granted `files` (0.92.0+; needs `agents`). The
+        folder is the one the owner chose at pairing, where its agents work; a partner may hold its data
+        (`data/`), skills (`.claude/skills/`, `.agents/skills/`), subagents (`.claude/agents/*.md`) and
+        instructions (`CLAUDE.md`, `AGENTS.md`) — never what configures the agent. `GET
+        /v1/link/files/data` lists one root.
+      operationId: link.listFiles
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/link_listFiles_200_response"
+          description: The files.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "A partner's own folder, from its side — every file it may hold there,\
+        \ with size and last change."
+      tags:
+      - link
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.92.0
+      x-chatpanel-scope: partner devices
+      x-accepts:
+      - application/json
+  /v1/link/files/{path}:
+    delete:
+      operationId: link.deleteFile
+      parameters:
+      - $ref: "#/components/parameters/LinkFilePath"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/browser_announce_200_response"
+          description: Removed.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: Remove a file from the partner's folder (never a folder).
+      tags:
+      - link
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.92.0
+      x-chatpanel-sdk: manual
+      x-chatpanel-scope: partner devices
+      x-accepts:
+      - application/json
+    get:
+      description: The raw bytes (`application/octet-stream`). `path` is relative
+        to the folder; slashes may be sent encoded.
+      operationId: link.readFile
+      parameters:
+      - $ref: "#/components/parameters/LinkFilePath"
+      responses:
+        "200":
+          content:
+            application/octet-stream:
+              schema:
+                format: binary
+                type: string
+          description: The file.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: Read back a file from the partner's folder — what its agents wrote
+        there.
+      tags:
+      - link
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.92.0
+      x-chatpanel-sdk: manual
+      x-chatpanel-scope: partner devices
+      x-accepts:
+      - application/json
+      - application/octet-stream
+    put:
+      description: |
+        The body is the file's bytes. Refused (400): a path outside what a partner may hold
+        (`.claude/settings*.json`, hooks, `.mcp.json`, `.codex/` among them), and a skill or subagent
+        whose front matter would widen what the agent may do (`allowed-tools`, `hooks`, `permissionMode`,
+        `mcpServers`). Refused (403): a path through a link in the folder. Written atomically, readable by
+        the owner alone. Up to the gateway's body limit (413 past it).
+      operationId: link.writeFile
+      parameters:
+      - $ref: "#/components/parameters/LinkFilePath"
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              format: binary
+              type: string
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkPartnerFile"
+          description: Written.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "Put a file in the partner's folder — its data, a skill, a subagent\
+        \ or instructions."
+      tags:
+      - link
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.92.0
+      x-chatpanel-sdk: manual
+      x-chatpanel-scope: partner devices
+      x-content-type: application/octet-stream
+      x-accepts:
+      - application/json
 components:
   parameters:
+    LinkFilePath:
+      description: "Relative to the partner's folder — data/…, .claude/skills/…, .agents/skills/…\
+        , .claude/agents/<name>.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded\
+        \ (%2F)."
+      explode: false
+      in: path
+      name: path
+      required: true
+      schema:
+        maxLength: 512
+        type: string
+      style: simple
     RunId:
       explode: false
       in: path
@@ -7725,6 +7976,7 @@ components:
         - models
         route: link
         relay: https://openapi-generator.tech
+        folder: folder
         confirm: true
       properties:
         kind:
@@ -7753,6 +8005,12 @@ components:
           description: The https relay for `route relay`.
           format: uri
           type: string
+        folder:
+          description: "Where the partner's agents work (with `agents`, 0.90.0+):\
+            \ an absolute path or ~/…; absent is ~/.chatpanel/partners/<name>. Never\
+            \ the disk or the home folder."
+          maxLength: 1024
+          type: string
         confirm:
           description: The owner saw the preview and said yes. Without it nothing
             is issued.
@@ -7766,6 +8024,7 @@ components:
         agents: true
         route: route
         host: host
+        folder: folder
         lines:
         - lines
         - lines
@@ -7783,6 +8042,9 @@ components:
           type: string
         host:
           description: The one host the partner's server will connect to.
+          type: string
+        folder:
+          description: Where its agents will work (with agents).
           type: string
         lines:
           description: The confirmation as the owner reads it.
@@ -7812,6 +8074,7 @@ components:
           agents: true
           route: route
           host: host
+          folder: folder
           lines:
           - lines
           - lines
@@ -7882,6 +8145,70 @@ components:
           type: boolean
       required:
       - route
+    LinkApproval:
+      example:
+        id: id
+        partner: partner
+        device: device
+        conversation: conversation
+        title: title
+        body: body
+        tool: tool
+        createdAt: 0
+        expiresAt: 6
+      properties:
+        id:
+          type: string
+        partner:
+          description: The partner whose agent asks.
+          type: string
+        device:
+          type: string
+        conversation:
+          description: "The partner's conversation (`partner.<device>.<thread>`),\
+            \ or the turn's own."
+          type: string
+        title:
+          description: Who asks and what kind of action — "Atlas’s agent asks — run
+            a command?"
+          type: string
+        body:
+          description: The command
+          type: string
+        tool:
+          type: string
+        createdAt:
+          format: int64
+          type: integer
+        expiresAt:
+          description: When it becomes a no.
+          format: int64
+          type: integer
+      required:
+      - body
+      - createdAt
+      - expiresAt
+      - id
+      - partner
+      - title
+    LinkPartnerFile:
+      example:
+        path: path
+        size: 0
+        modifiedAt: 6
+      properties:
+        path:
+          description: Relative to the partner's folder.
+          type: string
+        size:
+          format: int64
+          type: integer
+        modifiedAt:
+          format: int64
+          type: integer
+      required:
+      - path
+      - size
     LinkDevice:
       example:
         id: id
@@ -7899,6 +8226,7 @@ components:
         route: route
         host: host
         routeClosed: true
+        folder: folder
         staleRelay: staleRelay
         tunnelNeedsRelink: true
       properties:
@@ -7942,6 +8270,9 @@ components:
           description: A tunnel partner whose door shut when the gateway's route moved
             — pair it again to move it.
           type: boolean
+        folder:
+          description: "Where a partner's agents work (0.90.0+, with agents)."
+          type: string
         staleRelay:
           type: string
         tunnelNeedsRelink:
@@ -7977,6 +8308,7 @@ components:
           route: route
           host: host
           routeClosed: true
+          folder: folder
           staleRelay: staleRelay
           tunnelNeedsRelink: true
         - id: id
@@ -7994,6 +8326,7 @@ components:
           route: route
           host: host
           routeClosed: true
+          folder: folder
           staleRelay: staleRelay
           tunnelNeedsRelink: true
         pairing:
@@ -9136,6 +9469,66 @@ components:
           type: boolean
       required:
       - ok
+    link_approvals_200_response:
+      example:
+        pending:
+        - id: id
+          partner: partner
+          device: device
+          conversation: conversation
+          title: title
+          body: body
+          tool: tool
+          createdAt: 0
+          expiresAt: 6
+        - id: id
+          partner: partner
+          device: device
+          conversation: conversation
+          title: title
+          body: body
+          tool: tool
+          createdAt: 0
+          expiresAt: 6
+      properties:
+        pending:
+          items:
+            $ref: "#/components/schemas/LinkApproval"
+          type: array
+          default: null
+      required:
+      - pending
+    link_answerApproval_request:
+      properties:
+        decision:
+          enum:
+          - allow
+          - allow_action
+          - allow_all
+          - deny
+          type: string
+      required:
+      - decision
+    link_listFiles_200_response:
+      example:
+        folder: folder
+        files:
+        - path: path
+          size: 0
+          modifiedAt: 6
+        - path: path
+          size: 0
+          modifiedAt: 6
+      properties:
+        folder:
+          type: string
+        files:
+          items:
+            $ref: "#/components/schemas/LinkPartnerFile"
+          type: array
+          default: null
+      required:
+      - files
     ErrorResponse_error_oneOf:
       properties:
         message:
@@ -9667,7 +10060,11 @@ components:
     LinkPairRequest_scopes:
       description: "What the partner may reach: `models` (GET /v1/models), `chat`\
         \ (POST /v1/chat/completions and /v1/messages to API models), `agents` (also\
-        \ the coding agents, as plain conversation; needs chat). An array or a comma\
+        \ the coding agents, as the owner's own turn runs them — the Coding Agents\
+        \ settings, the sandbox and the org policy decide what they may do, in the\
+        \ partner's own folder, and the owner answers their approval prompts; needs\
+        \ chat; 0.90.0+), `files` (its data, skills, subagents and instructions in\
+        \ that folder — /v1/link/files; needs agents; 0.92.0+). An array or a comma\
         \ list; absent is models and chat."
       oneOf:
       - items:
@@ -9675,6 +10072,7 @@ components:
           - models
           - chat
           - agents
+          - files
           type: string
         type: array
         default: null

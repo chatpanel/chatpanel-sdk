@@ -22,11 +22,89 @@ func Test_chatpanel_LinkAPIService(t *testing.T) {
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
 
+	t.Run("Test LinkAPIService LinkAnswerApproval", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		var approvalId string
+
+		resp, httpRes, err := apiClient.LinkAPI.LinkAnswerApproval(context.Background(), approvalId).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
+	t.Run("Test LinkAPIService LinkApprovals", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		resp, httpRes, err := apiClient.LinkAPI.LinkApprovals(context.Background()).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
+	t.Run("Test LinkAPIService LinkApprovalsStream", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		resp, httpRes, err := apiClient.LinkAPI.LinkApprovalsStream(context.Background()).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
+	t.Run("Test LinkAPIService LinkDeleteFile", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		var path string
+
+		resp, httpRes, err := apiClient.LinkAPI.LinkDeleteFile(context.Background(), path).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
+	t.Run("Test LinkAPIService LinkListFiles", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		resp, httpRes, err := apiClient.LinkAPI.LinkListFiles(context.Background()).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
 	t.Run("Test LinkAPIService LinkPair", func(t *testing.T) {
 
 		t.Skip("skip test")  // remove to run test
 
 		resp, httpRes, err := apiClient.LinkAPI.LinkPair(context.Background()).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
+	t.Run("Test LinkAPIService LinkReadFile", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		var path string
+
+		resp, httpRes, err := apiClient.LinkAPI.LinkReadFile(context.Background(), path).Execute()
 
 		require.Nil(t, err)
 		require.NotNil(t, resp)
@@ -65,6 +143,20 @@ func Test_chatpanel_LinkAPIService(t *testing.T) {
 		t.Skip("skip test")  // remove to run test
 
 		resp, httpRes, err := apiClient.LinkAPI.LinkStatus(context.Background()).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
+	t.Run("Test LinkAPIService LinkWriteFile", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		var path string
+
+		resp, httpRes, err := apiClient.LinkAPI.LinkWriteFile(context.Background(), path).Execute()
 
 		require.Nil(t, err)
 		require.NotNil(t, resp)

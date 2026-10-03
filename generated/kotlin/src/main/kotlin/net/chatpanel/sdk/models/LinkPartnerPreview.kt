@@ -36,6 +36,7 @@ import com.squareup.moshi.JsonClass
  * @param route 
  * @param host The one host the partner's server will connect to.
  * @param lines The confirmation as the owner reads it.
+ * @param folder Where its agents will work (with agents).
  */
 
 
@@ -59,7 +60,11 @@ data class LinkPartnerPreview (
 
     /* The confirmation as the owner reads it. */
     @Json(name = "lines")
-    val lines: kotlin.collections.List<kotlin.String>
+    val lines: kotlin.collections.List<kotlin.String>,
+
+    /* Where its agents will work (with agents). */
+    @Json(name = "folder")
+    val folder: kotlin.String? = null
 
 ) {
 

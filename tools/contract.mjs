@@ -93,6 +93,9 @@ if (!existsSync(join(GATEWAY, 'src', 'server.js'))) {
     ['/v1/runtime/engines/{name}', /\^\\\/v1\\\/runtime\\\/\(engines\|services\)/.test(src)],
     ['/v1/runtime/services/{id}', /\^\\\/v1\\\/runtime\\\/\(engines\|services\)/.test(src)],    // Link's device removal (gateway 0.60.0; in the contract since 0.89.0 with partner devices).
     ['/v1/link/devices/{deviceId}', /pathname\.startsWith\('\/v1\/link\/devices\/'\)/.test(src)],
+    // A partner's agent waiting on the owner (0.91.0) and a partner's folder from its side (0.92.0).
+    ['/v1/link/approvals/{approvalId}', /\\\/v1\\\/link\\\/approvals\\\/\(\[A-Za-z0-9_-\]\{1,40\}\)\$/.test(src)],
+    ['/v1/link/files/{path}', /pathname\.startsWith\('\/v1\/link\/files\/'\)/.test(src)],
   ];
   console.log(`contract: gateway ${GATEWAY} — ${literal.size} literal routes, ${regexRoutes.filter(([, on]) => on).length} regex families`);
   for (const p of literal) {

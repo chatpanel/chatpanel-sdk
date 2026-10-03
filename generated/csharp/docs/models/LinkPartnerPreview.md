@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **Route** | **string** |  | 
 **Host** | **string** | The one host the partner&#39;s server will connect to. | 
 **Lines** | **List&lt;string&gt;** | The confirmation as the owner reads it. | 
+**Folder** | **string** | Where its agents will work (with agents). | [optional] 
 
 [[Back to Model list]](../../README.md#documentation-for-models) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to README]](../../README.md)
 

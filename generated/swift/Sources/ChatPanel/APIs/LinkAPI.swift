@@ -10,6 +10,221 @@ import Foundation
 open class LinkAPI {
 
     /**
+     The owner's answer — once, this action for the rest of the conversation, everything in it, or no.
+     
+     - parameter approvalId: (path)  
+     - parameter linkAnswerApprovalRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: BrowserAnnounce200Response
+     */
+    open class func linkAnswerApproval(approvalId: String, linkAnswerApprovalRequest: LinkAnswerApprovalRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> BrowserAnnounce200Response {
+        return try await linkAnswerApprovalWithRequestBuilder(approvalId: approvalId, linkAnswerApprovalRequest: linkAnswerApprovalRequest, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     The owner's answer — once, this action for the rest of the conversation, everything in it, or no.
+     - POST /v1/link/approvals/{approvalId}
+     - No answer within the agent's own wait (10 minutes) is a no; revoking the partner denies what it waits on.
+     - API Key:
+       - type: apiKey X-ChatPanel-Token (HEADER)
+       - name: tokenHeader
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter approvalId: (path)  
+     - parameter linkAnswerApprovalRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<BrowserAnnounce200Response> 
+     */
+    open class func linkAnswerApprovalWithRequestBuilder(approvalId: String, linkAnswerApprovalRequest: LinkAnswerApprovalRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<BrowserAnnounce200Response> {
+        var localVariablePath = "/v1/link/approvals/{approvalId}"
+        let approvalIdPreEscape = "\(APIHelper.mapValueToPathItem(approvalId))"
+        let approvalIdPostEscape = approvalIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{approvalId}", with: approvalIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: linkAnswerApprovalRequest, codableHelper: apiConfiguration.codableHelper)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            "Content-Type": "application/json",
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<BrowserAnnounce200Response>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
+     What partners' agents are waiting on the owner for — each request a partner's coding agent made that the owner's settings do not already allow.
+     
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: LinkApprovals200Response
+     */
+    open class func linkApprovals(apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> LinkApprovals200Response {
+        return try await linkApprovalsWithRequestBuilder(apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     What partners' agents are waiting on the owner for — each request a partner's coding agent made that the owner's settings do not already allow.
+     - GET /v1/link/approvals
+     - A partner granted `agents` (gateway 0.90.0+) runs them as the owner's own turn does, and never answers their permission prompts: the request waits here for the OWNER (0.91.0+). Nothing that arrives over Link may list or answer these — 403 for a partner and a phone alike. In memory only. 
+     - API Key:
+       - type: apiKey X-ChatPanel-Token (HEADER)
+       - name: tokenHeader
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<LinkApprovals200Response> 
+     */
+    open class func linkApprovalsWithRequestBuilder(apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<LinkApprovals200Response> {
+        let localVariablePath = "/v1/link/approvals"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<LinkApprovals200Response>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
+     The waiting requests as they change — one `approvals` event with the whole list on each change, and at connect.
+     
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: String
+     */
+    open class func linkApprovalsStream(apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> String {
+        return try await linkApprovalsStreamWithRequestBuilder(apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     The waiting requests as they change — one `approvals` event with the whole list on each change, and at connect.
+     - GET /v1/link/approvals/stream
+     - API Key:
+       - type: apiKey X-ChatPanel-Token (HEADER)
+       - name: tokenHeader
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<String> 
+     */
+    open class func linkApprovalsStreamWithRequestBuilder(apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<String> {
+        let localVariablePath = "/v1/link/approvals/stream"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<String>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
+     Remove a file from the partner's folder (never a folder).
+     
+     - parameter path: (path) Relative to the partner&#39;s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/&lt;name&gt;.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F). 
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: BrowserAnnounce200Response
+     */
+    open class func linkDeleteFile(path: String, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> BrowserAnnounce200Response {
+        return try await linkDeleteFileWithRequestBuilder(path: path, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     Remove a file from the partner's folder (never a folder).
+     - DELETE /v1/link/files/{path}
+     - API Key:
+       - type: apiKey X-ChatPanel-Token (HEADER)
+       - name: tokenHeader
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter path: (path) Relative to the partner&#39;s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/&lt;name&gt;.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F). 
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<BrowserAnnounce200Response> 
+     */
+    open class func linkDeleteFileWithRequestBuilder(path: String, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<BrowserAnnounce200Response> {
+        var localVariablePath = "/v1/link/files/{path}"
+        let pathPreEscape = "\(APIHelper.mapValueToPathItem(path))"
+        let pathPostEscape = pathPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{path}", with: pathPostEscape, options: .literal, range: nil)
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<BrowserAnnounce200Response>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
+     A partner's own folder, from its side — every file it may hold there, with size and last change.
+     
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: LinkListFiles200Response
+     */
+    open class func linkListFiles(apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> LinkListFiles200Response {
+        return try await linkListFilesWithRequestBuilder(apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     A partner's own folder, from its side — every file it may hold there, with size and last change.
+     - GET /v1/link/files
+     - Called BY A PARTNER over Link (`createLinkFetch`), granted `files` (0.92.0+; needs `agents`). The folder is the one the owner chose at pairing, where its agents work; a partner may hold its data (`data/`), skills (`.claude/skills/`, `.agents/skills/`), subagents (`.claude/agents/_*.md`) and instructions (`CLAUDE.md`, `AGENTS.md`) — never what configures the agent. `GET /v1/link/files/data` lists one root. 
+     - API Key:
+       - type: apiKey X-ChatPanel-Token (HEADER)
+       - name: tokenHeader
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<LinkListFiles200Response> 
+     */
+    open class func linkListFilesWithRequestBuilder(apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<LinkListFiles200Response> {
+        let localVariablePath = "/v1/link/files"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<LinkListFiles200Response>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
      Start a pairing — a phone's QR, or (with `kind partner`) a partner server's one-time code, shown and confirmed first.
      
      - parameter linkPairRequest: (body)  (optional)
@@ -50,6 +265,52 @@ open class LinkAPI {
         let localVariableRequestBuilder: RequestBuilder<LinkPairResult>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
+     Read back a file from the partner's folder — what its agents wrote there.
+     
+     - parameter path: (path) Relative to the partner&#39;s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/&lt;name&gt;.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F). 
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: URL
+     */
+    open class func linkReadFile(path: String, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> URL {
+        return try await linkReadFileWithRequestBuilder(path: path, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     Read back a file from the partner's folder — what its agents wrote there.
+     - GET /v1/link/files/{path}
+     - The raw bytes (`application/octet-stream`). `path` is relative to the folder; slashes may be sent encoded.
+     - API Key:
+       - type: apiKey X-ChatPanel-Token (HEADER)
+       - name: tokenHeader
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter path: (path) Relative to the partner&#39;s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/&lt;name&gt;.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F). 
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<URL> 
+     */
+    open class func linkReadFileWithRequestBuilder(path: String, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<URL> {
+        var localVariablePath = "/v1/link/files/{path}"
+        let pathPreEscape = "\(APIHelper.mapValueToPathItem(path))"
+        let pathPostEscape = pathPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{path}", with: pathPostEscape, options: .literal, range: nil)
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<URL>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -179,5 +440,53 @@ open class LinkAPI {
         let localVariableRequestBuilder: RequestBuilder<LinkStatus>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
+     Put a file in the partner's folder — its data, a skill, a subagent or instructions.
+     
+     - parameter path: (path) Relative to the partner&#39;s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/&lt;name&gt;.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F). 
+     - parameter body: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: LinkPartnerFile
+     */
+    open class func linkWriteFile(path: String, body: URL, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> LinkPartnerFile {
+        return try await linkWriteFileWithRequestBuilder(path: path, body: body, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     Put a file in the partner's folder — its data, a skill, a subagent or instructions.
+     - PUT /v1/link/files/{path}
+     - The body is the file's bytes. Refused (400): a path outside what a partner may hold (`.claude/settings*.json`, hooks, `.mcp.json`, `.codex/` among them), and a skill or subagent whose front matter would widen what the agent may do (`allowed-tools`, `hooks`, `permissionMode`, `mcpServers`). Refused (403): a path through a link in the folder. Written atomically, readable by the owner alone. Up to the gateway's body limit (413 past it). 
+     - API Key:
+       - type: apiKey X-ChatPanel-Token (HEADER)
+       - name: tokenHeader
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter path: (path) Relative to the partner&#39;s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/&lt;name&gt;.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F). 
+     - parameter body: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<LinkPartnerFile> 
+     */
+    open class func linkWriteFileWithRequestBuilder(path: String, body: URL, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<LinkPartnerFile> {
+        var localVariablePath = "/v1/link/files/{path}"
+        let pathPreEscape = "\(APIHelper.mapValueToPathItem(path))"
+        let pathPostEscape = pathPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{path}", with: pathPostEscape, options: .literal, range: nil)
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters = ["body": body]
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            "Content-Type": "application/octet-stream",
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<LinkPartnerFile>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
     }
 }

@@ -20,6 +20,7 @@ part 'link_pair_request.g.dart';
 /// * [scopes] 
 /// * [route] - The partner's one path. Absent is the gateway's own route.
 /// * [relay] - The https relay for `route relay`.
+/// * [folder] - Where the partner's agents work (with `agents`, 0.90.0+): an absolute path or ~/…; absent is ~/.chatpanel/partners/<name>. Never the disk or the home folder.
 /// * [confirm] - The owner saw the preview and said yes. Without it nothing is issued.
 @BuiltValue()
 abstract class LinkPairRequest implements Built<LinkPairRequest, LinkPairRequestBuilder> {
@@ -46,6 +47,10 @@ abstract class LinkPairRequest implements Built<LinkPairRequest, LinkPairRequest
   /// The https relay for `route relay`.
   @BuiltValueField(wireName: r'relay')
   String? get relay;
+
+  /// Where the partner's agents work (with `agents`, 0.90.0+): an absolute path or ~/…; absent is ~/.chatpanel/partners/<name>. Never the disk or the home folder.
+  @BuiltValueField(wireName: r'folder')
+  String? get folder;
 
   /// The owner saw the preview and said yes. Without it nothing is issued.
   @BuiltValueField(wireName: r'confirm')
@@ -113,6 +118,13 @@ class _$LinkPairRequestSerializer implements PrimitiveSerializer<LinkPairRequest
       yield r'relay';
       yield serializers.serialize(
         object.relay,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.folder != null) {
+      yield r'folder';
+      yield serializers.serialize(
+        object.folder,
         specifiedType: const FullType(String),
       );
     }
@@ -193,6 +205,14 @@ class _$LinkPairRequestSerializer implements PrimitiveSerializer<LinkPairRequest
           ) as String?;
           if (valueDes == null) continue;
           result.relay = valueDes;
+          break;
+        case r'folder':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.folder = valueDes;
           break;
         case r'confirm':
           final valueDes = serializers.deserialize(

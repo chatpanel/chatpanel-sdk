@@ -70,6 +70,12 @@ void main() {
       // TODO
     });
 
+    // Where a partner's agents work (0.90.0+, with agents).
+    // String folder
+    test('to test the property `folder`', () async {
+      // TODO
+    });
+
     // String staleRelay
     test('to test the property `staleRelay`', () async {
       // TODO

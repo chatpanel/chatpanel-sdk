@@ -33,6 +33,12 @@ void main() {
       // TODO
     });
 
+    // Where its agents will work (with agents).
+    // String folder
+    test('to test the property `folder`', () async {
+      // TODO
+    });
+
     // The confirmation as the owner reads it.
     // BuiltList<String> lines
     test('to test the property `lines`', () async {

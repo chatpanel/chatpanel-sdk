@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **Agents** | **bool** |  | 
 **Route** | **string** |  | 
 **Host** | **string** | The one host the partner&#39;s server will connect to. | 
+**Folder** | Pointer to **string** | Where its agents will work (with agents). | [optional] 
 **Lines** | **[]string** | The confirmation as the owner reads it. | 
 
 ## Methods
@@ -129,6 +130,31 @@ and a boolean to check if the value has been set.
 
 SetHost sets Host field to given value.
 
+
+### GetFolder
+
+`func (o *LinkPartnerPreview) GetFolder() string`
+
+GetFolder returns the Folder field if non-nil, zero value otherwise.
+
+### GetFolderOk
+
+`func (o *LinkPartnerPreview) GetFolderOk() (*string, bool)`
+
+GetFolderOk returns a tuple with the Folder field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetFolder
+
+`func (o *LinkPartnerPreview) SetFolder(v string)`
+
+SetFolder sets Folder field to given value.
+
+### HasFolder
+
+`func (o *LinkPartnerPreview) HasFolder() bool`
+
+HasFolder returns a boolean if a field has been set.
 
 ### GetLines
 

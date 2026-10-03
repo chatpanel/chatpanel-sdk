@@ -15,15 +15,18 @@ public struct LinkPartnerPreview: Sendable, Codable, Hashable {
     public var route: String
     /** The one host the partner's server will connect to. */
     public var host: String
+    /** Where its agents will work (with agents). */
+    public var folder: String?
     /** The confirmation as the owner reads it. */
     public var lines: [String]
 
-    public init(partner: String, scopes: [String], agents: Bool, route: String, host: String, lines: [String]) {
+    public init(partner: String, scopes: [String], agents: Bool, route: String, host: String, folder: String? = nil, lines: [String]) {
         self.partner = partner
         self.scopes = scopes
         self.agents = agents
         self.route = route
         self.host = host
+        self.folder = folder
         self.lines = lines
     }
 
@@ -33,6 +36,7 @@ public struct LinkPartnerPreview: Sendable, Codable, Hashable {
         case agents
         case route
         case host
+        case folder
         case lines
     }
 
@@ -45,6 +49,7 @@ public struct LinkPartnerPreview: Sendable, Codable, Hashable {
         try container.encode(agents, forKey: .agents)
         try container.encode(route, forKey: .route)
         try container.encode(host, forKey: .host)
+        try container.encodeIfPresent(folder, forKey: .folder)
         try container.encode(lines, forKey: .lines)
     }
 }

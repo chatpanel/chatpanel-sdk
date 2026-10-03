@@ -69,5 +69,11 @@ class LinkPartnerPreviewTest : ShouldSpec() {
             //modelInstance.lines shouldBe ("TODO")
         }
 
+        // to test the property `folder` - Where its agents will work (with agents).
+        should("test folder") {
+            // uncomment below to test the property
+            //modelInstance.folder shouldBe ("TODO")
+        }
+
     }
 }

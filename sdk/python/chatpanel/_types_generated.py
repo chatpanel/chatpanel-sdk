@@ -934,9 +934,10 @@ class LinkPairRequest(TypedDict, total=False):
     kind: NotRequired[Literal["phone", "partner"]]  # Absent is a phone.
     name: NotRequired[str]  # A phone pairing — what the phone calls this computer.
     partner: NotRequired[Dict[str, Any]]
-    scopes: NotRequired[Union[List[Literal["models", "chat", "agents"]], str]]  # What the partner may reach: `models` (GET /v1/models), `chat` (POST /v1/chat/completions and /v1/messages to API models), `agents` (also the coding agents, as plain conversation; needs chat). An array or a comma list; absent is models and chat.
+    scopes: NotRequired[Union[List[Literal["models", "chat", "agents", "files"]], str]]  # What the partner may reach: `models` (GET /v1/models), `chat` (POST /v1/chat/completions and /v1/messages to API models), `agents` (also the coding agents, as the owner's own turn runs them — the Coding Agents settings, the sandbox and the org policy decide what they may do, in the partner's own folder, and the owner answers their approval prompts; needs chat; 0.90.0+), `files` (its data, skills, subagents and instructions in that folder — /v1/link/files; needs agents; 0.92.0+). An array or a comma list; absent is models and chat.
     route: NotRequired[Literal["link", "relay", "tailscale", "cloudflare"]]  # The partner's one path. Absent is the gateway's own route.
     relay: NotRequired[str]  # The https relay for `route relay`.
+    folder: NotRequired[str]  # Where the partner's agents work (with `agents`, 0.90.0+): an absolute path or ~/…; absent is ~/.chatpanel/partners/<name>. Never the disk or the home folder.
     confirm: NotRequired[bool]  # The owner saw the preview and said yes. Without it nothing is issued.
 
 
@@ -947,6 +948,7 @@ class LinkPartnerPreview(TypedDict, total=False):
     agents: bool
     route: str
     host: str  # The one host the partner's server will connect to.
+    folder: NotRequired[str]  # Where its agents will work (with agents).
     lines: List[str]  # The confirmation as the owner reads it.
 
 
@@ -973,6 +975,26 @@ class LinkRouteRequest(TypedDict, total=False):
     fallback: NotRequired[bool]  # A tunnel route keeps ChatPanel Link as the phones' fallback unless false.
 
 
+class LinkApproval(TypedDict, total=False):
+    """LinkApproval"""
+    id: str
+    partner: str  # The partner whose agent asks.
+    device: NotRequired[str]
+    conversation: NotRequired[str]  # The partner's conversation (`partner.<device>.<thread>`), or the turn's own.
+    title: str  # Who asks and what kind of action — "Atlas’s agent asks — run a command?"
+    body: str  # The command
+    tool: NotRequired[str]
+    createdAt: int
+    expiresAt: int  # When it becomes a no.
+
+
+class LinkPartnerFile(TypedDict, total=False):
+    """LinkPartnerFile"""
+    path: str  # Relative to the partner's folder.
+    size: int
+    modifiedAt: NotRequired[int]
+
+
 class LinkDevice(TypedDict, total=False):
     """LinkDevice"""
     id: str
@@ -987,6 +1009,7 @@ class LinkDevice(TypedDict, total=False):
     route: NotRequired[Union[str, None]]  # A partner's route
     host: NotRequired[str]
     routeClosed: NotRequired[bool]  # A tunnel partner whose door shut when the gateway's route moved — pair it again to move it.
+    folder: NotRequired[str]  # Where a partner's agents work (0.90.0+, with agents).
     staleRelay: NotRequired[str]
     tunnelNeedsRelink: NotRequired[bool]
 

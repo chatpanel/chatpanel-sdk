@@ -16,6 +16,7 @@ Name | Type | Description | Notes
 **Route** | **string** | A partner&#39;s route | [optional] 
 **Host** | **string** |  | [optional] 
 **RouteClosed** | **bool** | A tunnel partner whose door shut when the gateway&#39;s route moved — pair it again to move it. | [optional] 
+**Folder** | **string** | Where a partner&#39;s agents work (0.90.0+, with agents). | [optional] 
 **StaleRelay** | **string** |  | [optional] 
 **TunnelNeedsRelink** | **bool** |  | [optional] 
 

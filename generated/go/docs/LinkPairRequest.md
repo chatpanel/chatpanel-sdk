@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **Scopes** | Pointer to [**LinkPairRequestScopes**](LinkPairRequestScopes.md) |  | [optional] 
 **Route** | Pointer to **string** | The partner&#39;s one path. Absent is the gateway&#39;s own route. | [optional] 
 **Relay** | Pointer to **string** | The https relay for &#x60;route relay&#x60;. | [optional] 
+**Folder** | Pointer to **string** | Where the partner&#39;s agents work (with &#x60;agents&#x60;, 0.90.0+): an absolute path or ~/…; absent is ~/.chatpanel/partners/&lt;name&gt;. Never the disk or the home folder. | [optional] 
 **Confirm** | Pointer to **bool** | The owner saw the preview and said yes. Without it nothing is issued. | [optional] 
 
 ## Methods
@@ -180,6 +181,31 @@ SetRelay sets Relay field to given value.
 `func (o *LinkPairRequest) HasRelay() bool`
 
 HasRelay returns a boolean if a field has been set.
+
+### GetFolder
+
+`func (o *LinkPairRequest) GetFolder() string`
+
+GetFolder returns the Folder field if non-nil, zero value otherwise.
+
+### GetFolderOk
+
+`func (o *LinkPairRequest) GetFolderOk() (*string, bool)`
+
+GetFolderOk returns a tuple with the Folder field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetFolder
+
+`func (o *LinkPairRequest) SetFolder(v string)`
+
+SetFolder sets Folder field to given value.
+
+### HasFolder
+
+`func (o *LinkPairRequest) HasFolder() bool`
+
+HasFolder returns a boolean if a field has been set.
 
 ### GetConfirm
 

@@ -16,6 +16,7 @@
 | **route** | **String** | A partner&#39;s route | [optional] |
 | **host** | **String** |  | [optional] |
 | **route_closed** | **Boolean** | A tunnel partner whose door shut when the gateway&#39;s route moved — pair it again to move it. | [optional] |
+| **folder** | **String** | Where a partner&#39;s agents work (0.90.0+, with agents). | [optional] |
 | **stale_relay** | **String** |  | [optional] |
 | **tunnel_needs_relink** | **Boolean** |  | [optional] |
 
@@ -37,6 +38,7 @@ instance = ChatPanel::LinkDevice.new(
   route: null,
   host: null,
   route_closed: null,
+  folder: null,
   stale_relay: null,
   tunnel_needs_relink: null
 )

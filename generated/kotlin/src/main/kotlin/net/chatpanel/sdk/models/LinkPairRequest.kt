@@ -38,6 +38,7 @@ import com.squareup.moshi.JsonClass
  * @param scopes 
  * @param route The partner's one path. Absent is the gateway's own route.
  * @param relay The https relay for `route relay`.
+ * @param folder Where the partner's agents work (with `agents`, 0.90.0+): an absolute path or ~/…; absent is ~/.chatpanel/partners/<name>. Never the disk or the home folder.
  * @param confirm The owner saw the preview and said yes. Without it nothing is issued.
  */
 
@@ -65,6 +66,10 @@ data class LinkPairRequest (
     /* The https relay for `route relay`. */
     @Json(name = "relay")
     val relay: java.net.URI? = null,
+
+    /* Where the partner's agents work (with `agents`, 0.90.0+): an absolute path or ~/…; absent is ~/.chatpanel/partners/<name>. Never the disk or the home folder. */
+    @Json(name = "folder")
+    val folder: kotlin.String? = null,
 
     /* The owner saw the preview and said yes. Without it nothing is issued. */
     @Json(name = "confirm")

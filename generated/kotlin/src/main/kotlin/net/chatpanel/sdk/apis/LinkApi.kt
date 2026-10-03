@@ -29,8 +29,12 @@ import okhttp3.HttpUrl
 
 import net.chatpanel.sdk.models.BrowserAnnounce200Response
 import net.chatpanel.sdk.models.ErrorResponse
+import net.chatpanel.sdk.models.LinkAnswerApprovalRequest
+import net.chatpanel.sdk.models.LinkApprovals200Response
+import net.chatpanel.sdk.models.LinkListFiles200Response
 import net.chatpanel.sdk.models.LinkPairRequest
 import net.chatpanel.sdk.models.LinkPairResult
+import net.chatpanel.sdk.models.LinkPartnerFile
 import net.chatpanel.sdk.models.LinkRouteRequest
 import net.chatpanel.sdk.models.LinkStatus
 
@@ -56,6 +60,366 @@ open class LinkApi(basePath: kotlin.String = defaultBasePath, client: Call.Facto
         val defaultBasePath: String by lazy {
             System.getProperties().getProperty(ApiClient.BASE_URL_KEY, "http://127.0.0.1:4320")
         }
+    }
+
+    /**
+     * POST /v1/link/approvals/{approvalId}
+     * The owner&#39;s answer — once, this action for the rest of the conversation, everything in it, or no.
+     * No answer within the agent&#39;s own wait (10 minutes) is a no; revoking the partner denies what it waits on.
+     * @param approvalId 
+     * @param linkAnswerApprovalRequest 
+     * @return BrowserAnnounce200Response
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun linkAnswerApproval(approvalId: kotlin.String, linkAnswerApprovalRequest: LinkAnswerApprovalRequest) : BrowserAnnounce200Response {
+        val localVarResponse = linkAnswerApprovalWithHttpInfo(approvalId = approvalId, linkAnswerApprovalRequest = linkAnswerApprovalRequest)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as BrowserAnnounce200Response
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * POST /v1/link/approvals/{approvalId}
+     * The owner&#39;s answer — once, this action for the rest of the conversation, everything in it, or no.
+     * No answer within the agent&#39;s own wait (10 minutes) is a no; revoking the partner denies what it waits on.
+     * @param approvalId 
+     * @param linkAnswerApprovalRequest 
+     * @return ApiResponse<BrowserAnnounce200Response?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun linkAnswerApprovalWithHttpInfo(approvalId: kotlin.String, linkAnswerApprovalRequest: LinkAnswerApprovalRequest) : ApiResponse<BrowserAnnounce200Response?> {
+        val localVariableConfig = linkAnswerApprovalRequestConfig(approvalId = approvalId, linkAnswerApprovalRequest = linkAnswerApprovalRequest)
+
+        return request<LinkAnswerApprovalRequest, BrowserAnnounce200Response>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation linkAnswerApproval
+     *
+     * @param approvalId 
+     * @param linkAnswerApprovalRequest 
+     * @return RequestConfig
+     */
+    fun linkAnswerApprovalRequestConfig(approvalId: kotlin.String, linkAnswerApprovalRequest: LinkAnswerApprovalRequest) : RequestConfig<LinkAnswerApprovalRequest> {
+        val localVariableBody = linkAnswerApprovalRequest
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/v1/link/approvals/{approvalId}".replace("{"+"approvalId"+"}", encodeURIComponent(approvalId.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * GET /v1/link/approvals
+     * What partners&#39; agents are waiting on the owner for — each request a partner&#39;s coding agent made that the owner&#39;s settings do not already allow.
+     * A partner granted &#x60;agents&#x60; (gateway 0.90.0+) runs them as the owner&#39;s own turn does, and never answers their permission prompts: the request waits here for the OWNER (0.91.0+). Nothing that arrives over Link may list or answer these — 403 for a partner and a phone alike. In memory only. 
+     * @return LinkApprovals200Response
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun linkApprovals() : LinkApprovals200Response {
+        val localVarResponse = linkApprovalsWithHttpInfo()
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as LinkApprovals200Response
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * GET /v1/link/approvals
+     * What partners&#39; agents are waiting on the owner for — each request a partner&#39;s coding agent made that the owner&#39;s settings do not already allow.
+     * A partner granted &#x60;agents&#x60; (gateway 0.90.0+) runs them as the owner&#39;s own turn does, and never answers their permission prompts: the request waits here for the OWNER (0.91.0+). Nothing that arrives over Link may list or answer these — 403 for a partner and a phone alike. In memory only. 
+     * @return ApiResponse<LinkApprovals200Response?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun linkApprovalsWithHttpInfo() : ApiResponse<LinkApprovals200Response?> {
+        val localVariableConfig = linkApprovalsRequestConfig()
+
+        return request<Unit, LinkApprovals200Response>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation linkApprovals
+     *
+     * @return RequestConfig
+     */
+    fun linkApprovalsRequestConfig() : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.GET,
+            path = "/v1/link/approvals",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * GET /v1/link/approvals/stream
+     * The waiting requests as they change — one &#x60;approvals&#x60; event with the whole list on each change, and at connect.
+     * 
+     * @return kotlin.String
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun linkApprovalsStream() : kotlin.String {
+        val localVarResponse = linkApprovalsStreamWithHttpInfo()
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as kotlin.String
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * GET /v1/link/approvals/stream
+     * The waiting requests as they change — one &#x60;approvals&#x60; event with the whole list on each change, and at connect.
+     * 
+     * @return ApiResponse<kotlin.String?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun linkApprovalsStreamWithHttpInfo() : ApiResponse<kotlin.String?> {
+        val localVariableConfig = linkApprovalsStreamRequestConfig()
+
+        return request<Unit, kotlin.String>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation linkApprovalsStream
+     *
+     * @return RequestConfig
+     */
+    fun linkApprovalsStreamRequestConfig() : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.GET,
+            path = "/v1/link/approvals/stream",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * DELETE /v1/link/files/{path}
+     * Remove a file from the partner&#39;s folder (never a folder).
+     * 
+     * @param path Relative to the partner&#39;s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/&lt;name&gt;.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F).
+     * @return BrowserAnnounce200Response
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun linkDeleteFile(path: kotlin.String) : BrowserAnnounce200Response {
+        val localVarResponse = linkDeleteFileWithHttpInfo(path = path)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as BrowserAnnounce200Response
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * DELETE /v1/link/files/{path}
+     * Remove a file from the partner&#39;s folder (never a folder).
+     * 
+     * @param path Relative to the partner&#39;s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/&lt;name&gt;.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F).
+     * @return ApiResponse<BrowserAnnounce200Response?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun linkDeleteFileWithHttpInfo(path: kotlin.String) : ApiResponse<BrowserAnnounce200Response?> {
+        val localVariableConfig = linkDeleteFileRequestConfig(path = path)
+
+        return request<Unit, BrowserAnnounce200Response>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation linkDeleteFile
+     *
+     * @param path Relative to the partner&#39;s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/&lt;name&gt;.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F).
+     * @return RequestConfig
+     */
+    fun linkDeleteFileRequestConfig(path: kotlin.String) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.DELETE,
+            path = "/v1/link/files/{path}".replace("{"+"path"+"}", encodeURIComponent(path.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * GET /v1/link/files
+     * A partner&#39;s own folder, from its side — every file it may hold there, with size and last change.
+     * Called BY A PARTNER over Link (&#x60;createLinkFetch&#x60;), granted &#x60;files&#x60; (0.92.0+; needs &#x60;agents&#x60;). The folder is the one the owner chose at pairing, where its agents work; a partner may hold its data (&#x60;data/&#x60;), skills (&#x60;.claude/skills/&#x60;, &#x60;.agents/skills/&#x60;), subagents (&#x60;.claude/agents/_*.md&#x60;) and instructions (&#x60;CLAUDE.md&#x60;, &#x60;AGENTS.md&#x60;) — never what configures the agent. &#x60;GET /v1/link/files/data&#x60; lists one root. 
+     * @return LinkListFiles200Response
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun linkListFiles() : LinkListFiles200Response {
+        val localVarResponse = linkListFilesWithHttpInfo()
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as LinkListFiles200Response
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * GET /v1/link/files
+     * A partner&#39;s own folder, from its side — every file it may hold there, with size and last change.
+     * Called BY A PARTNER over Link (&#x60;createLinkFetch&#x60;), granted &#x60;files&#x60; (0.92.0+; needs &#x60;agents&#x60;). The folder is the one the owner chose at pairing, where its agents work; a partner may hold its data (&#x60;data/&#x60;), skills (&#x60;.claude/skills/&#x60;, &#x60;.agents/skills/&#x60;), subagents (&#x60;.claude/agents/_*.md&#x60;) and instructions (&#x60;CLAUDE.md&#x60;, &#x60;AGENTS.md&#x60;) — never what configures the agent. &#x60;GET /v1/link/files/data&#x60; lists one root. 
+     * @return ApiResponse<LinkListFiles200Response?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun linkListFilesWithHttpInfo() : ApiResponse<LinkListFiles200Response?> {
+        val localVariableConfig = linkListFilesRequestConfig()
+
+        return request<Unit, LinkListFiles200Response>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation linkListFiles
+     *
+     * @return RequestConfig
+     */
+    fun linkListFilesRequestConfig() : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.GET,
+            path = "/v1/link/files",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
     }
 
     /**
@@ -125,6 +489,79 @@ open class LinkApi(basePath: kotlin.String = defaultBasePath, client: Call.Facto
         return RequestConfig(
             method = RequestMethod.POST,
             path = "/v1/link/pair",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * GET /v1/link/files/{path}
+     * Read back a file from the partner&#39;s folder — what its agents wrote there.
+     * The raw bytes (&#x60;application/octet-stream&#x60;). &#x60;path&#x60; is relative to the folder; slashes may be sent encoded.
+     * @param path Relative to the partner&#39;s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/&lt;name&gt;.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F).
+     * @return java.io.File
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun linkReadFile(path: kotlin.String) : java.io.File {
+        val localVarResponse = linkReadFileWithHttpInfo(path = path)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as java.io.File
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * GET /v1/link/files/{path}
+     * Read back a file from the partner&#39;s folder — what its agents wrote there.
+     * The raw bytes (&#x60;application/octet-stream&#x60;). &#x60;path&#x60; is relative to the folder; slashes may be sent encoded.
+     * @param path Relative to the partner&#39;s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/&lt;name&gt;.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F).
+     * @return ApiResponse<java.io.File?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun linkReadFileWithHttpInfo(path: kotlin.String) : ApiResponse<java.io.File?> {
+        val localVariableConfig = linkReadFileRequestConfig(path = path)
+
+        return request<Unit, java.io.File>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation linkReadFile
+     *
+     * @param path Relative to the partner&#39;s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/&lt;name&gt;.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F).
+     * @return RequestConfig
+     */
+    fun linkReadFileRequestConfig(path: kotlin.String) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/octet-stream, application/json"
+
+        return RequestConfig(
+            method = RequestMethod.GET,
+            path = "/v1/link/files/{path}".replace("{"+"path"+"}", encodeURIComponent(path.toString())),
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,
@@ -342,6 +779,83 @@ open class LinkApi(basePath: kotlin.String = defaultBasePath, client: Call.Facto
         return RequestConfig(
             method = RequestMethod.GET,
             path = "/v1/link",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * PUT /v1/link/files/{path}
+     * Put a file in the partner&#39;s folder — its data, a skill, a subagent or instructions.
+     * The body is the file&#39;s bytes. Refused (400): a path outside what a partner may hold (&#x60;.claude/settings*.json&#x60;, hooks, &#x60;.mcp.json&#x60;, &#x60;.codex/&#x60; among them), and a skill or subagent whose front matter would widen what the agent may do (&#x60;allowed-tools&#x60;, &#x60;hooks&#x60;, &#x60;permissionMode&#x60;, &#x60;mcpServers&#x60;). Refused (403): a path through a link in the folder. Written atomically, readable by the owner alone. Up to the gateway&#39;s body limit (413 past it). 
+     * @param path Relative to the partner&#39;s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/&lt;name&gt;.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F).
+     * @param body 
+     * @return LinkPartnerFile
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun linkWriteFile(path: kotlin.String, body: java.io.File) : LinkPartnerFile {
+        val localVarResponse = linkWriteFileWithHttpInfo(path = path, body = body)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as LinkPartnerFile
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * PUT /v1/link/files/{path}
+     * Put a file in the partner&#39;s folder — its data, a skill, a subagent or instructions.
+     * The body is the file&#39;s bytes. Refused (400): a path outside what a partner may hold (&#x60;.claude/settings*.json&#x60;, hooks, &#x60;.mcp.json&#x60;, &#x60;.codex/&#x60; among them), and a skill or subagent whose front matter would widen what the agent may do (&#x60;allowed-tools&#x60;, &#x60;hooks&#x60;, &#x60;permissionMode&#x60;, &#x60;mcpServers&#x60;). Refused (403): a path through a link in the folder. Written atomically, readable by the owner alone. Up to the gateway&#39;s body limit (413 past it). 
+     * @param path Relative to the partner&#39;s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/&lt;name&gt;.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F).
+     * @param body 
+     * @return ApiResponse<LinkPartnerFile?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun linkWriteFileWithHttpInfo(path: kotlin.String, body: java.io.File) : ApiResponse<LinkPartnerFile?> {
+        val localVariableConfig = linkWriteFileRequestConfig(path = path, body = body)
+
+        return request<java.io.File, LinkPartnerFile>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation linkWriteFile
+     *
+     * @param path Relative to the partner&#39;s folder — data/…, .claude/skills/…, .agents/skills/…, .claude/agents/&lt;name&gt;.md, CLAUDE.md or AGENTS.md. Slashes may be sent encoded (%2F).
+     * @param body 
+     * @return RequestConfig
+     */
+    fun linkWriteFileRequestConfig(path: kotlin.String, body: java.io.File) : RequestConfig<java.io.File> {
+        val localVariableBody = body
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/octet-stream"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.PUT,
+            path = "/v1/link/files/{path}".replace("{"+"path"+"}", encodeURIComponent(path.toString())),
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,
