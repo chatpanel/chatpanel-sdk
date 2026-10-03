@@ -165,8 +165,8 @@ the owner granted: `models` (GET /v1/models), `chat` (chat completions and messa
 models), and — only when named at pairing — `agents` (the coding agents, as plain conversation:
 no files, shell, web or MCP tools). Everything else answers 403: pairing, settings, prefs,
 history, memory, the event log. The owner sees each partner in `chatpanel-gateway link`, in
-`chatpanel-gateway --audit` and in Settings › Your phone, and removes it with
-`chatpanel-gateway link revoke <id>` (the open connection is closed; later calls reject with
+`chatpanel-gateway --audit` and in Settings › Link › Servers (where a server can also be
+connected without a terminal), and removes it there or with `chatpanel-gateway link revoke <id>` (the open connection is closed; later calls reject with
 `code: 'revoked'`). One process should own a device's connection at a time: a second socket for
 the same device replaces the first.
 
