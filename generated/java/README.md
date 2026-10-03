@@ -2,7 +2,7 @@
 
 ChatPanel Gateway API
 
-- API version: 0.41.0
+- API version: 0.42.0
 
 - Generator version: 7.25.0
 
@@ -60,7 +60,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>net.chatpanel</groupId>
   <artifactId>chatpanel-sdk</artifactId>
-  <version>0.41.0</version>
+  <version>0.42.0</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -70,7 +70,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "net.chatpanel:chatpanel-sdk:0.41.0"
+compile "net.chatpanel:chatpanel-sdk:0.42.0"
 ```
 
 ### Others
@@ -83,7 +83,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/chatpanel-sdk-0.41.0.jar`
+- `target/chatpanel-sdk-0.42.0.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -222,6 +222,14 @@ Class | Method | HTTP request | Description
 *HistoryApi* | [**historyStatusWithHttpInfo**](docs/HistoryApi.md#historyStatusWithHttpInfo) | **GET** /v1/history/status | Size and freshness of the warm index (and the lossless tier from 0.10.0).
 *HistoryApi* | [**historyStream**](docs/HistoryApi.md#historyStream) | **GET** /v1/history/stream | Live record changes — &#x60;hello&#x60; once, then a &#x60;records&#x60; event per change.
 *HistoryApi* | [**historyStreamWithHttpInfo**](docs/HistoryApi.md#historyStreamWithHttpInfo) | **GET** /v1/history/stream | Live record changes — &#x60;hello&#x60; once, then a &#x60;records&#x60; event per change.
+*LinkApi* | [**linkPair**](docs/LinkApi.md#linkPair) | **POST** /v1/link/pair | Start a pairing — a phone&#39;s QR, or (with &#x60;kind partner&#x60;) a partner server&#39;s one-time code, shown and confirmed first.
+*LinkApi* | [**linkPairWithHttpInfo**](docs/LinkApi.md#linkPairWithHttpInfo) | **POST** /v1/link/pair | Start a pairing — a phone&#39;s QR, or (with &#x60;kind partner&#x60;) a partner server&#39;s one-time code, shown and confirmed first.
+*LinkApi* | [**linkRemoveDevice**](docs/LinkApi.md#linkRemoveDevice) | **DELETE** /v1/link/devices/{deviceId} | Remove a paired device now — its relay room, its key and its open connection.
+*LinkApi* | [**linkRemoveDeviceWithHttpInfo**](docs/LinkApi.md#linkRemoveDeviceWithHttpInfo) | **DELETE** /v1/link/devices/{deviceId} | Remove a paired device now — its relay room, its key and its open connection.
+*LinkApi* | [**linkRoute**](docs/LinkApi.md#linkRoute) | **POST** /v1/link/route | How devices reach this computer — ChatPanel Link, the person&#39;s own relay, Tailscale or Cloudflare Tunnel.
+*LinkApi* | [**linkRouteWithHttpInfo**](docs/LinkApi.md#linkRouteWithHttpInfo) | **POST** /v1/link/route | How devices reach this computer — ChatPanel Link, the person&#39;s own relay, Tailscale or Cloudflare Tunnel.
+*LinkApi* | [**linkStatus**](docs/LinkApi.md#linkStatus) | **GET** /v1/link | The Link route and every paired device — phones and partner servers — with what each may reach.
+*LinkApi* | [**linkStatusWithHttpInfo**](docs/LinkApi.md#linkStatusWithHttpInfo) | **GET** /v1/link | The Link route and every paired device — phones and partner servers — with what each may reach.
 *MemoryApi* | [**memoryForget**](docs/MemoryApi.md#memoryForget) | **POST** /v1/memory/forget | Forget memories matching an id or words.
 *MemoryApi* | [**memoryForgetWithHttpInfo**](docs/MemoryApi.md#memoryForgetWithHttpInfo) | **POST** /v1/memory/forget | Forget memories matching an id or words.
 *MemoryApi* | [**memoryList**](docs/MemoryApi.md#memoryList) | **GET** /v1/memory/list | Every memory.
@@ -414,6 +422,15 @@ Class | Method | HTTP request | Description
  - [IngestRequestUpsertsInner](docs/IngestRequestUpsertsInner.md)
  - [InlineObject](docs/InlineObject.md)
  - [InlineObject1](docs/InlineObject1.md)
+ - [LinkDevice](docs/LinkDevice.md)
+ - [LinkPairRequest](docs/LinkPairRequest.md)
+ - [LinkPairRequestPartner](docs/LinkPairRequestPartner.md)
+ - [LinkPairRequestScopes](docs/LinkPairRequestScopes.md)
+ - [LinkPairResult](docs/LinkPairResult.md)
+ - [LinkPairResultPartner](docs/LinkPairResultPartner.md)
+ - [LinkPartnerPreview](docs/LinkPartnerPreview.md)
+ - [LinkRouteRequest](docs/LinkRouteRequest.md)
+ - [LinkStatus](docs/LinkStatus.md)
  - [Memory](docs/Memory.md)
  - [MemoryForget200Response](docs/MemoryForget200Response.md)
  - [MemoryForgetRequest](docs/MemoryForgetRequest.md)

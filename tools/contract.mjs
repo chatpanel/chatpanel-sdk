@@ -29,9 +29,6 @@ const NOT_IN_SDK = {
   '/pair/ask/result': 'collects the answer to /pair/ask — the same extension-only reach (gateway 0.82.0)',
   '/config': 'rewrites the gateway\'s routing/redaction config — admin UI, not an app',
   '/channels': 'Telegram/WhatsApp setup — bot tokens and pairing, admin-gated like /config (0.11.5)',
-  '/v1/link': 'lists the phones paired to this gateway — the local settings page, admin-gated (gateway 0.60.0)',
-  '/v1/link/pair': 'mints a one-time pairing code for a phone — the local settings page, admin-gated (gateway 0.60.0)',
-  '/v1/link/route': 'sets how a paired phone reaches this gateway (ChatPanel Link, Tailscale, Cloudflare Tunnel, your own relay) — the local settings page, admin-gated (gateway 0.65.0)',
   '/agent-sessions': 'the person\'s own Claude Code / Codex sessions, whole transcripts included — Chap\'s clients open them as conversations; admin-gated, a linked phone only while link.agentSessions is on (gateway 0.67.0/0.68.0)',
   '/v1/agent-sessions': 'the /agent-sessions routes under /v1/ — Link carries /v1/ paths only (gateway 0.68.2)',
   '/v1/agent-sessions/read': 'as /agent-sessions/read, for a linked phone (gateway 0.68.2)',
@@ -94,7 +91,8 @@ if (!existsSync(join(GATEWAY, 'src', 'server.js'))) {
     ['/v1/read/{url}', /\^\\\/v1\\\/read\\\/\./.test(src)],
     ['/v1/search/{q}', /\^\\\/v1\\\/search\\\/\./.test(src)],
     ['/v1/runtime/engines/{name}', /\^\\\/v1\\\/runtime\\\/\(engines\|services\)/.test(src)],
-    ['/v1/runtime/services/{id}', /\^\\\/v1\\\/runtime\\\/\(engines\|services\)/.test(src)],
+    ['/v1/runtime/services/{id}', /\^\\\/v1\\\/runtime\\\/\(engines\|services\)/.test(src)],    // Link's device removal (gateway 0.60.0; in the contract since 0.89.0 with partner devices).
+    ['/v1/link/devices/{deviceId}', /pathname\.startsWith\('\/v1\/link\/devices\/'\)/.test(src)],
   ];
   console.log(`contract: gateway ${GATEWAY} — ${literal.size} literal routes, ${regexRoutes.filter(([, on]) => on).length} regex families`);
   for (const p of literal) {

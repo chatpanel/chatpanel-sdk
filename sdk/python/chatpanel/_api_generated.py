@@ -102,6 +102,10 @@ OPERATIONS: Dict[str, Operation] = {
     "browser.stream": Operation(id="browser.stream", method="GET", path="/v1/browser/stream", auth="token", since="0.59.0", stream="sse", path_params=(), query_params=()),
     "browser.announce": Operation(id="browser.announce", method="POST", path="/v1/browser/announce", auth="token", since="0.59.0", stream=None, path_params=(), query_params=()),
     "browser.result": Operation(id="browser.result", method="POST", path="/v1/browser/result", auth="token", since="0.59.0", stream=None, path_params=(), query_params=()),
+    "link.status": Operation(id="link.status", method="GET", path="/v1/link", auth="token", since="0.60.0", stream=None, path_params=(), query_params=()),
+    "link.pair": Operation(id="link.pair", method="POST", path="/v1/link/pair", auth="token", since="0.60.0", stream=None, path_params=(), query_params=()),
+    "link.route": Operation(id="link.route", method="POST", path="/v1/link/route", auth="token", since="0.65.0", stream=None, path_params=(), query_params=()),
+    "link.removeDevice": Operation(id="link.removeDevice", method="DELETE", path="/v1/link/devices/{deviceId}", auth="token", since="0.60.0", stream=None, path_params=("deviceId",), query_params=()),
 }
 """Every operation in the contract, keyed by operationId — the route table the runtime executes."""
 
@@ -637,6 +641,29 @@ class BrowserApi:
         return self._rt.request(OPERATIONS["browser.result"], path={}, query=query, headers=headers, body=body, timeout=timeout)
 
 
+class LinkApi:
+    """ChatPanel Link — the person's phones and the partner servers they chose reach this gateway end-to-end encrypted (Noise) through a relay or the person's own tunnel, with no port open. Pairing, listing and removing devices is the owner's, at their own computer — token only, and never over Link itself."""
+
+    def __init__(self, rt: Runtime) -> None:
+        self._rt = rt
+
+    def status(self, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.LinkStatus":
+        """The Link route and every paired device — phones and partner servers — with what each may reach. No keys, tokens or secrets. A partner device (gateway 0.89.0+) carries `kind: partner`, its `partner.name`, `scopes`, the `route` it was paired on and the `host` it connects to; a phone carries `kind: phone` and follows the gateway's route. Changing the route never moves a partner: one whose tunnel door shut with the route says `routeClosed`. — Requires the gateway token. Gateway 0.60.0+."""
+        return self._rt.request(OPERATIONS["link.status"], path={}, query=None, headers=headers, body=None, timeout=timeout)
+
+    def pair(self, body: "T.LinkPairRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.LinkPairResult":
+        """Start a pairing — a phone's QR, or (with `kind partner`) a partner server's one-time code, shown and confirmed first. **A phone** (no `kind`, or `kind: phone`): a room on the route's relay and the QR the phone scans; the answer carries `uri`, `svg`, `expiresAt`, `room`. **A partner server** (`kind: partner`, gateway 0.89.0+): nothing is issued without the owner's yes. Without `confirm: true` the answer is `{ confirmed: false, preview }` — what the partner will be able to do (scopes, agents yes/no), the route and the one host its server will connect to — and nothing is created. With `confirm: true` the answer adds the `code` (`cplink1.…`, one use, 10 minutes), `room`, `route` and `host`. The route is the gateway's own unless `route` names another; a tunnel route reaches the tunnel door with no relay at all, and ChatPanel's hosted relay is used only for `link`. Refused with 403 from a device on Link: a paired device never pairs another. — Requires the gateway token. Gateway 0.60.0+."""
+        return self._rt.request(OPERATIONS["link.pair"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def route(self, body: "T.LinkRouteRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.LinkStatus":
+        """How devices reach this computer — ChatPanel Link, the person's own relay, Tailscale or Cloudflare Tunnel. Checked, saved in the gateway's config and applied without a restart. Phones follow it; partner devices keep the route they were paired on, and the answer lists which is on which. — Requires the gateway token. Gateway 0.65.0+."""
+        return self._rt.request(OPERATIONS["link.route"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def remove_device(self, device_id: str, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """Remove a paired device now — its relay room, its key and its open connection. — Requires the gateway token. Gateway 0.60.0+."""
+        return self._rt.request(OPERATIONS["link.removeDevice"], path={"deviceId": device_id}, query=None, headers=headers, body=None, timeout=timeout)
+
+
 class Api:
     """The namespaces a client exposes, built on one runtime."""
 
@@ -661,3 +688,4 @@ class Api:
         self.a2a = A2aApi(rt)
         self.fusions = FusionsApi(rt)
         self.browser = BrowserApi(rt)
+        self.link = LinkApi(rt)

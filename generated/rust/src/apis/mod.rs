@@ -122,6 +122,7 @@ pub mod events_api;
 pub mod fusions_api;
 pub mod gateway_api;
 pub mod history_api;
+pub mod link_api;
 pub mod memory_api;
 pub mod models_api;
 pub mod prefs_api;

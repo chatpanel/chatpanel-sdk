@@ -1,0 +1,18 @@
+
+
+# LinkPartnerPreview
+
+
+## Properties
+
+| Name | Type | Description | Notes |
+|------------ | ------------- | ------------- | -------------|
+|**partner** | **String** |  |  |
+|**scopes** | **List&lt;String&gt;** |  |  |
+|**agents** | **Boolean** |  |  |
+|**route** | **String** |  |  |
+|**host** | **String** | The one host the partner&#39;s server will connect to. |  |
+|**lines** | **List&lt;String&gt;** | The confirmation as the owner reads it. |  |
+
+
+

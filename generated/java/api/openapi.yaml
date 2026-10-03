@@ -24,7 +24,7 @@ info:
   license:
     name: Apache-2.0
   title: ChatPanel Gateway API
-  version: 0.41.0
+  version: 0.42.0
 servers:
 - description: The local gateway. Loopback only.
   url: http://127.0.0.1:4320
@@ -83,6 +83,11 @@ tags:
     \ to it and its result back. Every action still passes the extension's site grant,\
     \ its commit confirmation and its bot-check hand-off."
   name: browser
+- description: "ChatPanel Link — the person's phones and the partner servers they\
+    \ chose reach this gateway end-to-end encrypted (Noise) through a relay or the\
+    \ person's own tunnel, with no port open. Pairing, listing and removing devices\
+    \ is the owner's, at their own computer — token only, and never over Link itself."
+  name: link
 - description: "The durable event log, merged across every client and served as one\
     \ CloudEvents 1.0 stream — metadata only (refs and counts, never content), ordered\
     \ by `(host, seq)` and `causes`, never by clock (docs/event-stream-sync.md E1)."
@@ -3550,6 +3555,159 @@ paths:
       x-chatpanel-auth: token
       x-chatpanel-since: 0.59.0
       x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/link:
+    get:
+      description: |
+        No keys, tokens or secrets. A partner device (gateway 0.89.0+) carries `kind: partner`, its
+        `partner.name`, `scopes`, the `route` it was paired on and the `host` it connects to; a
+        phone carries `kind: phone` and follows the gateway's route. Changing the route never
+        moves a partner: one whose tunnel door shut with the route says `routeClosed`.
+      operationId: link.status
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkStatus"
+          description: The route and the devices.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: The Link route and every paired device — phones and partner servers
+        — with what each may reach.
+      tags:
+      - link
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.60.0
+      x-chatpanel-scope: paired devices
+      x-accepts:
+      - application/json
+  /v1/link/pair:
+    post:
+      description: |
+        **A phone** (no `kind`, or `kind: phone`): a room on the route's relay and the QR the phone
+        scans; the answer carries `uri`, `svg`, `expiresAt`, `room`.
+
+        **A partner server** (`kind: partner`, gateway 0.89.0+): nothing is issued without the
+        owner's yes. Without `confirm: true` the answer is `{ confirmed: false, preview }` — what
+        the partner will be able to do (scopes, agents yes/no), the route and the one host its
+        server will connect to — and nothing is created. With `confirm: true` the answer adds the
+        `code` (`cplink1.…`, one use, 10 minutes), `room`, `route` and `host`. The route is the
+        gateway's own unless `route` names another; a tunnel route reaches the tunnel door with no
+        relay at all, and ChatPanel's hosted relay is used only for `link`. Refused with 403 from a
+        device on Link: a paired device never pairs another.
+      operationId: link.pair
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkPairRequest"
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkPairResult"
+          description: "The phone's code, or the partner's preview (and, once confirmed,\
+            \ its code)."
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "Start a pairing — a phone's QR, or (with `kind partner`) a partner\
+        \ server's one-time code, shown and confirmed first."
+      tags:
+      - link
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.60.0
+      x-chatpanel-scope: paired devices
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/link/route:
+    post:
+      description: "Checked, saved in the gateway's config and applied without a restart.\
+        \ Phones follow it; partner devices keep the route they were paired on, and\
+        \ the answer lists which is on which."
+      operationId: link.route
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkRouteRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkStatus"
+          description: "The route now in effect, and the devices."
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "How devices reach this computer — ChatPanel Link, the person's own\
+        \ relay, Tailscale or Cloudflare Tunnel."
+      tags:
+      - link
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.65.0
+      x-chatpanel-scope: paired devices
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/link/devices/{deviceId}:
+    delete:
+      operationId: link.removeDevice
+      parameters:
+      - description: The device's `id` from `link.status`.
+        explode: false
+        in: path
+        name: deviceId
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9_-]{1,64}$"
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/browser_announce_200_response"
+          description: Removed.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "Remove a paired device now — its relay room, its key and its open\
+        \ connection."
+      tags:
+      - link
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.60.0
+      x-chatpanel-scope: paired devices
       x-accepts:
       - application/json
 components:
@@ -7556,6 +7714,335 @@ components:
           type: string
       required:
       - kind
+    LinkPairRequest:
+      example:
+        kind: phone
+        name: name
+        partner:
+          name: name
+        scopes:
+        - models
+        - models
+        route: link
+        relay: https://openapi-generator.tech
+        confirm: true
+      properties:
+        kind:
+          description: Absent is a phone.
+          enum:
+          - phone
+          - partner
+          type: string
+        name:
+          description: A phone pairing — what the phone calls this computer.
+          maxLength: 60
+          type: string
+        partner:
+          $ref: "#/components/schemas/LinkPairRequest_partner"
+        scopes:
+          $ref: "#/components/schemas/LinkPairRequest_scopes"
+        route:
+          description: The partner's one path. Absent is the gateway's own route.
+          enum:
+          - link
+          - relay
+          - tailscale
+          - cloudflare
+          type: string
+        relay:
+          description: The https relay for `route relay`.
+          format: uri
+          type: string
+        confirm:
+          description: The owner saw the preview and said yes. Without it nothing
+            is issued.
+          type: boolean
+    LinkPartnerPreview:
+      example:
+        partner: partner
+        scopes:
+        - scopes
+        - scopes
+        agents: true
+        route: route
+        host: host
+        lines:
+        - lines
+        - lines
+      properties:
+        partner:
+          type: string
+        scopes:
+          items:
+            type: string
+          type: array
+          default: null
+        agents:
+          type: boolean
+        route:
+          type: string
+        host:
+          description: The one host the partner's server will connect to.
+          type: string
+        lines:
+          description: The confirmation as the owner reads it.
+          items:
+            type: string
+          type: array
+          default: null
+      required:
+      - agents
+      - host
+      - lines
+      - partner
+      - route
+      - scopes
+    LinkPairResult:
+      example:
+        uri: uri
+        svg: svg
+        expiresAt: 0
+        room: room
+        confirmed: true
+        preview:
+          partner: partner
+          scopes:
+          - scopes
+          - scopes
+          agents: true
+          route: route
+          host: host
+          lines:
+          - lines
+          - lines
+        code: code
+        kind: kind
+        partner:
+          name: name
+        scopes:
+        - scopes
+        - scopes
+        route: route
+        host: host
+      properties:
+        uri:
+          description: A phone's QR text.
+          type: string
+        svg:
+          description: The QR as SVG.
+          type: string
+        expiresAt:
+          description: Epoch ms when the code stops working.
+          format: int64
+          type: integer
+        room:
+          description: The device id it pairs.
+          type: string
+        confirmed:
+          description: Partner pairings — false is a preview only.
+          type: boolean
+        preview:
+          $ref: "#/components/schemas/LinkPartnerPreview"
+        code:
+          description: A partner's one-time `cplink1.` code — give it to the partner
+            through a channel you trust.
+          type: string
+        kind:
+          type: string
+        partner:
+          $ref: "#/components/schemas/LinkPairResult_partner"
+        scopes:
+          items:
+            type: string
+          type: array
+          default: null
+        route:
+          type: string
+        host:
+          type: string
+    LinkRouteRequest:
+      example:
+        route: link
+        url: url
+        fallback: true
+      properties:
+        route:
+          enum:
+          - link
+          - relay
+          - tailscale
+          - cloudflare
+          type: string
+        url:
+          description: The relay (relay) or this computer's tunnel address (tailscale
+          type: string
+        fallback:
+          description: A tunnel route keeps ChatPanel Link as the phones' fallback
+            unless false.
+          type: boolean
+      required:
+      - route
+    LinkDevice:
+      example:
+        id: id
+        kind: phone
+        name: name
+        pairedAt: 0
+        lastSeen: 6
+        online: true
+        via: via
+        partner:
+          name: name
+        scopes:
+        - scopes
+        - scopes
+        route: route
+        host: host
+        routeClosed: true
+        staleRelay: staleRelay
+        tunnelNeedsRelink: true
+      properties:
+        id:
+          type: string
+        kind:
+          enum:
+          - phone
+          - partner
+          type: string
+        name:
+          type: string
+        pairedAt:
+          format: int64
+          nullable: true
+          type: integer
+        lastSeen:
+          format: int64
+          nullable: true
+          type: integer
+        online:
+          type: boolean
+        via:
+          description: "tunnel or relay, while online."
+          nullable: true
+          type: string
+        partner:
+          $ref: "#/components/schemas/LinkPairResult_partner"
+        scopes:
+          items:
+            type: string
+          type: array
+          default: null
+        route:
+          description: A partner's route
+          nullable: true
+          type: string
+        host:
+          type: string
+        routeClosed:
+          description: A tunnel partner whose door shut when the gateway's route moved
+            — pair it again to move it.
+          type: boolean
+        staleRelay:
+          type: string
+        tunnelNeedsRelink:
+          type: boolean
+      required:
+      - id
+      - name
+    LinkStatus:
+      example:
+        enabled: true
+        route: route
+        relay: relay
+        tunnel: tunnel
+        problem: problem
+        routes:
+        - key: ""
+        - key: ""
+        setup:
+          key: ""
+        devices:
+        - id: id
+          kind: phone
+          name: name
+          pairedAt: 0
+          lastSeen: 6
+          online: true
+          via: via
+          partner:
+            name: name
+          scopes:
+          - scopes
+          - scopes
+          route: route
+          host: host
+          routeClosed: true
+          staleRelay: staleRelay
+          tunnelNeedsRelink: true
+        - id: id
+          kind: phone
+          name: name
+          pairedAt: 0
+          lastSeen: 6
+          online: true
+          via: via
+          partner:
+            name: name
+          scopes:
+          - scopes
+          - scopes
+          route: route
+          host: host
+          routeClosed: true
+          staleRelay: staleRelay
+          tunnelNeedsRelink: true
+        pairing:
+          key: ""
+        partnerPairing:
+          key: ""
+        agentSessions: true
+      properties:
+        enabled:
+          type: boolean
+        route:
+          type: string
+        relay:
+          nullable: true
+          type: string
+        tunnel:
+          nullable: true
+          type: string
+        problem:
+          type: string
+        routes:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          default: null
+        setup:
+          additionalProperties: true
+          type: object
+        devices:
+          items:
+            $ref: "#/components/schemas/LinkDevice"
+          type: array
+          default: null
+        pairing:
+          additionalProperties: true
+          description: A phone code waiting to be scanned.
+          nullable: true
+          type: object
+        partnerPairing:
+          additionalProperties: true
+          description: A partner code waiting to be used.
+          nullable: true
+          type: object
+        agentSessions:
+          type: boolean
+      required:
+      - devices
+      - enabled
     BrowserStatus:
       example:
         connected: true
@@ -9167,6 +9654,37 @@ components:
       - id
       - kind
       - members
+    LinkPairRequest_partner:
+      example:
+        name: name
+      properties:
+        name:
+          description: What the owner calls the partner.
+          pattern: "^[A-Za-z0-9][A-Za-z0-9 ._-]{0,39}$"
+          type: string
+      required:
+      - name
+    LinkPairRequest_scopes:
+      description: "What the partner may reach: `models` (GET /v1/models), `chat`\
+        \ (POST /v1/chat/completions and /v1/messages to API models), `agents` (also\
+        \ the coding agents, as plain conversation; needs chat). An array or a comma\
+        \ list; absent is models and chat."
+      oneOf:
+      - items:
+          enum:
+          - models
+          - chat
+          - agents
+          type: string
+        type: array
+        default: null
+      - type: string
+    LinkPairResult_partner:
+      example:
+        name: name
+      properties:
+        name:
+          type: string
     BrowserCallResult_result_oneOf:
       properties:
         text:

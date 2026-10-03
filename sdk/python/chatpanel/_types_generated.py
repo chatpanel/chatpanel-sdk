@@ -929,6 +929,83 @@ class BrowserInfo(TypedDict, total=False):
     version: NotRequired[str]
 
 
+class LinkPairRequest(TypedDict, total=False):
+    """LinkPairRequest"""
+    kind: NotRequired[Literal["phone", "partner"]]  # Absent is a phone.
+    name: NotRequired[str]  # A phone pairing — what the phone calls this computer.
+    partner: NotRequired[Dict[str, Any]]
+    scopes: NotRequired[Union[List[Literal["models", "chat", "agents"]], str]]  # What the partner may reach: `models` (GET /v1/models), `chat` (POST /v1/chat/completions and /v1/messages to API models), `agents` (also the coding agents, as plain conversation; needs chat). An array or a comma list; absent is models and chat.
+    route: NotRequired[Literal["link", "relay", "tailscale", "cloudflare"]]  # The partner's one path. Absent is the gateway's own route.
+    relay: NotRequired[str]  # The https relay for `route relay`.
+    confirm: NotRequired[bool]  # The owner saw the preview and said yes. Without it nothing is issued.
+
+
+class LinkPartnerPreview(TypedDict, total=False):
+    """LinkPartnerPreview"""
+    partner: str
+    scopes: List[str]
+    agents: bool
+    route: str
+    host: str  # The one host the partner's server will connect to.
+    lines: List[str]  # The confirmation as the owner reads it.
+
+
+class LinkPairResult(TypedDict, total=False):
+    """LinkPairResult"""
+    uri: NotRequired[str]  # A phone's QR text.
+    svg: NotRequired[str]  # The QR as SVG.
+    expiresAt: NotRequired[int]  # Epoch ms when the code stops working.
+    room: NotRequired[str]  # The device id it pairs.
+    confirmed: NotRequired[bool]  # Partner pairings — false is a preview only.
+    preview: NotRequired["LinkPartnerPreview"]
+    code: NotRequired[str]  # A partner's one-time `cplink1.` code — give it to the partner through a channel you trust.
+    kind: NotRequired[str]
+    partner: NotRequired[Dict[str, Any]]
+    scopes: NotRequired[List[str]]
+    route: NotRequired[str]
+    host: NotRequired[str]
+
+
+class LinkRouteRequest(TypedDict, total=False):
+    """LinkRouteRequest"""
+    route: Literal["link", "relay", "tailscale", "cloudflare"]
+    url: NotRequired[str]  # The relay (relay) or this computer's tunnel address (tailscale
+    fallback: NotRequired[bool]  # A tunnel route keeps ChatPanel Link as the phones' fallback unless false.
+
+
+class LinkDevice(TypedDict, total=False):
+    """LinkDevice"""
+    id: str
+    kind: NotRequired[Literal["phone", "partner"]]
+    name: str
+    pairedAt: NotRequired[Union[int, None]]
+    lastSeen: NotRequired[Union[int, None]]
+    online: NotRequired[bool]
+    via: NotRequired[Union[str, None]]  # tunnel or relay, while online.
+    partner: NotRequired[Dict[str, Any]]
+    scopes: NotRequired[List[str]]
+    route: NotRequired[Union[str, None]]  # A partner's route
+    host: NotRequired[str]
+    routeClosed: NotRequired[bool]  # A tunnel partner whose door shut when the gateway's route moved — pair it again to move it.
+    staleRelay: NotRequired[str]
+    tunnelNeedsRelink: NotRequired[bool]
+
+
+class LinkStatus(TypedDict, total=False):
+    """LinkStatus"""
+    enabled: bool
+    route: NotRequired[str]
+    relay: NotRequired[Union[str, None]]
+    tunnel: NotRequired[Union[str, None]]
+    problem: NotRequired[str]
+    routes: NotRequired[List[Dict[str, Any]]]
+    setup: NotRequired[Dict[str, Any]]
+    devices: List["LinkDevice"]
+    pairing: NotRequired[Union[Dict[str, Any], None]]  # A phone code waiting to be scanned.
+    partnerPairing: NotRequired[Union[Dict[str, Any], None]]  # A partner code waiting to be used.
+    agentSessions: NotRequired[bool]
+
+
 class BrowserStatus(TypedDict, total=False):
     """BrowserStatus"""
     connected: bool

@@ -129,6 +129,59 @@ and documented for the generated clients in [`generated/README.md`](generated/RE
 Full reasoning: [`docs/DESIGN.md`](docs/DESIGN.md) · threat model and what is deliberately
 not in the SDK: [`docs/SECURITY.md`](docs/SECURITY.md).
 
+## Remote access for partner servers
+
+A service the user chose (call it `acme`) can reach that user's gateway from its own SERVER —
+models and chat on the user's own computer, redacted as every turn is — through **ChatPanel
+Link**: no port opened on the user's machine, end-to-end encrypted (Noise), revocable at once.
+Nothing is reachable until the gateway's owner lets the partner in, at their own computer:
+
+```
+chatpanel-gateway link pair --partner acme --scopes models,chat
+#   shows what acme will be able to do, the route and the one host its server will connect to,
+#   asks to confirm (or --yes), then prints a one-time code: cplink1.…  (10 minutes, one use)
+```
+
+The partner's server uses that code once and keeps the resulting device state (encrypt it at
+rest — it holds the device's key):
+
+```ts
+import { ChatPanel } from '@chatpanel/sdk';
+import { createLinkFetch } from '@chatpanel/events/link-fetch.js';
+
+const linkFetch = await createLinkFetch({
+  pairing: process.env.CHATPANEL_LINK_CODE,            // only needed the first time
+  store: { load: () => db.loadLinkState(userId), save: (s) => db.saveLinkState(userId, encrypt(s)) },
+  // WebSocketImpl: WebSocket from the `ws` package, on Node 20 (Node 22+ and browsers have one)
+});
+const cp = new ChatPanel({ baseUrl: 'http://127.0.0.1:4320', fetch: linkFetch });
+const { data } = await cp.models.list();
+for await (const text of cp.chat.text({ model: data[0].id, messages: [{ role: 'user', content: 'Hello' }] })) process.stdout.write(text);
+```
+
+The base URL stays loopback, so the SDK's loopback rule holds; `linkFetch` carries only the
+path to the user's gateway. What the partner may reach is the gateway's decision, by the scopes
+the owner granted: `models` (GET /v1/models), `chat` (chat completions and messages to API
+models), and — only when named at pairing — `agents` (the coding agents, as plain conversation:
+no files, shell, web or MCP tools). Everything else answers 403: pairing, settings, prefs,
+history, memory, the event log. The owner sees each partner in `chatpanel-gateway link`, in
+`chatpanel-gateway --audit` and in Settings › Your phone, and removes it with
+`chatpanel-gateway link revoke <id>` (the open connection is closed; later calls reject with
+`code: 'revoked'`). One process should own a device's connection at a time: a second socket for
+the same device replaces the first.
+
+**Routes.** The partner takes the ONE route the owner chose at pairing (the gateway's own route by
+default, `--route` to name another):
+
+| Route | Who dials whom | Reachability and cost |
+|---|---|---|
+| `tailscale` | the partner's server dials the user's tunnel door (`/v1/link/room/…`) on their tailnet; no relay | the server must be on the user's tailnet; nothing to anyone else |
+| `cloudflare` | the partner's server dials the user's Cloudflare Tunnel hostname, straight to the gateway's tunnel door; no relay | reachable from anywhere; runs on the user's own Cloudflare account |
+| `relay` | both dial out to a relay the user runs | the user's server and its operations |
+| `link` | both dial out to ChatPanel's hosted relay (`link.chatpanel.net`), only when chosen | reachable from anywhere; billed to the ChatPanel operator per message |
+
+Security model: [`docs/SECURITY.md`](docs/SECURITY.md#remote-access-for-partner-servers).
+
 ## Working on this repo
 
 ```
