@@ -373,6 +373,25 @@ class ExtractResponse(TypedDict, total=False):
     ms: float
 
 
+class ExtractContextRequest(TypedDict, total=False):
+    """ExtractContextRequest"""
+    question: str  # The question the documents are read for — its content words pick the pages of a long document.
+    documents: List[Dict[str, Any]]  # Each document as its bytes (`name` + `data`, optionally `type`) or as the `hash` `/v1/extract` returned for one already open (optionally `name`, the title the block shows).
+    window: NotRequired[int]  # The answering model's window in tokens — sizes the share the documents may take. Absent: a small window's share.
+    budgetChars: NotRequired[int]  # The share outright, in characters; overrides `window`.
+
+
+class ExtractContextResponse(TypedDict, total=False):
+    """ExtractContextResponse"""
+    attachment: Dict[str, Any]  # The block to put BEFORE the question; null when nothing could be read.
+    read: List[Dict[str, Any]]
+    skipped: List[Dict[str, Any]]
+    how: Literal["whole", "pages", "none"]
+    budgetChars: int
+    provider: str  # `chatpanel-extract`.
+    ms: float
+
+
 class EmbedRequest(TypedDict, total=False):
     """EmbedRequest"""
     input: Union[str, List[str]]  # A string, or 1–256 strings.

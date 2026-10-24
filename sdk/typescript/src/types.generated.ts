@@ -491,6 +491,66 @@ export interface ExtractResponse {
   ms: number;
 }
 
+export interface ExtractContextRequest {
+  /** The question the documents are read for — its content words pick the pages of a long document. */
+  question: string;
+  /** Each document as its bytes (`name` + `data`, optionally `type`) or as the `hash` `/v1/extract` returned for one already open (optionally `name`, the title the block shows). */
+  documents: Array<{
+    name?: string;
+    type?: string;
+    data?: string;
+    hash?: string;
+  }>;
+  /** The answering model's window in tokens — sizes the share the documents may take. Absent: a small window's share. */
+  window?: number;
+  /** The share outright, in characters; overrides `window`. */
+  budgetChars?: number;
+}
+
+export interface ExtractContextResponse {
+  /** The block to put BEFORE the question; null when nothing could be read. */
+  attachment: {
+    kind?: "prefetch";
+    prefetch?: "document";
+    title?: string;
+    /** `[document] <title> — N pages[; read: pages …]` then `--- page n ---` and that page's text, per document. */
+    text?: string;
+    chars?: number;
+    cites?: Array<{
+      title?: string;
+      page?: number;
+    }>;
+    docs?: Array<{
+      id?: string;
+      title?: string;
+      of?: number;
+      pages?: Array<number>;
+      how?: "whole" | "pages";
+    }>;
+  };
+  read: Array<{
+    id?: string;
+    title?: string;
+    /** The document's page count. */
+    of?: number;
+    /** The pages in the block. */
+    pages?: Array<number>;
+    how?: "whole" | "pages";
+    /** The document's hash — reuse it on the next call. */
+    hash?: string;
+  }>;
+  skipped: Array<{
+    id?: string;
+    title?: string;
+    why?: string;
+  }>;
+  how: "whole" | "pages" | "none";
+  budgetChars: number;
+  /** `chatpanel-extract`. */
+  provider: string;
+  ms: number;
+}
+
 export interface EmbedRequest {
   /** A string, or 1–256 strings. */
   input: string | Array<string>;

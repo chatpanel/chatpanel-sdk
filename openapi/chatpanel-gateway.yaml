@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.44.1
+  version: 0.45.0
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -1799,6 +1799,48 @@ paths:
           content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
         '503':
           description: The model is downloading (`provider_warming`, with `progress`), the budget cannot be met (`over_budget`), or the provider did not answer (`provider_unavailable`).
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+  /v1/extract/context:
+    post:
+      operationId: retrieval.extractContext
+      tags: [retrieval]
+      summary: The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel's own clients do.
+      description: |
+        The turn pipeline's document stage as an API. Every ChatPanel client reads a file the
+        person attached BEFORE a small model answers: whole when it fits the window's share of
+        characters, else the pages that carry the question's words, each page cited, as one
+        `prefetch` block placed before the question (a small model reads context first). A
+        harness built on this SDK gets the same block here: send the question and the documents
+        (the bytes, base64, or the `hash` of one `/v1/extract` already opened), and put
+        `attachment.text` in the user message ahead of the question. `window` (tokens) sizes the
+        share — a 4k on-device model gets a few thousand characters, a large window far more —
+        or `budgetChars` sets it outright. `how` says whether the whole document went or pages
+        were picked; `read` lists each document's pages, `skipped` the ones that could not be
+        opened. A document with no text layer is named as a scan inside the block rather than
+        guessed from. Parsed in the same worker as `/v1/extract`, on this machine; nothing leaves it.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.102.0'
+      x-chatpanel-scope: the documents sent, read on this machine, never sent anywhere
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExtractContextRequest' }
+      responses:
+        '200':
+          description: The block to put before the question, and what was read.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExtractContextResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '404':
+          description: A `hash` is not open in the worker (`unknown_document`) — send the bytes again.
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+        '413':
+          description: A document is over the 64 MB limit (`too_large`).
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+        '415':
+          description: No reader for these bytes (`unsupported`).
           content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
   /v1/extract:
     post:
@@ -3806,6 +3848,59 @@ components:
         scanned: { type: boolean, description: "A PDF with no text layer: its pages are empty and need OCR, which this does not do." }
         page: { type: integer, minimum: 1, description: "Present on a page call." }
         text: { type: string, description: "The page's text, on a page call. May be empty." }
+        provider: { type: string, description: "`chatpanel-extract`." }
+        ms: { type: number }
+    ExtractContextRequest:
+      type: object
+      required: [question, documents]
+      properties:
+        question: { type: string, maxLength: 2000, description: "The question the documents are read for — its content words pick the pages of a long document." }
+        documents:
+          type: array
+          minItems: 1
+          maxItems: 8
+          description: "Each document as its bytes (`name` + `data`, optionally `type`) or as the `hash` `/v1/extract` returned for one already open (optionally `name`, the title the block shows)."
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              type: { type: string }
+              data: { type: string, format: byte }
+              hash: { type: string, pattern: '^[0-9a-f]{64}$' }
+        window: { type: integer, minimum: 1, description: "The answering model's window in tokens — sizes the share the documents may take. Absent: a small window's share." }
+        budgetChars: { type: integer, minimum: 800, description: "The share outright, in characters; overrides `window`." }
+    ExtractContextResponse:
+      type: object
+      required: [attachment, read, skipped, how, budgetChars, provider, ms]
+      properties:
+        attachment:
+          nullable: true
+          description: "The block to put BEFORE the question; null when nothing could be read."
+          type: object
+          properties:
+            kind: { type: string, enum: [prefetch] }
+            prefetch: { type: string, enum: [document] }
+            title: { type: string }
+            text: { type: string, description: "`[document] <title> — N pages[; read: pages …]` then `--- page n ---` and that page's text, per document." }
+            chars: { type: integer }
+            cites: { type: array, items: { type: object, properties: { title: { type: string }, page: { type: integer } } } }
+            docs: { type: array, items: { type: object, properties: { id: { type: string }, title: { type: string }, of: { type: integer }, pages: { type: array, items: { type: integer } }, how: { type: string, enum: [whole, pages] } } } }
+        read:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              title: { type: string }
+              of: { type: integer, description: "The document's page count." }
+              pages: { type: array, items: { type: integer }, description: "The pages in the block." }
+              how: { type: string, enum: [whole, pages] }
+              hash: { type: string, description: "The document's hash — reuse it on the next call." }
+        skipped:
+          type: array
+          items: { type: object, properties: { id: { type: string }, title: { type: string }, why: { type: string } } }
+        how: { type: string, enum: [whole, pages, none] }
+        budgetChars: { type: integer }
         provider: { type: string, description: "`chatpanel-extract`." }
         ms: { type: number }
     EmbedRequest:
