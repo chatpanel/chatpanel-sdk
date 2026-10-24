@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.43.0
+  version: 0.44.0
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -96,6 +96,8 @@ tags:
     description: The skills on this machine (served through the bridge).
   - name: retrieval
     description: Web retrieval — search through the provider the user chose, and a page as LLM-ready Markdown, cited where it landed, with its sections (docs/web-retrieval.md).
+  - name: knowledge
+    description: Knowledge bases — the user's documents (PDFs, office files, folders, pages) indexed on this machine and searched by words, meaning and graph; researched by the harness loop; annotated over time (docs/knowledge-base.md).
   - name: runtime
     description: What runs processes for the user and how — the process sandbox (through the bridge), the container engine on this machine, and the services the gateway runs for the user (docs/sandboxing.md S1).
   - name: browser
@@ -1761,6 +1763,43 @@ paths:
         '502': { $ref: '#/components/responses/Error' }
         '503': { $ref: '#/components/responses/Error' }
         '504': { $ref: '#/components/responses/Error' }
+  /v1/embeddings:
+    post:
+      operationId: capabilities.embed
+      tags: [capabilities]
+      summary: One unit vector per input — OpenAI-shaped embeddings, in the gateway's own process by default.
+      description: |
+        The `embed` capability (docs/capability-endpoints.md C4), served since 0.101.0 by the
+        in-process embedder (`Xenova/multilingual-e5-small` by default, 384 dimensions, q8 on
+        the ONNX runtime; `Xenova/all-MiniLM-L6-v2` as the lighter English-only pick) — or by
+        the server `capabilities.embed` names, through its adapter. `input` is a string or up to
+        256 strings; `kind` says whether they are queries or passages (E5 prefixes each). The
+        vectors are unit length, so cosine is a dot product. 503 `provider_warming` while the
+        model downloads (the first call starts it; a caller is never held), 404 `no_provider`
+        when it is turned off (`capabilities.embed.provider = none`), `budgetMs` refused from
+        the record like every capability. The knowledge base (`/v1/kb`) uses this for its
+        vector lane; it works on words and the graph until the model is on disk.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      x-chatpanel-scope: the texts, to the configured embedder — in this process by default
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmbedRequest' }
+      responses:
+        '200':
+          description: One embedding per input, in order.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EmbedResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '404':
+          description: Turned off (`no_provider`), or a `model` this gateway does not serve (`model_not_found`).
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+        '503':
+          description: The model is downloading (`provider_warming`, with `progress`), the budget cannot be met (`over_budget`), or the provider did not answer (`provider_unavailable`).
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
   /v1/extract:
     post:
       operationId: retrieval.extract
@@ -1810,6 +1849,398 @@ paths:
         '504':
           description: The parse took too long and the worker was restarted (`extract_timeout`).
           content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+  # ------------------------------------------------------------------ knowledge
+  /v1/kb:
+    get:
+      operationId: knowledge.list
+      tags: [knowledge]
+      summary: The knowledge bases on this machine.
+      description: Each base with its id, name, document count, vector count and model. Loads no passages.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      responses:
+        '200':
+          description: The bases.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbList' }
+    post:
+      operationId: knowledge.create
+      tags: [knowledge]
+      summary: Create a knowledge base (or return the one with that id).
+      description: |
+        A base is a folder under `~/.chatpanel/kb/<id>/` (manifest, passages, notes, vectors, a
+        Markdown report) — a projection over the documents added to it, rebuildable from them.
+        `embed: off` keeps it on words and the graph only. 201 when created, 200 with `existed`
+        when the id was already there.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/KbCreateRequest' }
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbStatusResponse' }
+        '200':
+          description: A base with that id already existed; this is it.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbStatusResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+  /v1/kb/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$' }, description: The base id. }
+    get:
+      operationId: knowledge.status
+      tags: [knowledge]
+      summary: What a base holds — its documents, passages, notes, vectors, entities and connections.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      responses:
+        '200':
+          description: The base.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbStatusResponse' }
+        '404': { $ref: '#/components/responses/Error' }
+    delete:
+      operationId: knowledge.delete
+      tags: [knowledge]
+      summary: Delete a base and its folder.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.101.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      responses:
+        '200':
+          description: Deleted.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/kb/{id}/documents:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$' }, description: The base id. }
+    get:
+      operationId: knowledge.documents
+      tags: [knowledge]
+      summary: The documents in a base.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      responses:
+        '200':
+          description: The documents.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbDocuments' }
+        '404': { $ref: '#/components/responses/Error' }
+    post:
+      operationId: knowledge.add
+      tags: [knowledge]
+      summary: Add a document — bytes, a path on this machine, a URL, or text — and index it.
+      description: |
+        One of four sources: `name` + `data` (the file, base64, up to 64 MB — a PDF, DOCX, XLSX,
+        PPTX, ODF, Markdown or text, parsed in the extract worker); `path` (a file or folder on
+        this machine, walked with the same refusals the `files` tool applies — credential stores
+        withheld and named, `node_modules` and hidden folders skipped, documents up to 64 MB;
+        TOKEN-GATED: a path is a read on the machine, so it is 403 to a caller without the token
+        or the extension origin); `url` (a public page through the `read` capability); `text`.
+        The same bytes added again REPLACE the document. Passages are chunked by the document's
+        own headings with page citations, indexed by words and in the graph, and embedded when
+        the embedder's model is on disk (`embedded` says how many); the report is rewritten.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      x-chatpanel-scope: the document, parsed and indexed on this machine, never sent anywhere
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/KbAddRequest' }
+      responses:
+        '200':
+          description: What was added and what was skipped, with why.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbAddResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403':
+          description: A `path` from a caller without the token (`forbidden`), or a credential by content (`refused`).
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+        '404': { $ref: '#/components/responses/Error' }
+        '413':
+          description: Over the 64 MB limit (`too_large`).
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+        '415':
+          description: Not a document (`unsupported`).
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+        '502':
+          description: The URL could not be read (`read_failed`).
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+  /v1/kb/{id}/documents/{doc}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$' }, description: The base id. }
+      - { name: doc, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_.-]{1,80}$' }, description: The document id. }
+    get:
+      operationId: knowledge.page
+      tags: [knowledge]
+      summary: One page of a document, from the index.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      parameters:
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 }, description: The page to read. }
+      responses:
+        '200':
+          description: The page.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbPage' }
+        '404': { $ref: '#/components/responses/Error' }
+    delete:
+      operationId: knowledge.removeDocument
+      tags: [knowledge]
+      summary: Remove a document, its passages and vectors (notes keep their text and lose the cite).
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.101.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      responses:
+        '200':
+          description: Removed; the base's status after.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbStatusResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/kb/{id}/passages/{passage}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$' }, description: The base id. }
+      - { name: passage, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_.:#-]{1,100}$' }, description: 'A passage id (`<doc>#<n>`) or a note id (`note:<id>`).' }
+    get:
+      operationId: knowledge.passage
+      tags: [knowledge]
+      summary: One passage by id, with its citation.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      responses:
+        '200':
+          description: The passage.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbPassage' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/kb/{id}/outline:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$' }, description: The base id. }
+    get:
+      operationId: knowledge.outline
+      tags: [knowledge]
+      summary: The table of contents a document's headings imply — every section once, with where it starts.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      parameters:
+        - { name: doc, in: query, required: false, schema: { type: string, maxLength: 80 }, description: One document; omit for all. }
+      responses:
+        '200':
+          description: The outline.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbOutline' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/kb/{id}/search:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$' }, description: The base id. }
+    post:
+      operationId: knowledge.search
+      tags: [knowledge]
+      summary: The passages that answer a question — words, meaning and graph fused, a reranker on top, each with its citation.
+      description: |
+        The words in up to four query shapes (BM25), the meaning when the base has vectors (the
+        query embedded by the same model), the graph's one-hop expansion of the best hits (a
+        passage sharing a name or a section with a hit, and `via` says which), and the notes as
+        their own lane — fused by Reciprocal Rank Fusion with the graph at half weight, then the
+        gateway's reranker fused in (never substituted). Each result carries `lanes` (which found
+        it), `scores` (each lane's own, comparable within one query) and `cite` as the model is
+        told to write it (`[report.pdf p.12]`). `docs` scopes to documents; `queries` adds the
+        caller's own phrasings.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/KbSearchRequest' }
+      responses:
+        '200':
+          description: The results, best first.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbSearchResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/kb/{id}/research:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$' }, description: The base id. }
+    post:
+      operationId: knowledge.research
+      tags: [knowledge]
+      summary: The bounded loop over a base — framed, searched, read, checked once, asked when ambiguous — as one cited block for a model.
+      description: |
+        The harness's loop (events kb-research.js), not a model's tool calls: a whole-document
+        ask ("what is this about") reads the outline and the opening of each section; a focused
+        one searches, reads the best passages grouped by document in page order, and — with
+        `model` (TOKEN-GATED: the check runs on this gateway's own chat route) — asks that model
+        once whether what was read answers it, then searches once more for what it says is
+        missing. When the hits split evenly across documents and the question names none, the
+        answer is `ask` (which document?) instead of a guess; call again with `answer` to go on,
+        or `ask: false` to never pause. `attachment` is the block a client attaches before the
+        question (`kind: prefetch`), `null` when nothing matched beyond the plain statement.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/KbResearchRequest' }
+      responses:
+        '200':
+          description: The traversal, the block, or the question for the person.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbResearchResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403':
+          description: '`model` from a caller without the token (`forbidden`).'
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/kb/{id}/graph:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$' }, description: The base id. }
+    post:
+      operationId: knowledge.graph
+      tags: [knowledge]
+      summary: What connects to a node — its neighbours up to `hops` away — or the path between two.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/KbGraphRequest' }
+      responses:
+        '200':
+          description: The node resolved (or `null`), its neighbours, the path when `to` was given.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbGraphResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/kb/{id}/report:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$' }, description: The base id. }
+    get:
+      operationId: knowledge.report
+      tags: [knowledge]
+      summary: The base written down as Markdown — documents with outlines, the entities that bind them, the communities, the notes.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      x-chatpanel-sdk: manual
+      responses:
+        '200':
+          description: The report.
+          content:
+            text/markdown:
+              schema: { type: string }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/kb/{id}/notes:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$' }, description: The base id. }
+    get:
+      operationId: knowledge.notes
+      tags: [knowledge]
+      summary: The notes filed into a base.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      responses:
+        '200':
+          description: The notes.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbNotes' }
+        '404': { $ref: '#/components/responses/Error' }
+    post:
+      operationId: knowledge.note
+      tags: [knowledge]
+      summary: File a note — a fact, a summary, a correction — cited to passages; proposed until accepted.
+      description: |
+        How a base improves over time. A note is indexed and searched as its own lane and shown
+        with its status; `status: accepted` is honoured only from a caller with the token (the
+        person, or a client acting for them) — any other caller's note is filed as `proposed`.
+        Unknown cites are dropped.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/KbNoteRequest' }
+      responses:
+        '201':
+          description: Filed.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbNoteResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/kb/{id}/notes/{note}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$' }, description: The base id. }
+      - { name: note, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,64}$' }, description: The note id. }
+    post:
+      operationId: knowledge.noteStatus
+      tags: [knowledge]
+      summary: Accept a proposed note, withdraw it to proposed, or remove it.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.101.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/KbNoteStatusRequest' }
+      responses:
+        '200':
+          description: The note after.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbNoteResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/kb/{id}/embed:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$' }, description: The base id. }
+    post:
+      operationId: knowledge.embed
+      tags: [knowledge]
+      summary: Embed every passage that has no vector yet, and say where the embedder stands.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.0'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { type: object, description: No fields. }
+      responses:
+        '200':
+          description: How many were embedded now, how many vectors the base holds, and the embedder's state (`ready`, `downloading` with `progress`, `off`).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbEmbedResponse' }
+        '404': { $ref: '#/components/responses/Error' }
   /v1/read:
     post:
       operationId: retrieval.read
@@ -3334,6 +3765,375 @@ components:
         text: { type: string, description: "The page's text, on a page call. May be empty." }
         provider: { type: string, description: "`chatpanel-extract`." }
         ms: { type: number }
+    EmbedRequest:
+      type: object
+      required: [input]
+      properties:
+        input:
+          description: A string, or 1–256 strings.
+          oneOf:
+            - { type: string }
+            - { type: array, items: { type: string }, minItems: 1, maxItems: 256 }
+        model: { type: string, description: "The model `GET /v1/capabilities` lists for `embed`; 404 otherwise." }
+        kind: { type: string, enum: [query, passage], default: passage, description: "What the texts are — a model with instruction prefixes (E5) prefixes each accordingly." }
+        budgetMs: { type: number, minimum: 0 }
+    EmbedResponse:
+      type: object
+      required: [object, data, model, ms]
+      properties:
+        object: { type: string, enum: [list] }
+        data:
+          type: array
+          items:
+            type: object
+            required: [object, index, embedding]
+            properties:
+              object: { type: string, enum: [embedding] }
+              index: { type: integer, minimum: 0 }
+              embedding: { type: array, items: { type: number }, description: "Unit length." }
+        model: { type: string }
+        usage: { type: object, properties: { prompt_tokens: { type: integer }, total_tokens: { type: integer } } }
+        ms: { type: number }
+    KbOkResponse:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean }
+    KbList:
+      type: object
+      required: [kbs]
+      properties:
+        kbs:
+          type: array
+          items:
+            type: object
+            required: [id, name, docs]
+            properties:
+              id: { type: string }
+              name: { type: string }
+              docs: { type: integer }
+              updatedAt: { type: integer, format: int64 }
+              vectors: { type: integer }
+              model: { type: string }
+    KbCreateRequest:
+      type: object
+      properties:
+        id: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$', description: "Chosen by the caller; made up when absent." }
+        name: { type: string, maxLength: 120 }
+        embed: { type: string, enum: [auto, off], default: auto, description: "`off`: words and graph only, no vectors." }
+    KbDocument:
+      type: object
+      required: [id, title, pages, chunks]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        pages: { type: integer }
+        chunks: { type: integer, description: "Passages." }
+        type: { type: string }
+        source:
+          type: object
+          properties:
+            kind: { type: string, enum: [file, url, bytes, text] }
+            path: { type: string }
+            url: { type: string }
+            name: { type: string }
+        addedAt: { type: integer, format: int64 }
+    KbStatus:
+      type: object
+      required: [id, name, docs, chunks, notes, vectors, entities, edges, documents]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        v: { type: integer }
+        createdAt: { type: integer, format: int64 }
+        updatedAt: { type: integer, format: int64 }
+        docs: { type: integer }
+        chunks: { type: integer }
+        notes: { type: integer }
+        proposed: { type: integer, description: "Notes awaiting acceptance." }
+        vectors: { type: integer }
+        model: { type: string, description: "The embedding model the vectors came from." }
+        dims: { type: integer }
+        embed: { type: string, enum: [auto, off] }
+        entities: { type: integer }
+        edges: { type: integer }
+        reach: { type: string, description: "The tightest provenance of its documents (`internal`, `web`, or empty)." }
+        documents: { type: array, items: { $ref: '#/components/schemas/KbDocument' } }
+        bytes: { type: integer, format: int64, description: "On disk." }
+        dir: { type: string, description: "The folder on disk — to a caller with the token only." }
+    KbStatusResponse:
+      type: object
+      required: [kb]
+      properties:
+        kb: { $ref: '#/components/schemas/KbStatus' }
+        existed: { type: boolean }
+        ok: { type: boolean }
+    KbDocuments:
+      type: object
+      required: [documents]
+      properties:
+        documents: { type: array, items: { $ref: '#/components/schemas/KbDocument' } }
+    KbAddRequest:
+      type: object
+      description: "One source: `name` + `data`, or `path`, or `url`, or `text`."
+      properties:
+        name: { type: string, description: "The file name (with `data`); the title for `text` when none is given." }
+        type: { type: string, description: "A type hint (`pdf`, `docx`); the bytes decide." }
+        data: { type: string, format: byte, description: "The whole file, base64, at most 64 MB decoded." }
+        path: { type: string, description: "A file or folder on this machine (token-gated)." }
+        recursive: { type: boolean, default: true, description: "With a folder: walk subfolders." }
+        include: { type: array, items: { type: string }, description: "With a folder: only these extensions (`*.pdf`, `.md`)." }
+        url: { type: string, description: "A public http(s) page, read as Markdown." }
+        text: { type: string, description: "Plain text or Markdown, up to 4 M characters." }
+        title: { type: string, maxLength: 200 }
+        reach: { type: string, description: "Provenance to record on the document (`internal` narrows a turn that uses it)." }
+    KbAddResponse:
+      type: object
+      required: [added, skipped, kb]
+      properties:
+        added:
+          type: array
+          items:
+            type: object
+            required: [id, title, pages, chunks]
+            properties:
+              id: { type: string }
+              title: { type: string }
+              pages: { type: integer }
+              chunks: { type: integer }
+              replaced: { type: boolean }
+              scanned: { type: boolean, description: "A PDF with no text layer: indexed empty." }
+              path: { type: string, description: "Relative to the folder given." }
+        skipped:
+          type: array
+          items:
+            type: object
+            properties:
+              path: { type: string }
+              url: { type: string }
+              why: { type: string }
+        embedded: { type: integer, description: "Passages given a vector in this call." }
+        kb: { $ref: '#/components/schemas/KbStatus' }
+        ms: { type: number }
+    KbPassage:
+      type: object
+      required: [id, text]
+      properties:
+        id: { type: string, description: "`<doc>#<n>`, or `note:<id>`." }
+        doc: { type: string }
+        title: { type: string }
+        kind: { type: string, enum: [text, note] }
+        page: { type: integer }
+        pageEnd: { type: integer }
+        section: { type: string, description: "The heading path, ` › `-joined." }
+        text: { type: string }
+        chars: { type: integer }
+        score: { type: number, description: "The fused rank score (RRF) — only its order means anything." }
+        scores: { type: object, additionalProperties: { type: number }, description: "Each lane's own score (`text`, `vector`, `rerank`), comparable within one query." }
+        rerank: { type: number }
+        lanes: { type: array, items: { type: string, enum: [text, vector, graph, notes, rerank] } }
+        via: { type: array, items: { type: string }, description: "For a graph hit: the node(s) it was reached through." }
+        cite: { type: string, description: "As the model is told to write it: `[report.pdf p.12]`." }
+        status: { type: string, enum: [proposed, accepted], description: "A note's." }
+        cites: { type: array, items: { type: string }, description: "A note's passage ids." }
+    KbSearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query: { type: string, maxLength: 2000 }
+        limit: { type: integer, minimum: 1, maximum: 50, default: 10 }
+        hops: { type: integer, minimum: 0, maximum: 2, default: 1, description: "Graph expansion of the best hits; 0 = off." }
+        docs: { type: array, items: { type: string }, description: "Only these documents." }
+        queries: { type: array, items: { type: string }, maxItems: 6, description: "The caller's own phrasings, searched too." }
+        rerank: { type: boolean, default: true, description: "`false`: skip the reranker." }
+        budgetMs: { type: number, minimum: 0 }
+    KbSearchResponse:
+      type: object
+      required: [results, lanes, queries, ms]
+      properties:
+        results: { type: array, items: { $ref: '#/components/schemas/KbPassage' } }
+        lanes:
+          type: object
+          description: "How many candidates each lane found."
+          properties:
+            text: { type: integer }
+            vector: { type: integer }
+            graph: { type: integer }
+            notes: { type: integer }
+        queries: { type: array, items: { type: string }, description: "The query shapes searched." }
+        ms: { type: number }
+    KbResearchRequest:
+      type: object
+      required: [question]
+      properties:
+        question: { type: string, maxLength: 2000 }
+        answer: { type: string, maxLength: 400, description: "The person's answer to a previous `ask` (a document title, or `all`)." }
+        ask: { type: boolean, default: true, description: "`false`: never pause; search every document." }
+        model: { type: string, description: "A model (from `GET /v1/models`) for the evidence check; token-gated." }
+        previous: { type: object, additionalProperties: true, description: "The previous response's `frame`, for a follow-up." }
+        docs: { type: array, items: { type: string }, description: "Only these documents." }
+    KbResearchResponse:
+      type: object
+      required: [read, hits, queries, rounds, ms]
+      properties:
+        attachment:
+          nullable: true
+          type: object
+          description: "The block for the model (`kind: prefetch`, `prefetch: kb`), or null."
+          properties:
+            id: { type: string }
+            kind: { type: string }
+            prefetch: { type: string }
+            title: { type: string }
+            text: { type: string }
+            chars: { type: integer }
+            cites: { type: array, items: { type: object, additionalProperties: true } }
+        read:
+          type: array
+          description: "What was read, grouped by document in page order (or the outline for a whole-document ask)."
+          items: { type: object, additionalProperties: true }
+        hits:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              doc: { type: string }
+              title: { type: string }
+              page: { type: integer }
+              section: { type: string }
+              cite: { type: string }
+              lanes: { type: array, items: { type: string } }
+              via: { type: array, items: { type: string } }
+        queries: { type: array, items: { type: string } }
+        verdict: { type: string, nullable: true, enum: [yes, partly, no, null], description: "The check's answer when a model was given." }
+        rounds: { type: integer }
+        ask:
+          nullable: true
+          type: object
+          description: "The question for the person, when the hits split evenly across documents."
+          properties:
+            question: { type: string }
+            options: { type: array, items: { type: string } }
+            kind: { type: string }
+            step: { type: string }
+        how: { type: string, description: "How it was searched, in words." }
+        frame:
+          type: object
+          properties:
+            whole: { type: boolean }
+            docs: { type: array, items: { type: string } }
+        ms: { type: number }
+    KbGraphRequest:
+      type: object
+      required: [node]
+      properties:
+        node: { type: string, maxLength: 200, description: "An entity, section or topic by name (or a node id)." }
+        to: { type: string, maxLength: 200, description: "A second node: the path from `node` to it." }
+        hops: { type: integer, minimum: 1, maximum: 3, default: 1 }
+        kinds: { type: array, items: { type: string, enum: [doc, section, entity, topic, note, chunk] } }
+        limit: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    KbGraphResponse:
+      type: object
+      required: [node, neighbours]
+      properties:
+        node:
+          nullable: true
+          type: object
+          properties:
+            id: { type: string }
+            kind: { type: string }
+            label: { type: string }
+        neighbours:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              kind: { type: string }
+              label: { type: string }
+              weight: { type: number }
+              via: { type: array, items: { type: object, additionalProperties: true } }
+        to: { type: string }
+        path:
+          nullable: true
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              label: { type: string }
+              kind: { type: string }
+        message: { type: string }
+    KbPage:
+      type: object
+      required: [doc, page, pages, text]
+      properties:
+        doc: { type: string }
+        title: { type: string }
+        page: { type: integer }
+        pages: { type: integer }
+        text: { type: string }
+    KbOutline:
+      type: object
+      required: [outline]
+      properties:
+        outline:
+          type: array
+          items:
+            type: object
+            properties:
+              doc: { type: string }
+              section: { type: string }
+              level: { type: integer }
+              page: { type: integer }
+              chunks: { type: integer }
+              chars: { type: integer }
+              first: { type: string, description: "The first passage id of the section." }
+    KbNote:
+      type: object
+      required: [id, text, status, at]
+      properties:
+        id: { type: string }
+        text: { type: string }
+        cites: { type: array, items: { type: string } }
+        by: { type: string }
+        status: { type: string, enum: [proposed, accepted] }
+        at: { type: integer, format: int64 }
+    KbNotes:
+      type: object
+      required: [notes]
+      properties:
+        notes: { type: array, items: { $ref: '#/components/schemas/KbNote' } }
+    KbNoteRequest:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string, maxLength: 4000 }
+        cites: { type: array, items: { type: string }, maxItems: 20 }
+        status: { type: string, enum: [proposed, accepted], description: "`accepted` is honoured from a caller with the token only." }
+        by: { type: string, maxLength: 40 }
+    KbNoteResponse:
+      type: object
+      required: [note]
+      properties:
+        note: { $ref: '#/components/schemas/KbNote' }
+        removed: { type: boolean }
+    KbNoteStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [proposed, accepted, removed] }
+    KbEmbedResponse:
+      type: object
+      required: [embedded, vectors, state]
+      properties:
+        embedded: { type: integer }
+        vectors: { type: integer }
+        model: { type: string }
+        dims: { type: integer }
+        state: { type: string, description: "`ready`, `idle`, `loading`, `downloading`, `down`, `off`." }
+        progress: { type: object, additionalProperties: true }
     ReadRequest:
       type: object
       required: [url]

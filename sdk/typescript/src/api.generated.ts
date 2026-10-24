@@ -78,7 +78,25 @@ export const OPERATIONS = {
   "capabilities.decide": { id: "capabilities.decide", method: "POST", path: "/v1/decide", auth: "open", since: "0.20.0", stream: null, pathParams: [], queryParams: [] },
   "retrieval.search": { id: "retrieval.search", method: "POST", path: "/v1/search", auth: "open", since: "0.15.0", stream: null, pathParams: [], queryParams: [] },
   "retrieval.searchAlias": { id: "retrieval.searchAlias", method: "GET", path: "/v1/search/{q}", auth: "open", since: "0.15.0", stream: null, pathParams: ["q"], queryParams: ["read"] },
+  "capabilities.embed": { id: "capabilities.embed", method: "POST", path: "/v1/embeddings", auth: "open", since: "0.101.0", stream: null, pathParams: [], queryParams: [] },
   "retrieval.extract": { id: "retrieval.extract", method: "POST", path: "/v1/extract", auth: "open", since: "0.16.0", stream: null, pathParams: [], queryParams: [] },
+  "knowledge.list": { id: "knowledge.list", method: "GET", path: "/v1/kb", auth: "open", since: "0.101.0", stream: null, pathParams: [], queryParams: [] },
+  "knowledge.create": { id: "knowledge.create", method: "POST", path: "/v1/kb", auth: "open", since: "0.101.0", stream: null, pathParams: [], queryParams: [] },
+  "knowledge.status": { id: "knowledge.status", method: "GET", path: "/v1/kb/{id}", auth: "open", since: "0.101.0", stream: null, pathParams: ["id"], queryParams: [] },
+  "knowledge.delete": { id: "knowledge.delete", method: "DELETE", path: "/v1/kb/{id}", auth: "token", since: "0.101.0", stream: null, pathParams: ["id"], queryParams: [] },
+  "knowledge.documents": { id: "knowledge.documents", method: "GET", path: "/v1/kb/{id}/documents", auth: "open", since: "0.101.0", stream: null, pathParams: ["id"], queryParams: [] },
+  "knowledge.add": { id: "knowledge.add", method: "POST", path: "/v1/kb/{id}/documents", auth: "open", since: "0.101.0", stream: null, pathParams: ["id"], queryParams: [] },
+  "knowledge.page": { id: "knowledge.page", method: "GET", path: "/v1/kb/{id}/documents/{doc}", auth: "open", since: "0.101.0", stream: null, pathParams: ["id","doc"], queryParams: ["page"] },
+  "knowledge.removeDocument": { id: "knowledge.removeDocument", method: "DELETE", path: "/v1/kb/{id}/documents/{doc}", auth: "token", since: "0.101.0", stream: null, pathParams: ["id","doc"], queryParams: [] },
+  "knowledge.passage": { id: "knowledge.passage", method: "GET", path: "/v1/kb/{id}/passages/{passage}", auth: "open", since: "0.101.0", stream: null, pathParams: ["id","passage"], queryParams: [] },
+  "knowledge.outline": { id: "knowledge.outline", method: "GET", path: "/v1/kb/{id}/outline", auth: "open", since: "0.101.0", stream: null, pathParams: ["id"], queryParams: ["doc"] },
+  "knowledge.search": { id: "knowledge.search", method: "POST", path: "/v1/kb/{id}/search", auth: "open", since: "0.101.0", stream: null, pathParams: ["id"], queryParams: [] },
+  "knowledge.research": { id: "knowledge.research", method: "POST", path: "/v1/kb/{id}/research", auth: "open", since: "0.101.0", stream: null, pathParams: ["id"], queryParams: [] },
+  "knowledge.graph": { id: "knowledge.graph", method: "POST", path: "/v1/kb/{id}/graph", auth: "open", since: "0.101.0", stream: null, pathParams: ["id"], queryParams: [] },
+  "knowledge.notes": { id: "knowledge.notes", method: "GET", path: "/v1/kb/{id}/notes", auth: "open", since: "0.101.0", stream: null, pathParams: ["id"], queryParams: [] },
+  "knowledge.note": { id: "knowledge.note", method: "POST", path: "/v1/kb/{id}/notes", auth: "open", since: "0.101.0", stream: null, pathParams: ["id"], queryParams: [] },
+  "knowledge.noteStatus": { id: "knowledge.noteStatus", method: "POST", path: "/v1/kb/{id}/notes/{note}", auth: "token", since: "0.101.0", stream: null, pathParams: ["id","note"], queryParams: [] },
+  "knowledge.embed": { id: "knowledge.embed", method: "POST", path: "/v1/kb/{id}/embed", auth: "open", since: "0.101.0", stream: null, pathParams: ["id"], queryParams: [] },
   "retrieval.read": { id: "retrieval.read", method: "POST", path: "/v1/read", auth: "open", since: "0.14.0", stream: null, pathParams: [], queryParams: [] },
   "retrieval.readAlias": { id: "retrieval.readAlias", method: "GET", path: "/v1/read/{url}", auth: "open", since: "0.14.0", stream: null, pathParams: ["url"], queryParams: [] },
   "engines.list": { id: "engines.list", method: "GET", path: "/v1/engines", auth: "open", since: "0.6.89", stream: null, pathParams: [], queryParams: ["minCalls"] },
@@ -658,6 +676,10 @@ export class CapabilitiesApi {
   decide(body: T.DecideRequest, opts?: RequestOptions): Promise<T.DecideResponse> {
     return this.rt.request(OPERATIONS["capabilities.decide"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
   }
+  /** One unit vector per input — OpenAI-shaped embeddings, in the gateway's own process by default. The `embed` capability (docs/capability-endpoints.md C4), served since 0.101.0 by the in-process embedder (`Xenova/multilingual-e5-small` by default, 384 dimensions, q8 on the ONNX runtime; `Xenova/all-MiniLM-L6-v2` as the lighter English-only pick) — or by the server `capabilities.embed` names, through its adapter. `input` is a string or up to 256 strings; `kind` says whether they are queries or passages (E5 prefixes each). The vectors are unit length, so cosine is a dot product. 503 `provider_warming` while the model downloads (the first call starts it; a caller is never held), 404 `no_provider` when it is turned off (`capabilities.embed.provider = none`), `budgetMs` refused from the record like every capability. The knowledge base (`/v1/kb`) uses this for its vector lane; it works on words and the graph until the model is on disk. — Gateway 0.101.0+. */
+  embed(body: T.EmbedRequest, opts?: RequestOptions): Promise<T.EmbedResponse> {
+    return this.rt.request(OPERATIONS["capabilities.embed"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
 }
 
 /** What runs processes for the user and how — the process sandbox (through the bridge), the container engine on this machine, and the services the gateway runs for the user (docs/sandboxing.md S1). */
@@ -732,6 +754,80 @@ export class RetrievalApi {
     data: T.ReadResponse;
   }> {
     return this.rt.request(OPERATIONS["retrieval.readAlias"], { path: { url }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+}
+
+/** Knowledge bases — the user's documents (PDFs, office files, folders, pages) indexed on this machine and searched by words, meaning and graph; researched by the harness loop; annotated over time (docs/knowledge-base.md). */
+export class KnowledgeApi {
+  private readonly rt: Runtime;
+  constructor(rt: Runtime) { this.rt = rt; }
+  /** The knowledge bases on this machine. Each base with its id, name, document count, vector count and model. Loads no passages. — Gateway 0.101.0+. */
+  list(opts?: RequestOptions): Promise<T.KbList> {
+    return this.rt.request(OPERATIONS["knowledge.list"], { path: {  }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+  /** Create a knowledge base (or return the one with that id). A base is a folder under `~/.chatpanel/kb/<id>/` (manifest, passages, notes, vectors, a Markdown report) — a projection over the documents added to it, rebuildable from them. `embed: off` keeps it on words and the graph only. 201 when created, 200 with `existed` when the id was already there. — Gateway 0.101.0+. */
+  create(body: T.KbCreateRequest, opts?: RequestOptions): Promise<T.KbStatusResponse> {
+    return this.rt.request(OPERATIONS["knowledge.create"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** What a base holds — its documents, passages, notes, vectors, entities and connections. — Gateway 0.101.0+. */
+  status(id: string, opts?: RequestOptions): Promise<T.KbStatusResponse> {
+    return this.rt.request(OPERATIONS["knowledge.status"], { path: { id }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+  /** Delete a base and its folder. — Requires the gateway token. Gateway 0.101.0+. */
+  delete(id: string, opts?: RequestOptions): Promise<T.KbOkResponse> {
+    return this.rt.request(OPERATIONS["knowledge.delete"], { path: { id }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+  /** The documents in a base. — Gateway 0.101.0+. */
+  documents(id: string, opts?: RequestOptions): Promise<T.KbDocuments> {
+    return this.rt.request(OPERATIONS["knowledge.documents"], { path: { id }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+  /** Add a document — bytes, a path on this machine, a URL, or text — and index it. One of four sources: `name` + `data` (the file, base64, up to 64 MB — a PDF, DOCX, XLSX, PPTX, ODF, Markdown or text, parsed in the extract worker); `path` (a file or folder on this machine, walked with the same refusals the `files` tool applies — credential stores withheld and named, `node_modules` and hidden folders skipped, documents up to 64 MB; TOKEN-GATED: a path is a read on the machine, so it is 403 to a caller without the token or the extension origin); `url` (a public page through the `read` capability); `text`. The same bytes added again REPLACE the document. Passages are chunked by the document's own headings with page citations, indexed by words and in the graph, and embedded when the embedder's model is on disk (`embedded` says how many); the report is rewritten. — Gateway 0.101.0+. */
+  add(id: string, body: T.KbAddRequest, opts?: RequestOptions): Promise<T.KbAddResponse> {
+    return this.rt.request(OPERATIONS["knowledge.add"], { path: { id }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** One page of a document, from the index. — Gateway 0.101.0+. */
+  page(id: string, doc: string, query?: { page?: number }, opts?: RequestOptions): Promise<T.KbPage> {
+    return this.rt.request(OPERATIONS["knowledge.page"], { path: { id, doc }, query: query, headers: opts?.headers, body: undefined, opts });
+  }
+  /** Remove a document, its passages and vectors (notes keep their text and lose the cite). — Requires the gateway token. Gateway 0.101.0+. */
+  removeDocument(id: string, doc: string, opts?: RequestOptions): Promise<T.KbStatusResponse> {
+    return this.rt.request(OPERATIONS["knowledge.removeDocument"], { path: { id, doc }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+  /** One passage by id, with its citation. — Gateway 0.101.0+. */
+  passage(id: string, passage: string, opts?: RequestOptions): Promise<T.KbPassage> {
+    return this.rt.request(OPERATIONS["knowledge.passage"], { path: { id, passage }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+  /** The table of contents a document's headings imply — every section once, with where it starts. — Gateway 0.101.0+. */
+  outline(id: string, query?: { doc?: string }, opts?: RequestOptions): Promise<T.KbOutline> {
+    return this.rt.request(OPERATIONS["knowledge.outline"], { path: { id }, query: query, headers: opts?.headers, body: undefined, opts });
+  }
+  /** The passages that answer a question — words, meaning and graph fused, a reranker on top, each with its citation. The words in up to four query shapes (BM25), the meaning when the base has vectors (the query embedded by the same model), the graph's one-hop expansion of the best hits (a passage sharing a name or a section with a hit, and `via` says which), and the notes as their own lane — fused by Reciprocal Rank Fusion with the graph at half weight, then the gateway's reranker fused in (never substituted). Each result carries `lanes` (which found it), `scores` (each lane's own, comparable within one query) and `cite` as the model is told to write it (`[report.pdf p.12]`). `docs` scopes to documents; `queries` adds the caller's own phrasings. — Gateway 0.101.0+. */
+  search(id: string, body: T.KbSearchRequest, opts?: RequestOptions): Promise<T.KbSearchResponse> {
+    return this.rt.request(OPERATIONS["knowledge.search"], { path: { id }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** The bounded loop over a base — framed, searched, read, checked once, asked when ambiguous — as one cited block for a model. The harness's loop (events kb-research.js), not a model's tool calls: a whole-document ask ("what is this about") reads the outline and the opening of each section; a focused one searches, reads the best passages grouped by document in page order, and — with `model` (TOKEN-GATED: the check runs on this gateway's own chat route) — asks that model once whether what was read answers it, then searches once more for what it says is missing. When the hits split evenly across documents and the question names none, the answer is `ask` (which document?) instead of a guess; call again with `answer` to go on, or `ask: false` to never pause. `attachment` is the block a client attaches before the question (`kind: prefetch`), `null` when nothing matched beyond the plain statement. — Gateway 0.101.0+. */
+  research(id: string, body: T.KbResearchRequest, opts?: RequestOptions): Promise<T.KbResearchResponse> {
+    return this.rt.request(OPERATIONS["knowledge.research"], { path: { id }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** What connects to a node — its neighbours up to `hops` away — or the path between two. — Gateway 0.101.0+. */
+  graph(id: string, body: T.KbGraphRequest, opts?: RequestOptions): Promise<T.KbGraphResponse> {
+    return this.rt.request(OPERATIONS["knowledge.graph"], { path: { id }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** The notes filed into a base. — Gateway 0.101.0+. */
+  notes(id: string, opts?: RequestOptions): Promise<T.KbNotes> {
+    return this.rt.request(OPERATIONS["knowledge.notes"], { path: { id }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+  /** File a note — a fact, a summary, a correction — cited to passages; proposed until accepted. How a base improves over time. A note is indexed and searched as its own lane and shown with its status; `status: accepted` is honoured only from a caller with the token (the person, or a client acting for them) — any other caller's note is filed as `proposed`. Unknown cites are dropped. — Gateway 0.101.0+. */
+  note(id: string, body: T.KbNoteRequest, opts?: RequestOptions): Promise<T.KbNoteResponse> {
+    return this.rt.request(OPERATIONS["knowledge.note"], { path: { id }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** Accept a proposed note, withdraw it to proposed, or remove it. — Requires the gateway token. Gateway 0.101.0+. */
+  noteStatus(id: string, note: string, body: T.KbNoteStatusRequest, opts?: RequestOptions): Promise<T.KbNoteResponse> {
+    return this.rt.request(OPERATIONS["knowledge.noteStatus"], { path: { id, note }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** Embed every passage that has no vector yet, and say where the embedder stands. — Gateway 0.101.0+. */
+  embed(id: string, body: Record<string, never>, opts?: RequestOptions): Promise<T.KbEmbedResponse> {
+    return this.rt.request(OPERATIONS["knowledge.embed"], { path: { id }, query: undefined, headers: opts?.headers, body: body, opts });
   }
 }
 
@@ -942,6 +1038,7 @@ export function buildApi(rt: Runtime) {
     capabilities: new CapabilitiesApi(rt),
     runtime: new RuntimeApi(rt),
     retrieval: new RetrievalApi(rt),
+    knowledge: new KnowledgeApi(rt),
     engines: new EnginesApi(rt),
     skills: new SkillsApi(rt),
     a2a: new A2aApi(rt),

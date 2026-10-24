@@ -491,6 +491,372 @@ export interface ExtractResponse {
   ms: number;
 }
 
+export interface EmbedRequest {
+  /** A string, or 1–256 strings. */
+  input: string | Array<string>;
+  /** The model `GET /v1/capabilities` lists for `embed`; 404 otherwise. */
+  model?: string;
+  /** What the texts are — a model with instruction prefixes (E5) prefixes each accordingly. */
+  kind?: "query" | "passage";
+  budgetMs?: number;
+}
+
+export interface EmbedResponse {
+  object: "list";
+  data: Array<{
+    object: "embedding";
+    index: number;
+    /** Unit length. */
+    embedding: Array<number>;
+  }>;
+  model: string;
+  usage?: {
+    prompt_tokens?: number;
+    total_tokens?: number;
+  };
+  ms: number;
+}
+
+export interface KbOkResponse {
+  ok: boolean;
+}
+
+export interface KbList {
+  kbs: Array<{
+    id: string;
+    name: string;
+    docs: number;
+    updatedAt?: number;
+    vectors?: number;
+    model?: string;
+  }>;
+}
+
+export interface KbCreateRequest {
+  /** Chosen by the caller; made up when absent. */
+  id?: string;
+  name?: string;
+  /** `off`: words and graph only, no vectors. */
+  embed?: "auto" | "off";
+}
+
+export interface KbDocument {
+  id: string;
+  title: string;
+  pages: number;
+  /** Passages. */
+  chunks: number;
+  type?: string;
+  source?: {
+    kind?: "file" | "url" | "bytes" | "text";
+    path?: string;
+    url?: string;
+    name?: string;
+  };
+  addedAt?: number;
+}
+
+export interface KbStatus {
+  id: string;
+  name: string;
+  v?: number;
+  createdAt?: number;
+  updatedAt?: number;
+  docs: number;
+  chunks: number;
+  notes: number;
+  /** Notes awaiting acceptance. */
+  proposed?: number;
+  vectors: number;
+  /** The embedding model the vectors came from. */
+  model?: string;
+  dims?: number;
+  embed?: "auto" | "off";
+  entities: number;
+  edges: number;
+  /** The tightest provenance of its documents (`internal`, `web`, or empty). */
+  reach?: string;
+  documents: Array<KbDocument>;
+  /** On disk. */
+  bytes?: number;
+  /** The folder on disk — to a caller with the token only. */
+  dir?: string;
+}
+
+export interface KbStatusResponse {
+  kb: KbStatus;
+  existed?: boolean;
+  ok?: boolean;
+}
+
+export interface KbDocuments {
+  documents: Array<KbDocument>;
+}
+
+/** One source: `name` + `data`, or `path`, or `url`, or `text`. */
+export interface KbAddRequest {
+  /** The file name (with `data`); the title for `text` when none is given. */
+  name?: string;
+  /** A type hint (`pdf`, `docx`); the bytes decide. */
+  type?: string;
+  /** The whole file, base64, at most 64 MB decoded. */
+  data?: string;
+  /** A file or folder on this machine (token-gated). */
+  path?: string;
+  /** With a folder: walk subfolders. */
+  recursive?: boolean;
+  /** With a folder: only these extensions (`*.pdf`, `.md`). */
+  include?: Array<string>;
+  /** A public http(s) page, read as Markdown. */
+  url?: string;
+  /** Plain text or Markdown, up to 4 M characters. */
+  text?: string;
+  title?: string;
+  /** Provenance to record on the document (`internal` narrows a turn that uses it). */
+  reach?: string;
+}
+
+export interface KbAddResponse {
+  added: Array<{
+    id: string;
+    title: string;
+    pages: number;
+    chunks: number;
+    replaced?: boolean;
+    /** A PDF with no text layer: indexed empty. */
+    scanned?: boolean;
+    /** Relative to the folder given. */
+    path?: string;
+  }>;
+  skipped: Array<{
+    path?: string;
+    url?: string;
+    why?: string;
+  }>;
+  /** Passages given a vector in this call. */
+  embedded?: number;
+  kb: KbStatus;
+  ms?: number;
+}
+
+export interface KbPassage {
+  /** `<doc>#<n>`, or `note:<id>`. */
+  id: string;
+  doc?: string;
+  title?: string;
+  kind?: "text" | "note";
+  page?: number;
+  pageEnd?: number;
+  /** The heading path, ` › `-joined. */
+  section?: string;
+  text: string;
+  chars?: number;
+  /** The fused rank score (RRF) — only its order means anything. */
+  score?: number;
+  /** Each lane's own score (`text`, `vector`, `rerank`), comparable within one query. */
+  scores?: {
+    [key: string]: number;
+  };
+  rerank?: number;
+  lanes?: Array<"text" | "vector" | "graph" | "notes" | "rerank">;
+  /** For a graph hit: the node(s) it was reached through. */
+  via?: Array<string>;
+  /** As the model is told to write it: `[report.pdf p.12]`. */
+  cite?: string;
+  /** A note's. */
+  status?: "proposed" | "accepted";
+  /** A note's passage ids. */
+  cites?: Array<string>;
+}
+
+export interface KbSearchRequest {
+  query: string;
+  limit?: number;
+  /** Graph expansion of the best hits; 0 = off. */
+  hops?: number;
+  /** Only these documents. */
+  docs?: Array<string>;
+  /** The caller's own phrasings, searched too. */
+  queries?: Array<string>;
+  /** `false`: skip the reranker. */
+  rerank?: boolean;
+  budgetMs?: number;
+}
+
+export interface KbSearchResponse {
+  results: Array<KbPassage>;
+  /** How many candidates each lane found. */
+  lanes: {
+    text?: number;
+    vector?: number;
+    graph?: number;
+    notes?: number;
+  };
+  /** The query shapes searched. */
+  queries: Array<string>;
+  ms: number;
+}
+
+export interface KbResearchRequest {
+  question: string;
+  /** The person's answer to a previous `ask` (a document title, or `all`). */
+  answer?: string;
+  /** `false`: never pause; search every document. */
+  ask?: boolean;
+  /** A model (from `GET /v1/models`) for the evidence check; token-gated. */
+  model?: string;
+  /** The previous response's `frame`, for a follow-up. */
+  previous?: {
+    [key: string]: unknown;
+  };
+  /** Only these documents. */
+  docs?: Array<string>;
+}
+
+export interface KbResearchResponse {
+  /** The block for the model (`kind: prefetch`, `prefetch: kb`), or null. */
+  attachment?: {
+    id?: string;
+    kind?: string;
+    prefetch?: string;
+    title?: string;
+    text?: string;
+    chars?: number;
+    cites?: Array<{
+      [key: string]: unknown;
+    }>;
+  };
+  /** What was read, grouped by document in page order (or the outline for a whole-document ask). */
+  read: Array<{
+    [key: string]: unknown;
+  }>;
+  hits: Array<{
+    id?: string;
+    doc?: string;
+    title?: string;
+    page?: number;
+    section?: string;
+    cite?: string;
+    lanes?: Array<string>;
+    via?: Array<string>;
+  }>;
+  queries: Array<string>;
+  /** The check's answer when a model was given. */
+  verdict?: "yes" | "partly" | "no" | null;
+  rounds: number;
+  /** The question for the person, when the hits split evenly across documents. */
+  ask?: {
+    question?: string;
+    options?: Array<string>;
+    kind?: string;
+    step?: string;
+  };
+  /** How it was searched, in words. */
+  how?: string;
+  frame?: {
+    whole?: boolean;
+    docs?: Array<string>;
+  };
+  ms: number;
+}
+
+export interface KbGraphRequest {
+  /** An entity, section or topic by name (or a node id). */
+  node: string;
+  /** A second node: the path from `node` to it. */
+  to?: string;
+  hops?: number;
+  kinds?: Array<"doc" | "section" | "entity" | "topic" | "note" | "chunk">;
+  limit?: number;
+}
+
+export interface KbGraphResponse {
+  node: {
+    id?: string;
+    kind?: string;
+    label?: string;
+  };
+  neighbours: Array<{
+    id?: string;
+    kind?: string;
+    label?: string;
+    weight?: number;
+    via?: Array<{
+      [key: string]: unknown;
+    }>;
+  }>;
+  to?: string;
+  path?: Array<{
+    id?: string;
+    label?: string;
+    kind?: string;
+  }>;
+  message?: string;
+}
+
+export interface KbPage {
+  doc: string;
+  title?: string;
+  page: number;
+  pages: number;
+  text: string;
+}
+
+export interface KbOutline {
+  outline: Array<{
+    doc?: string;
+    section?: string;
+    level?: number;
+    page?: number;
+    chunks?: number;
+    chars?: number;
+    /** The first passage id of the section. */
+    first?: string;
+  }>;
+}
+
+export interface KbNote {
+  id: string;
+  text: string;
+  cites?: Array<string>;
+  by?: string;
+  status: "proposed" | "accepted";
+  at: number;
+}
+
+export interface KbNotes {
+  notes: Array<KbNote>;
+}
+
+export interface KbNoteRequest {
+  text: string;
+  cites?: Array<string>;
+  /** `accepted` is honoured from a caller with the token only. */
+  status?: "proposed" | "accepted";
+  by?: string;
+}
+
+export interface KbNoteResponse {
+  note: KbNote;
+  removed?: boolean;
+}
+
+export interface KbNoteStatusRequest {
+  status: "proposed" | "accepted" | "removed";
+}
+
+export interface KbEmbedResponse {
+  embedded: number;
+  vectors: number;
+  model?: string;
+  dims?: number;
+  /** `ready`, `idle`, `loading`, `downloading`, `down`, `off`. */
+  state: string;
+  progress?: {
+    [key: string]: unknown;
+  };
+}
+
 export interface ReadRequest {
   /** Absolute http(s) URL of a public page. */
   url: string;

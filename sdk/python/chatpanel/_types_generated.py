@@ -373,6 +373,249 @@ class ExtractResponse(TypedDict, total=False):
     ms: float
 
 
+class EmbedRequest(TypedDict, total=False):
+    """EmbedRequest"""
+    input: Union[str, List[str]]  # A string, or 1–256 strings.
+    model: NotRequired[str]  # The model `GET /v1/capabilities` lists for `embed`; 404 otherwise.
+    kind: NotRequired[Literal["query", "passage"]]  # What the texts are — a model with instruction prefixes (E5) prefixes each accordingly.
+    budgetMs: NotRequired[float]
+
+
+class EmbedResponse(TypedDict, total=False):
+    """EmbedResponse"""
+    object: Literal["list"]
+    data: List[Dict[str, Any]]
+    model: str
+    usage: NotRequired[Dict[str, Any]]
+    ms: float
+
+
+class KbOkResponse(TypedDict, total=False):
+    """KbOkResponse"""
+    ok: bool
+
+
+class KbList(TypedDict, total=False):
+    """KbList"""
+    kbs: List[Dict[str, Any]]
+
+
+class KbCreateRequest(TypedDict, total=False):
+    """KbCreateRequest"""
+    id: NotRequired[str]  # Chosen by the caller; made up when absent.
+    name: NotRequired[str]
+    embed: NotRequired[Literal["auto", "off"]]  # `off`: words and graph only, no vectors.
+
+
+class KbDocument(TypedDict, total=False):
+    """KbDocument"""
+    id: str
+    title: str
+    pages: int
+    chunks: int  # Passages.
+    type: NotRequired[str]
+    source: NotRequired[Dict[str, Any]]
+    addedAt: NotRequired[int]
+
+
+class KbStatus(TypedDict, total=False):
+    """KbStatus"""
+    id: str
+    name: str
+    v: NotRequired[int]
+    createdAt: NotRequired[int]
+    updatedAt: NotRequired[int]
+    docs: int
+    chunks: int
+    notes: int
+    proposed: NotRequired[int]  # Notes awaiting acceptance.
+    vectors: int
+    model: NotRequired[str]  # The embedding model the vectors came from.
+    dims: NotRequired[int]
+    embed: NotRequired[Literal["auto", "off"]]
+    entities: int
+    edges: int
+    reach: NotRequired[str]  # The tightest provenance of its documents (`internal`, `web`, or empty).
+    documents: List["KbDocument"]
+    bytes: NotRequired[int]  # On disk.
+    dir: NotRequired[str]  # The folder on disk — to a caller with the token only.
+
+
+class KbStatusResponse(TypedDict, total=False):
+    """KbStatusResponse"""
+    kb: "KbStatus"
+    existed: NotRequired[bool]
+    ok: NotRequired[bool]
+
+
+class KbDocuments(TypedDict, total=False):
+    """KbDocuments"""
+    documents: List["KbDocument"]
+
+
+class KbAddRequest(TypedDict, total=False):
+    """One source: `name` + `data`, or `path`, or `url`, or `text`."""
+    name: NotRequired[str]  # The file name (with `data`); the title for `text` when none is given.
+    type: NotRequired[str]  # A type hint (`pdf`, `docx`); the bytes decide.
+    data: NotRequired[str]  # The whole file, base64, at most 64 MB decoded.
+    path: NotRequired[str]  # A file or folder on this machine (token-gated).
+    recursive: NotRequired[bool]  # With a folder: walk subfolders.
+    include: NotRequired[List[str]]  # With a folder: only these extensions (`*.pdf`, `.md`).
+    url: NotRequired[str]  # A public http(s) page, read as Markdown.
+    text: NotRequired[str]  # Plain text or Markdown, up to 4 M characters.
+    title: NotRequired[str]
+    reach: NotRequired[str]  # Provenance to record on the document (`internal` narrows a turn that uses it).
+
+
+class KbAddResponse(TypedDict, total=False):
+    """KbAddResponse"""
+    added: List[Dict[str, Any]]
+    skipped: List[Dict[str, Any]]
+    embedded: NotRequired[int]  # Passages given a vector in this call.
+    kb: "KbStatus"
+    ms: NotRequired[float]
+
+
+class KbPassage(TypedDict, total=False):
+    """KbPassage"""
+    id: str  # `<doc>#<n>`, or `note:<id>`.
+    doc: NotRequired[str]
+    title: NotRequired[str]
+    kind: NotRequired[Literal["text", "note"]]
+    page: NotRequired[int]
+    pageEnd: NotRequired[int]
+    section: NotRequired[str]  # The heading path, ` › `-joined.
+    text: str
+    chars: NotRequired[int]
+    score: NotRequired[float]  # The fused rank score (RRF) — only its order means anything.
+    scores: NotRequired[Dict[str, float]]  # Each lane's own score (`text`, `vector`, `rerank`), comparable within one query.
+    rerank: NotRequired[float]
+    lanes: NotRequired[List[Literal["text", "vector", "graph", "notes", "rerank"]]]
+    via: NotRequired[List[str]]  # For a graph hit: the node(s) it was reached through.
+    cite: NotRequired[str]  # As the model is told to write it: `[report.pdf p.12]`.
+    status: NotRequired[Literal["proposed", "accepted"]]  # A note's.
+    cites: NotRequired[List[str]]  # A note's passage ids.
+
+
+class KbSearchRequest(TypedDict, total=False):
+    """KbSearchRequest"""
+    query: str
+    limit: NotRequired[int]
+    hops: NotRequired[int]  # Graph expansion of the best hits; 0 = off.
+    docs: NotRequired[List[str]]  # Only these documents.
+    queries: NotRequired[List[str]]  # The caller's own phrasings, searched too.
+    rerank: NotRequired[bool]  # `false`: skip the reranker.
+    budgetMs: NotRequired[float]
+
+
+class KbSearchResponse(TypedDict, total=False):
+    """KbSearchResponse"""
+    results: List["KbPassage"]
+    lanes: Dict[str, Any]  # How many candidates each lane found.
+    queries: List[str]  # The query shapes searched.
+    ms: float
+
+
+class KbResearchRequest(TypedDict, total=False):
+    """KbResearchRequest"""
+    question: str
+    answer: NotRequired[str]  # The person's answer to a previous `ask` (a document title, or `all`).
+    ask: NotRequired[bool]  # `false`: never pause; search every document.
+    model: NotRequired[str]  # A model (from `GET /v1/models`) for the evidence check; token-gated.
+    previous: NotRequired[Dict[str, Any]]  # The previous response's `frame`, for a follow-up.
+    docs: NotRequired[List[str]]  # Only these documents.
+
+
+class KbResearchResponse(TypedDict, total=False):
+    """KbResearchResponse"""
+    attachment: NotRequired[Dict[str, Any]]  # The block for the model (`kind: prefetch`, `prefetch: kb`), or null.
+    read: List[Dict[str, Any]]  # What was read, grouped by document in page order (or the outline for a whole-document ask).
+    hits: List[Dict[str, Any]]
+    queries: List[str]
+    verdict: NotRequired[Literal["yes", "partly", "no", null]]  # The check's answer when a model was given.
+    rounds: int
+    ask: NotRequired[Dict[str, Any]]  # The question for the person, when the hits split evenly across documents.
+    how: NotRequired[str]  # How it was searched, in words.
+    frame: NotRequired[Dict[str, Any]]
+    ms: float
+
+
+class KbGraphRequest(TypedDict, total=False):
+    """KbGraphRequest"""
+    node: str  # An entity, section or topic by name (or a node id).
+    to: NotRequired[str]  # A second node: the path from `node` to it.
+    hops: NotRequired[int]
+    kinds: NotRequired[List[Literal["doc", "section", "entity", "topic", "note", "chunk"]]]
+    limit: NotRequired[int]
+
+
+class KbGraphResponse(TypedDict, total=False):
+    """KbGraphResponse"""
+    node: Dict[str, Any]
+    neighbours: List[Dict[str, Any]]
+    to: NotRequired[str]
+    path: NotRequired[List[Dict[str, Any]]]
+    message: NotRequired[str]
+
+
+class KbPage(TypedDict, total=False):
+    """KbPage"""
+    doc: str
+    title: NotRequired[str]
+    page: int
+    pages: int
+    text: str
+
+
+class KbOutline(TypedDict, total=False):
+    """KbOutline"""
+    outline: List[Dict[str, Any]]
+
+
+class KbNote(TypedDict, total=False):
+    """KbNote"""
+    id: str
+    text: str
+    cites: NotRequired[List[str]]
+    by: NotRequired[str]
+    status: Literal["proposed", "accepted"]
+    at: int
+
+
+class KbNotes(TypedDict, total=False):
+    """KbNotes"""
+    notes: List["KbNote"]
+
+
+class KbNoteRequest(TypedDict, total=False):
+    """KbNoteRequest"""
+    text: str
+    cites: NotRequired[List[str]]
+    status: NotRequired[Literal["proposed", "accepted"]]  # `accepted` is honoured from a caller with the token only.
+    by: NotRequired[str]
+
+
+class KbNoteResponse(TypedDict, total=False):
+    """KbNoteResponse"""
+    note: "KbNote"
+    removed: NotRequired[bool]
+
+
+class KbNoteStatusRequest(TypedDict, total=False):
+    """KbNoteStatusRequest"""
+    status: Literal["proposed", "accepted", "removed"]
+
+
+class KbEmbedResponse(TypedDict, total=False):
+    """KbEmbedResponse"""
+    embedded: int
+    vectors: int
+    model: NotRequired[str]
+    dims: NotRequired[int]
+    state: str  # `ready`, `idle`, `loading`, `downloading`, `down`, `off`.
+    progress: NotRequired[Dict[str, Any]]
+
+
 class ReadRequest(TypedDict, total=False):
     """ReadRequest"""
     url: str  # Absolute http(s) URL of a public page.

@@ -96,6 +96,8 @@ if (!existsSync(join(GATEWAY, 'src', 'server.js'))) {
     // A partner's agent waiting on the owner (0.91.0) and a partner's folder from its side (0.92.0).
     ['/v1/link/approvals/{approvalId}', /\\\/v1\\\/link\\\/approvals\\\/\(\[A-Za-z0-9_-\]\{1,40\}\)\$/.test(src)],
     ['/v1/link/files/{path}', /pathname\.startsWith\('\/v1\/link\/files\/'\)/.test(src)],
+    // The knowledge base (0.101.0): every route under /v1/kb/<id> is one family, src/kb.js decides the sub-route.
+    ['/v1/kb/{id}', /pathname\.startsWith\('\/v1\/kb\/'\)/.test(src)],
   ];
   console.log(`contract: gateway ${GATEWAY} — ${literal.size} literal routes, ${regexRoutes.filter(([, on]) => on).length} regex families`);
   for (const p of literal) {
