@@ -3881,7 +3881,7 @@ components:
             kind: { type: string, enum: [prefetch] }
             prefetch: { type: string, enum: [document] }
             title: { type: string }
-            text: { type: string, description: "`[document] <title> — N pages[; read: pages …]` then `--- page n ---` and that page's text, per document." }
+            text: { type: string, description: "Per document: a one-sentence head naming it and its pages (a sentence, not a tag — an on-device model judges the prompt's language before reading it), then `--- page n ---` and that page's text." }
             chars: { type: integer }
             cites: { type: array, items: { type: object, properties: { title: { type: string }, page: { type: integer } } } }
             docs: { type: array, items: { type: object, properties: { id: { type: string }, title: { type: string }, of: { type: integer }, pages: { type: array, items: { type: integer } }, how: { type: string, enum: [whole, pages] } } } }

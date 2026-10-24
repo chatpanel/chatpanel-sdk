@@ -513,7 +513,7 @@ export interface ExtractContextResponse {
     kind?: "prefetch";
     prefetch?: "document";
     title?: string;
-    /** `[document] <title> — N pages[; read: pages …]` then `--- page n ---` and that page's text, per document. */
+    /** Per document: a one-sentence head naming it and its pages (a sentence, not a tag — an on-device model judges the prompt's language before reading it), then `--- page n ---` and that page's text. */
     text?: string;
     chars?: number;
     cites?: Array<{
