@@ -517,6 +517,20 @@ export interface EmbedResponse {
   ms: number;
 }
 
+export interface KbAccess {
+  /** `all`, or the agent names (lower-case) that may use the base — the owner always may. */
+  agents: "all" | Array<string>;
+}
+
+export interface KbAccessRequest {
+  /** `all`, or the agent names to grant. */
+  agents: "all" | Array<string>;
+}
+
+export interface KbAccessResponse {
+  access: KbAccess;
+}
+
 export interface KbOkResponse {
   ok: boolean;
 }
@@ -529,6 +543,7 @@ export interface KbList {
     updatedAt?: number;
     vectors?: number;
     model?: string;
+    access?: KbAccess;
   }>;
 }
 
@@ -576,6 +591,7 @@ export interface KbStatus {
   edges: number;
   /** The tightest provenance of its documents (`internal`, `web`, or empty). */
   reach?: string;
+  access?: KbAccess;
   documents: Array<KbDocument>;
   /** On disk. */
   bytes?: number;

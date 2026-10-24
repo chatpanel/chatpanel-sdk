@@ -390,6 +390,21 @@ class EmbedResponse(TypedDict, total=False):
     ms: float
 
 
+class KbAccess(TypedDict, total=False):
+    """KbAccess"""
+    agents: Union[Literal["all"], List[str]]  # `all`, or the agent names (lower-case) that may use the base — the owner always may.
+
+
+class KbAccessRequest(TypedDict, total=False):
+    """KbAccessRequest"""
+    agents: Union[Literal["all"], List[str]]  # `all`, or the agent names to grant.
+
+
+class KbAccessResponse(TypedDict, total=False):
+    """KbAccessResponse"""
+    access: "KbAccess"
+
+
 class KbOkResponse(TypedDict, total=False):
     """KbOkResponse"""
     ok: bool
@@ -436,6 +451,7 @@ class KbStatus(TypedDict, total=False):
     entities: int
     edges: int
     reach: NotRequired[str]  # The tightest provenance of its documents (`internal`, `web`, or empty).
+    access: NotRequired["KbAccess"]
     documents: List["KbDocument"]
     bytes: NotRequired[int]  # On disk.
     dir: NotRequired[str]  # The folder on disk — to a caller with the token only.

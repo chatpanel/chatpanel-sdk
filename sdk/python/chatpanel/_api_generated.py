@@ -96,6 +96,8 @@ OPERATIONS: Dict[str, Operation] = {
     "knowledge.notes": Operation(id="knowledge.notes", method="GET", path="/v1/kb/{id}/notes", auth="open", since="0.101.0", stream=None, path_params=("id",), query_params=()),
     "knowledge.note": Operation(id="knowledge.note", method="POST", path="/v1/kb/{id}/notes", auth="open", since="0.101.0", stream=None, path_params=("id",), query_params=()),
     "knowledge.noteStatus": Operation(id="knowledge.noteStatus", method="POST", path="/v1/kb/{id}/notes/{note}", auth="token", since="0.101.0", stream=None, path_params=("id", "note",), query_params=()),
+    "knowledge.access": Operation(id="knowledge.access", method="GET", path="/v1/kb/{id}/access", auth="open", since="0.101.1", stream=None, path_params=("id",), query_params=()),
+    "knowledge.setAccess": Operation(id="knowledge.setAccess", method="POST", path="/v1/kb/{id}/access", auth="token", since="0.101.1", stream=None, path_params=("id",), query_params=()),
     "knowledge.embed": Operation(id="knowledge.embed", method="POST", path="/v1/kb/{id}/embed", auth="open", since="0.101.0", stream=None, path_params=("id",), query_params=()),
     "retrieval.read": Operation(id="retrieval.read", method="POST", path="/v1/read", auth="open", since="0.14.0", stream=None, path_params=(), query_params=()),
     "retrieval.readAlias": Operation(id="retrieval.readAlias", method="GET", path="/v1/read/{url}", auth="open", since="0.14.0", stream=None, path_params=("url",), query_params=()),
@@ -633,6 +635,14 @@ class KnowledgeApi:
     def note_status(self, id: str, note: str, body: "T.KbNoteStatusRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.KbNoteResponse":
         """Accept a proposed note, withdraw it to proposed, or remove it. — Requires the gateway token. Gateway 0.101.0+."""
         return self._rt.request(OPERATIONS["knowledge.noteStatus"], path={"id": id, "note": note}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def access(self, id: str, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.KbAccessResponse":
+        """Who may use a base — every agent, or the ones named. — Gateway 0.101.1+."""
+        return self._rt.request(OPERATIONS["knowledge.access"], path={"id": id}, query=None, headers=headers, body=None, timeout=timeout)
+
+    def set_access(self, id: str, body: "T.KbAccessRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.KbAccessResponse":
+        """Grant a base to every agent or to the ones named — the owner's act. Grants (docs/knowledge-base.md §3, "knowledge is granted like skills"): a caller with the token or the extension's origin is the owner and reaches every base; any other caller names itself (`X-ChatPanel-Agent: claude`, or `?agent=`) — the gateway's own MCP server sends the connected client's name — and reaches the bases whose `access.agents` is `all` (the default) or names it. `GET /v1/kb` lists only those; a base not granted reads as 404 to that caller. — Requires the gateway token. Gateway 0.101.1+."""
+        return self._rt.request(OPERATIONS["knowledge.setAccess"], path={"id": id}, query=query, headers=headers, body=body, timeout=timeout)
 
     def embed(self, id: str, body: Dict[str, Any], query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.KbEmbedResponse":
         """Embed every passage that has no vector yet, and say where the embedder stands. — Gateway 0.101.0+."""

@@ -96,6 +96,8 @@ export const OPERATIONS = {
   "knowledge.notes": { id: "knowledge.notes", method: "GET", path: "/v1/kb/{id}/notes", auth: "open", since: "0.101.0", stream: null, pathParams: ["id"], queryParams: [] },
   "knowledge.note": { id: "knowledge.note", method: "POST", path: "/v1/kb/{id}/notes", auth: "open", since: "0.101.0", stream: null, pathParams: ["id"], queryParams: [] },
   "knowledge.noteStatus": { id: "knowledge.noteStatus", method: "POST", path: "/v1/kb/{id}/notes/{note}", auth: "token", since: "0.101.0", stream: null, pathParams: ["id","note"], queryParams: [] },
+  "knowledge.access": { id: "knowledge.access", method: "GET", path: "/v1/kb/{id}/access", auth: "open", since: "0.101.1", stream: null, pathParams: ["id"], queryParams: [] },
+  "knowledge.setAccess": { id: "knowledge.setAccess", method: "POST", path: "/v1/kb/{id}/access", auth: "token", since: "0.101.1", stream: null, pathParams: ["id"], queryParams: [] },
   "knowledge.embed": { id: "knowledge.embed", method: "POST", path: "/v1/kb/{id}/embed", auth: "open", since: "0.101.0", stream: null, pathParams: ["id"], queryParams: [] },
   "retrieval.read": { id: "retrieval.read", method: "POST", path: "/v1/read", auth: "open", since: "0.14.0", stream: null, pathParams: [], queryParams: [] },
   "retrieval.readAlias": { id: "retrieval.readAlias", method: "GET", path: "/v1/read/{url}", auth: "open", since: "0.14.0", stream: null, pathParams: ["url"], queryParams: [] },
@@ -824,6 +826,14 @@ export class KnowledgeApi {
   /** Accept a proposed note, withdraw it to proposed, or remove it. — Requires the gateway token. Gateway 0.101.0+. */
   noteStatus(id: string, note: string, body: T.KbNoteStatusRequest, opts?: RequestOptions): Promise<T.KbNoteResponse> {
     return this.rt.request(OPERATIONS["knowledge.noteStatus"], { path: { id, note }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** Who may use a base — every agent, or the ones named. — Gateway 0.101.1+. */
+  access(id: string, opts?: RequestOptions): Promise<T.KbAccessResponse> {
+    return this.rt.request(OPERATIONS["knowledge.access"], { path: { id }, query: undefined, headers: opts?.headers, body: undefined, opts });
+  }
+  /** Grant a base to every agent or to the ones named — the owner's act. Grants (docs/knowledge-base.md §3, "knowledge is granted like skills"): a caller with the token or the extension's origin is the owner and reaches every base; any other caller names itself (`X-ChatPanel-Agent: claude`, or `?agent=`) — the gateway's own MCP server sends the connected client's name — and reaches the bases whose `access.agents` is `all` (the default) or names it. `GET /v1/kb` lists only those; a base not granted reads as 404 to that caller. — Requires the gateway token. Gateway 0.101.1+. */
+  setAccess(id: string, body: T.KbAccessRequest, opts?: RequestOptions): Promise<T.KbAccessResponse> {
+    return this.rt.request(OPERATIONS["knowledge.setAccess"], { path: { id }, query: undefined, headers: opts?.headers, body: body, opts });
   }
   /** Embed every passage that has no vector yet, and say where the embedder stands. — Gateway 0.101.0+. */
   embed(id: string, body: Record<string, never>, opts?: RequestOptions): Promise<T.KbEmbedResponse> {

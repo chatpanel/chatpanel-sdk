@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.44.0
+  version: 0.44.1
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -2220,6 +2220,49 @@ paths:
         '400': { $ref: '#/components/responses/Error' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/Error' }
+  /v1/kb/{id}/access:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$' }, description: The base id. }
+    get:
+      operationId: knowledge.access
+      tags: [knowledge]
+      summary: Who may use a base — every agent, or the ones named.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.101.1'
+      responses:
+        '200':
+          description: The grant.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbAccessResponse' }
+        '404': { $ref: '#/components/responses/Error' }
+    post:
+      operationId: knowledge.setAccess
+      tags: [knowledge]
+      summary: Grant a base to every agent or to the ones named — the owner's act.
+      description: |
+        Grants (docs/knowledge-base.md §3, "knowledge is granted like skills"): a caller with the
+        token or the extension's origin is the owner and reaches every base; any other caller names
+        itself (`X-ChatPanel-Agent: claude`, or `?agent=`) — the gateway's own MCP server sends the
+        connected client's name — and reaches the bases whose `access.agents` is `all` (the default)
+        or names it. `GET /v1/kb` lists only those; a base not granted reads as 404 to that caller.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.101.1'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/KbAccessRequest' }
+      responses:
+        '200':
+          description: The grant after.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KbAccessResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/Error' }
   /v1/kb/{id}/embed:
     parameters:
       - { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$' }, description: The base id. }
@@ -3794,6 +3837,29 @@ components:
         model: { type: string }
         usage: { type: object, properties: { prompt_tokens: { type: integer }, total_tokens: { type: integer } } }
         ms: { type: number }
+    KbAccess:
+      type: object
+      required: [agents]
+      properties:
+        agents:
+          description: "`all`, or the agent names (lower-case) that may use the base — the owner always may."
+          oneOf:
+            - { type: string, enum: [all] }
+            - { type: array, items: { type: string }, maxItems: 100 }
+    KbAccessRequest:
+      type: object
+      required: [agents]
+      properties:
+        agents:
+          description: "`all`, or the agent names to grant."
+          oneOf:
+            - { type: string, enum: [all] }
+            - { type: array, items: { type: string }, maxItems: 100 }
+    KbAccessResponse:
+      type: object
+      required: [access]
+      properties:
+        access: { $ref: '#/components/schemas/KbAccess' }
     KbOkResponse:
       type: object
       required: [ok]
@@ -3815,6 +3881,7 @@ components:
               updatedAt: { type: integer, format: int64 }
               vectors: { type: integer }
               model: { type: string }
+              access: { $ref: '#/components/schemas/KbAccess' }
     KbCreateRequest:
       type: object
       properties:
@@ -3858,6 +3925,7 @@ components:
         entities: { type: integer }
         edges: { type: integer }
         reach: { type: string, description: "The tightest provenance of its documents (`internal`, `web`, or empty)." }
+        access: { $ref: '#/components/schemas/KbAccess' }
         documents: { type: array, items: { $ref: '#/components/schemas/KbDocument' } }
         bytes: { type: integer, format: int64, description: "On disk." }
         dir: { type: string, description: "The folder on disk — to a caller with the token only." }
