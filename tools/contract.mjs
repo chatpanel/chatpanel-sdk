@@ -45,6 +45,8 @@ const NOT_IN_SDK = {
   '/v1/history/key': 'the backup passphrase handoff',
   '/v1/history/ingest-backup': 'admin: re-ingest the encrypted archives',
   '/v1/memory/clear': 'destructive — wipes every memory',
+  '/v1/files/write': 'writes the person\'s disk — the panel\'s write_file behind its approval card; an embedding app is never handed that (gateway 0.104.0)',
+  '/v1/files/exists': 'the same card\'s Create / Replace — the panel only (gateway 0.104.0)',
   '/v1/observability': 'the MCP process reports here; admin-gated',
   '/v1/observability/access': 'same',
   '/ner': 'the detector\'s own health/POST — internal to redaction',
