@@ -14,6 +14,15 @@ void main() {
       // TODO
     });
 
+    // Delete one host's slice of the merged log, or the whole log — only with `force=1`.
+    //
+    // A client's \"Clear activity\" reaching the copy held here. Name exactly one of `host` or `all=1`. Without `force=1` nothing is deleted: the answer is 409 `confirm_required` with `wouldDelete`, so leaving the flag off (or sending `force=0`) is a dry run, never a delete. The host's cursor entry goes with its events, so its next push starts afresh. A tailing stream gets a `deleted` frame. Idempotent: a host with nothing left deletes 0.
+    //
+    //Future<EventsDeleted> eventsDelete({ String host, String all, String force }) async
+    test('test eventsDelete', () async {
+      // TODO
+    });
+
     // Push a batch of this client's durable log as CloudEvents; each event is appended once, each refusal is named.
     //
     // Idempotent on event id, so a retry is free. A `seq` that moves backwards for a host under a new id is a corrupt writer and is refused by itself; the rest of the batch lands. Push what lies above your entry in `cursor` (the gateway's highest `seq` per host) and stop re-sending what `rejected` names. At most 2000 events per batch. A gateway without SQLite answers 501.

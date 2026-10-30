@@ -5,6 +5,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | Method | HTTP request | Description |
 | ------------- | ------------- | ------------- |
 | [**eventsCursor**](EventsApi.md#eventsCursor) | **GET** /v1/events/cursor | The gateway&#39;s highest &#x60;seq&#x60; per host — what a client asks for before it pushes. |
+| [**eventsDelete**](EventsApi.md#eventsDelete) | **DELETE** /v1/events | Delete one host&#39;s slice of the merged log, or the whole log — only with &#x60;force&#x3D;1&#x60;. |
 | [**eventsPush**](EventsApi.md#eventsPush) | **POST** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named. |
 | [**eventsSince**](EventsApi.md#eventsSince) | **GET** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged. |
 | [**eventsStats**](EventsApi.md#eventsStats) | **GET** /v1/events/stats | What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap. |
@@ -42,6 +43,67 @@ This endpoint does not need any parameter.
 ### Return type
 
 [**EventsCursor**](EventsCursor.md)
+
+### Authorization
+
+
+Configure tokenHeader:
+    ApiClient.apiKey["X-ChatPanel-Token"] = ""
+    ApiClient.apiKeyPrefix["X-ChatPanel-Token"] = ""
+Configure gatewayToken statically:
+```kotlin
+ApiClient.accessToken = ""
+```
+Configure gatewayToken dynamically:
+```kotlin
+apiInstance.accessTokenProvider = { "" }
+```
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+<a id="eventsDelete"></a>
+# **eventsDelete**
+> EventsDeleted eventsDelete(host, all, force)
+
+Delete one host&#39;s slice of the merged log, or the whole log — only with &#x60;force&#x3D;1&#x60;.
+
+A client&#39;s \&quot;Clear activity\&quot; reaching the copy held here. Name exactly one of &#x60;host&#x60; or &#x60;all&#x3D;1&#x60;. Without &#x60;force&#x3D;1&#x60; nothing is deleted: the answer is 409 &#x60;confirm_required&#x60; with &#x60;wouldDelete&#x60;, so leaving the flag off (or sending &#x60;force&#x3D;0&#x60;) is a dry run, never a delete. The host&#39;s cursor entry goes with its events, so its next push starts afresh. A tailing stream gets a &#x60;deleted&#x60; frame. Idempotent: a host with nothing left deletes 0.
+
+### Example
+```kotlin
+// Import classes:
+//import net.chatpanel.sdk.infrastructure.*
+//import net.chatpanel.sdk.models.*
+
+val apiInstance = EventsApi()
+val host : kotlin.String = host_example // kotlin.String | The host whose events go (a client's own `host`).
+val all : kotlin.String = all_example // kotlin.String | Every host's events instead of one.
+val force : kotlin.String = force_example // kotlin.String | Required to delete; anything else is a dry run answered 409.
+try {
+    val result : EventsDeleted = apiInstance.eventsDelete(host, all, force)
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling EventsApi#eventsDelete")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling EventsApi#eventsDelete")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **host** | **kotlin.String**| The host whose events go (a client&#39;s own &#x60;host&#x60;). | [optional] |
+| **all** | **kotlin.String**| Every host&#39;s events instead of one. | [optional] [enum: 1, true, yes] |
+| **force** | **kotlin.String**| Required to delete; anything else is a dry run answered 409. | [optional] [enum: 1, true, yes] |
+
+### Return type
+
+[**EventsDeleted**](EventsDeleted.md)
 
 ### Authorization
 

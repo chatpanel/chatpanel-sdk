@@ -90,6 +90,46 @@ open class CapabilitiesAPI {
     }
 
     /**
+     One unit vector per input — OpenAI-shaped embeddings, in the gateway's own process by default.
+     
+     - parameter embedRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: EmbedResponse
+     */
+    open class func capabilitiesEmbed(embedRequest: EmbedRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> EmbedResponse {
+        return try await capabilitiesEmbedWithRequestBuilder(embedRequest: embedRequest, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     One unit vector per input — OpenAI-shaped embeddings, in the gateway's own process by default.
+     - POST /v1/embeddings
+     - The `embed` capability (docs/capability-endpoints.md C4), served since 0.101.0 by the in-process embedder (`Xenova/multilingual-e5-small` by default, 384 dimensions, q8 on the ONNX runtime; `Xenova/all-MiniLM-L6-v2` as the lighter English-only pick) — or by the server `capabilities.embed` names, through its adapter. `input` is a string or up to 256 strings; `kind` says whether they are queries or passages (E5 prefixes each). The vectors are unit length, so cosine is a dot product. 503 `provider_warming` while the model downloads (the first call starts it; a caller is never held), 404 `no_provider` when it is turned off (`capabilities.embed.provider = none`), `budgetMs` refused from the record like every capability. The knowledge base (`/v1/kb`) uses this for its vector lane; it works on words and the graph until the model is on disk. 
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter embedRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<EmbedResponse> 
+     */
+    open class func capabilitiesEmbedWithRequestBuilder(embedRequest: EmbedRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<EmbedResponse> {
+        let localVariablePath = "/v1/embeddings"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: embedRequest, codableHelper: apiConfiguration.codableHelper)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            "Content-Type": "application/json",
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<EmbedResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
      What this provider can do — which capabilities, models, measured cost and runtime state.
      
      - parameter apiConfiguration: The configuration for the http request.

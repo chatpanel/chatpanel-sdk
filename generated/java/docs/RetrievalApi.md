@@ -6,6 +6,8 @@ All URIs are relative to *http://127.0.0.1:4320*
 |------------- | ------------- | -------------|
 | [**retrievalExtract**](RetrievalApi.md#retrievalExtract) | **POST** /v1/extract | A document&#39;s pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash. |
 | [**retrievalExtractWithHttpInfo**](RetrievalApi.md#retrievalExtractWithHttpInfo) | **POST** /v1/extract | A document&#39;s pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash. |
+| [**retrievalExtractContext**](RetrievalApi.md#retrievalExtractContext) | **POST** /v1/extract/context | The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do. |
+| [**retrievalExtractContextWithHttpInfo**](RetrievalApi.md#retrievalExtractContextWithHttpInfo) | **POST** /v1/extract/context | The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do. |
 | [**retrievalRead**](RetrievalApi.md#retrievalRead) | **POST** /v1/read | Read one public page as LLM-ready Markdown, cited where it landed, with its sections. |
 | [**retrievalReadWithHttpInfo**](RetrievalApi.md#retrievalReadWithHttpInfo) | **POST** /v1/read | Read one public page as LLM-ready Markdown, cited where it landed, with its sections. |
 | [**retrievalReadAlias**](RetrievalApi.md#retrievalReadAlias) | **GET** /v1/read/{url} | The r.jina.ai-shaped alias — &#x60;GET /v1/read/https://…&#x60; — for clients that already speak it. |
@@ -171,6 +173,158 @@ ApiResponse<[**ExtractResponse**](ExtractResponse.md)>
 | **415** | No reader for these bytes (&#x60;unsupported&#x60;). |  -  |
 | **503** | The budget cannot be met (&#x60;over_budget&#x60;, with &#x60;predictedMs&#x60;). |  -  |
 | **504** | The parse took too long and the worker was restarted (&#x60;extract_timeout&#x60;). |  -  |
+
+
+## retrievalExtractContext
+
+> ExtractContextResponse retrievalExtractContext(extractContextRequest)
+
+The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do.
+
+The turn pipeline&#39;s document stage as an API. Every ChatPanel client reads a file the person attached BEFORE a small model answers: whole when it fits the window&#39;s share of characters, else the pages that carry the question&#39;s words, each page cited, as one &#x60;prefetch&#x60; block placed before the question (a small model reads context first). A harness built on this SDK gets the same block here: send the question and the documents (the bytes, base64, or the &#x60;hash&#x60; of one &#x60;/v1/extract&#x60; already opened), and put &#x60;attachment.text&#x60; in the user message ahead of the question. &#x60;window&#x60; (tokens) sizes the share — a 4k on-device model gets a few thousand characters, a large window far more — or &#x60;budgetChars&#x60; sets it outright. &#x60;how&#x60; says whether the whole document went or pages were picked; &#x60;read&#x60; lists each document&#39;s pages, &#x60;skipped&#x60; the ones that could not be opened. A document with no text layer is named as a scan inside the block rather than guessed from. Parsed in the same worker as &#x60;/v1/extract&#x60;, on this machine; nothing leaves it. 
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.RetrievalApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        RetrievalApi apiInstance = new RetrievalApi(defaultClient);
+        ExtractContextRequest extractContextRequest = new ExtractContextRequest(); // ExtractContextRequest | 
+        try {
+            ExtractContextResponse result = apiInstance.retrievalExtractContext(extractContextRequest);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling RetrievalApi#retrievalExtractContext");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **extractContextRequest** | [**ExtractContextRequest**](ExtractContextRequest.md)|  | |
+
+### Return type
+
+[**ExtractContextResponse**](ExtractContextResponse.md)
+
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | The block to put before the question, and what was read. |  -  |
+| **400** | An error, in the gateway&#39;s words. |  -  |
+| **404** | A &#x60;hash&#x60; is not open in the worker (&#x60;unknown_document&#x60;) — send the bytes again. |  -  |
+| **413** | A document is over the 64 MB limit (&#x60;too_large&#x60;). |  -  |
+| **415** | No reader for these bytes (&#x60;unsupported&#x60;). |  -  |
+
+## retrievalExtractContextWithHttpInfo
+
+> ApiResponse<ExtractContextResponse> retrievalExtractContextWithHttpInfo(extractContextRequest)
+
+The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do.
+
+The turn pipeline&#39;s document stage as an API. Every ChatPanel client reads a file the person attached BEFORE a small model answers: whole when it fits the window&#39;s share of characters, else the pages that carry the question&#39;s words, each page cited, as one &#x60;prefetch&#x60; block placed before the question (a small model reads context first). A harness built on this SDK gets the same block here: send the question and the documents (the bytes, base64, or the &#x60;hash&#x60; of one &#x60;/v1/extract&#x60; already opened), and put &#x60;attachment.text&#x60; in the user message ahead of the question. &#x60;window&#x60; (tokens) sizes the share — a 4k on-device model gets a few thousand characters, a large window far more — or &#x60;budgetChars&#x60; sets it outright. &#x60;how&#x60; says whether the whole document went or pages were picked; &#x60;read&#x60; lists each document&#39;s pages, &#x60;skipped&#x60; the ones that could not be opened. A document with no text layer is named as a scan inside the block rather than guessed from. Parsed in the same worker as &#x60;/v1/extract&#x60;, on this machine; nothing leaves it. 
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.ApiResponse;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.RetrievalApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        RetrievalApi apiInstance = new RetrievalApi(defaultClient);
+        ExtractContextRequest extractContextRequest = new ExtractContextRequest(); // ExtractContextRequest | 
+        try {
+            ApiResponse<ExtractContextResponse> response = apiInstance.retrievalExtractContextWithHttpInfo(extractContextRequest);
+            System.out.println("Status code: " + response.getStatusCode());
+            System.out.println("Response headers: " + response.getHeaders());
+            System.out.println("Response body: " + response.getData());
+        } catch (ApiException e) {
+            System.err.println("Exception when calling RetrievalApi#retrievalExtractContext");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            System.err.println("Reason: " + e.getResponseBody());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **extractContextRequest** | [**ExtractContextRequest**](ExtractContextRequest.md)|  | |
+
+### Return type
+
+ApiResponse<[**ExtractContextResponse**](ExtractContextResponse.md)>
+
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | The block to put before the question, and what was read. |  -  |
+| **400** | An error, in the gateway&#39;s words. |  -  |
+| **404** | A &#x60;hash&#x60; is not open in the worker (&#x60;unknown_document&#x60;) — send the bytes again. |  -  |
+| **413** | A document is over the 64 MB limit (&#x60;too_large&#x60;). |  -  |
+| **415** | No reader for these bytes (&#x60;unsupported&#x60;). |  -  |
 
 
 ## retrievalRead

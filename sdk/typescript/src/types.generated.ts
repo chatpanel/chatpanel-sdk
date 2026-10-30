@@ -1229,6 +1229,28 @@ export interface EventsCursor {
   count?: number;
 }
 
+export interface EventsDeleted {
+  ok: boolean;
+  /** How many events went. */
+  deleted: number;
+  host?: string;
+  all?: boolean;
+  cursor: EventsCursorMap;
+}
+
+export interface EventsDeleteDryRun {
+  ok: false;
+  /** What `force=1` would delete. */
+  wouldDelete: number;
+  host?: string;
+  all?: boolean;
+  error: {
+    message: string;
+    type: "confirm_required";
+    code?: "confirm_required";
+  };
+}
+
 export interface EventsPage {
   ok: boolean;
   events: Array<CloudEvent>;

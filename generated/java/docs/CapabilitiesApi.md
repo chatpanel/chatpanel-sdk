@@ -8,6 +8,8 @@ All URIs are relative to *http://127.0.0.1:4320*
 | [**capabilitiesDecideWithHttpInfo**](CapabilitiesApi.md#capabilitiesDecideWithHttpInfo) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability. |
 | [**capabilitiesDetect**](CapabilitiesApi.md#capabilitiesDetect) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores. |
 | [**capabilitiesDetectWithHttpInfo**](CapabilitiesApi.md#capabilitiesDetectWithHttpInfo) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores. |
+| [**capabilitiesEmbed**](CapabilitiesApi.md#capabilitiesEmbed) | **POST** /v1/embeddings | One unit vector per input — OpenAI-shaped embeddings, in the gateway&#39;s own process by default. |
+| [**capabilitiesEmbedWithHttpInfo**](CapabilitiesApi.md#capabilitiesEmbedWithHttpInfo) | **POST** /v1/embeddings | One unit vector per input — OpenAI-shaped embeddings, in the gateway&#39;s own process by default. |
 | [**capabilitiesList**](CapabilitiesApi.md#capabilitiesList) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state. |
 | [**capabilitiesListWithHttpInfo**](CapabilitiesApi.md#capabilitiesListWithHttpInfo) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state. |
 | [**capabilitiesRerank**](CapabilitiesApi.md#capabilitiesRerank) | **POST** /v1/rerank | Order documents by relevance to a query — a cross-encoder, no language model. |
@@ -315,6 +317,156 @@ ApiResponse<[**DetectResponse**](DetectResponse.md)>
 | **400** | An error, in the gateway&#39;s words. |  -  |
 | **404** | An error, in the gateway&#39;s words. |  -  |
 | **503** | The detector is not ready (&#x60;detector_unready&#x60;, &#x60;detector_error&#x60;) or the budget cannot be met (&#x60;over_budget&#x60;, with &#x60;predictedMs&#x60; and &#x60;budgetMs&#x60;). |  -  |
+
+
+## capabilitiesEmbed
+
+> EmbedResponse capabilitiesEmbed(embedRequest)
+
+One unit vector per input — OpenAI-shaped embeddings, in the gateway&#39;s own process by default.
+
+The &#x60;embed&#x60; capability (docs/capability-endpoints.md C4), served since 0.101.0 by the in-process embedder (&#x60;Xenova/multilingual-e5-small&#x60; by default, 384 dimensions, q8 on the ONNX runtime; &#x60;Xenova/all-MiniLM-L6-v2&#x60; as the lighter English-only pick) — or by the server &#x60;capabilities.embed&#x60; names, through its adapter. &#x60;input&#x60; is a string or up to 256 strings; &#x60;kind&#x60; says whether they are queries or passages (E5 prefixes each). The vectors are unit length, so cosine is a dot product. 503 &#x60;provider_warming&#x60; while the model downloads (the first call starts it; a caller is never held), 404 &#x60;no_provider&#x60; when it is turned off (&#x60;capabilities.embed.provider &#x3D; none&#x60;), &#x60;budgetMs&#x60; refused from the record like every capability. The knowledge base (&#x60;/v1/kb&#x60;) uses this for its vector lane; it works on words and the graph until the model is on disk. 
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.CapabilitiesApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        CapabilitiesApi apiInstance = new CapabilitiesApi(defaultClient);
+        EmbedRequest embedRequest = new EmbedRequest(); // EmbedRequest | 
+        try {
+            EmbedResponse result = apiInstance.capabilitiesEmbed(embedRequest);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling CapabilitiesApi#capabilitiesEmbed");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **embedRequest** | [**EmbedRequest**](EmbedRequest.md)|  | |
+
+### Return type
+
+[**EmbedResponse**](EmbedResponse.md)
+
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | One embedding per input, in order. |  -  |
+| **400** | An error, in the gateway&#39;s words. |  -  |
+| **404** | Turned off (&#x60;no_provider&#x60;), or a &#x60;model&#x60; this gateway does not serve (&#x60;model_not_found&#x60;). |  -  |
+| **503** | The model is downloading (&#x60;provider_warming&#x60;, with &#x60;progress&#x60;), the budget cannot be met (&#x60;over_budget&#x60;), or the provider did not answer (&#x60;provider_unavailable&#x60;). |  -  |
+
+## capabilitiesEmbedWithHttpInfo
+
+> ApiResponse<EmbedResponse> capabilitiesEmbedWithHttpInfo(embedRequest)
+
+One unit vector per input — OpenAI-shaped embeddings, in the gateway&#39;s own process by default.
+
+The &#x60;embed&#x60; capability (docs/capability-endpoints.md C4), served since 0.101.0 by the in-process embedder (&#x60;Xenova/multilingual-e5-small&#x60; by default, 384 dimensions, q8 on the ONNX runtime; &#x60;Xenova/all-MiniLM-L6-v2&#x60; as the lighter English-only pick) — or by the server &#x60;capabilities.embed&#x60; names, through its adapter. &#x60;input&#x60; is a string or up to 256 strings; &#x60;kind&#x60; says whether they are queries or passages (E5 prefixes each). The vectors are unit length, so cosine is a dot product. 503 &#x60;provider_warming&#x60; while the model downloads (the first call starts it; a caller is never held), 404 &#x60;no_provider&#x60; when it is turned off (&#x60;capabilities.embed.provider &#x3D; none&#x60;), &#x60;budgetMs&#x60; refused from the record like every capability. The knowledge base (&#x60;/v1/kb&#x60;) uses this for its vector lane; it works on words and the graph until the model is on disk. 
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.ApiResponse;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.CapabilitiesApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        CapabilitiesApi apiInstance = new CapabilitiesApi(defaultClient);
+        EmbedRequest embedRequest = new EmbedRequest(); // EmbedRequest | 
+        try {
+            ApiResponse<EmbedResponse> response = apiInstance.capabilitiesEmbedWithHttpInfo(embedRequest);
+            System.out.println("Status code: " + response.getStatusCode());
+            System.out.println("Response headers: " + response.getHeaders());
+            System.out.println("Response body: " + response.getData());
+        } catch (ApiException e) {
+            System.err.println("Exception when calling CapabilitiesApi#capabilitiesEmbed");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            System.err.println("Reason: " + e.getResponseBody());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **embedRequest** | [**EmbedRequest**](EmbedRequest.md)|  | |
+
+### Return type
+
+ApiResponse<[**EmbedResponse**](EmbedResponse.md)>
+
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | One embedding per input, in order. |  -  |
+| **400** | An error, in the gateway&#39;s words. |  -  |
+| **404** | Turned off (&#x60;no_provider&#x60;), or a &#x60;model&#x60; this gateway does not serve (&#x60;model_not_found&#x60;). |  -  |
+| **503** | The model is downloading (&#x60;provider_warming&#x60;, with &#x60;progress&#x60;), the budget cannot be met (&#x60;over_budget&#x60;), or the provider did not answer (&#x60;provider_unavailable&#x60;). |  -  |
 
 
 ## capabilitiesList

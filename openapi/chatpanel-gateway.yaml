@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.45.0
+  version: 0.46.0
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -530,6 +530,37 @@ paths:
               schema: { $ref: '#/components/schemas/EventsPage' }
         '400': { $ref: '#/components/responses/Error' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '501': { $ref: '#/components/responses/Error' }
+    delete:
+      operationId: events.delete
+      tags: [events]
+      summary: Delete one host's slice of the merged log, or the whole log — only with `force=1`.
+      description: >-
+        A client's "Clear activity" reaching the copy held here. Name exactly one of `host` or `all=1`. Without
+        `force=1` nothing is deleted: the answer is 409 `confirm_required` with `wouldDelete`, so leaving the
+        flag off (or sending `force=0`) is a dry run, never a delete. The host's cursor entry goes with its
+        events, so its next push starts afresh. A tailing stream gets a `deleted` frame. Idempotent: a host
+        with nothing left deletes 0.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.105.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      parameters:
+        - { name: host, in: query, schema: { type: string, maxLength: 200 }, description: "The host whose events go (a client's own `host`)." }
+        - { name: all, in: query, schema: { type: string, enum: ['1', 'true', 'yes'] }, description: "Every host's events instead of one." }
+        - { name: force, in: query, schema: { type: string, enum: ['1', 'true', 'yes'] }, description: "Required to delete; anything else is a dry run answered 409." }
+      responses:
+        '200':
+          description: What was deleted, and the cursor afterwards.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventsDeleted' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409':
+          description: No `force=1` — nothing deleted; `wouldDelete` says what force would remove.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventsDeleteDryRun' }
         '501': { $ref: '#/components/responses/Error' }
   /v1/events/cursor:
     get:
@@ -4612,6 +4643,30 @@ components:
         ok: { type: boolean }
         cursor: { $ref: '#/components/schemas/EventsCursorMap' }
         count: { type: integer }
+    EventsDeleted:
+      type: object
+      required: [ok, deleted, cursor]
+      properties:
+        ok: { type: boolean }
+        deleted: { type: integer, description: 'How many events went.' }
+        host: { type: string }
+        all: { type: boolean }
+        cursor: { $ref: '#/components/schemas/EventsCursorMap' }
+    EventsDeleteDryRun:
+      type: object
+      required: [ok, wouldDelete, error]
+      properties:
+        ok: { type: boolean, enum: [false] }
+        wouldDelete: { type: integer, description: 'What `force=1` would delete.' }
+        host: { type: string }
+        all: { type: boolean }
+        error:
+          type: object
+          required: [message, type]
+          properties:
+            message: { type: string }
+            type: { type: string, enum: [confirm_required] }
+            code: { type: string, enum: [confirm_required] }
     EventsPage:
       type: object
       required: [ok, events, cursor, more]

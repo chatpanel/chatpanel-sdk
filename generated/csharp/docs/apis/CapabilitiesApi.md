@@ -6,6 +6,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 |--------|--------------|-------------|
 | [**CapabilitiesDecide**](CapabilitiesApi.md#capabilitiesdecide) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability. |
 | [**CapabilitiesDetect**](CapabilitiesApi.md#capabilitiesdetect) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores. |
+| [**CapabilitiesEmbed**](CapabilitiesApi.md#capabilitiesembed) | **POST** /v1/embeddings | One unit vector per input — OpenAI-shaped embeddings, in the gateway&#39;s own process by default. |
 | [**CapabilitiesList**](CapabilitiesApi.md#capabilitieslist) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state. |
 | [**CapabilitiesRerank**](CapabilitiesApi.md#capabilitiesrerank) | **POST** /v1/rerank | Order documents by relevance to a query — a cross-encoder, no language model. |
 
@@ -85,6 +86,45 @@ The standard `detect` signature over the in-process entity detector. Labels are 
 | **400** | An error, in the gateway&#39;s words. |  -  |
 | **404** | An error, in the gateway&#39;s words. |  -  |
 | **503** | The detector is not ready (&#x60;detector_unready&#x60;, &#x60;detector_error&#x60;) or the budget cannot be met (&#x60;over_budget&#x60;, with &#x60;predictedMs&#x60; and &#x60;budgetMs&#x60;). |  -  |
+
+[[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
+
+<a id="capabilitiesembed"></a>
+# **CapabilitiesEmbed**
+> EmbedResponse CapabilitiesEmbed (EmbedRequest embedRequest)
+
+One unit vector per input — OpenAI-shaped embeddings, in the gateway's own process by default.
+
+The `embed` capability (docs/capability-endpoints.md C4), served since 0.101.0 by the in-process embedder (`Xenova/multilingual-e5-small` by default, 384 dimensions, q8 on the ONNX runtime; `Xenova/all-MiniLM-L6-v2` as the lighter English-only pick) — or by the server `capabilities.embed` names, through its adapter. `input` is a string or up to 256 strings; `kind` says whether they are queries or passages (E5 prefixes each). The vectors are unit length, so cosine is a dot product. 503 `provider_warming` while the model downloads (the first call starts it; a caller is never held), 404 `no_provider` when it is turned off (`capabilities.embed.provider = none`), `budgetMs` refused from the record like every capability. The knowledge base (`/v1/kb`) uses this for its vector lane; it works on words and the graph until the model is on disk. 
+
+
+### Parameters
+
+| Name | Type | Description | Notes |
+|------|------|-------------|-------|
+| **embedRequest** | [**EmbedRequest**](EmbedRequest.md) |  |  |
+
+### Return type
+
+[**EmbedResponse**](EmbedResponse.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | One embedding per input, in order. |  -  |
+| **400** | An error, in the gateway&#39;s words. |  -  |
+| **404** | Turned off (&#x60;no_provider&#x60;), or a &#x60;model&#x60; this gateway does not serve (&#x60;model_not_found&#x60;). |  -  |
+| **503** | The model is downloading (&#x60;provider_warming&#x60;, with &#x60;progress&#x60;), the budget cannot be met (&#x60;over_budget&#x60;), or the provider did not answer (&#x60;provider_unavailable&#x60;). |  -  |
 
 [[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
 

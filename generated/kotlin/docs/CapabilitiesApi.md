@@ -6,6 +6,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | ------------- | ------------- | ------------- |
 | [**capabilitiesDecide**](CapabilitiesApi.md#capabilitiesDecide) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability. |
 | [**capabilitiesDetect**](CapabilitiesApi.md#capabilitiesDetect) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores. |
+| [**capabilitiesEmbed**](CapabilitiesApi.md#capabilitiesEmbed) | **POST** /v1/embeddings | One unit vector per input — OpenAI-shaped embeddings, in the gateway&#39;s own process by default. |
 | [**capabilitiesList**](CapabilitiesApi.md#capabilitiesList) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state. |
 | [**capabilitiesRerank**](CapabilitiesApi.md#capabilitiesRerank) | **POST** /v1/rerank | Order documents by relevance to a query — a cross-encoder, no language model. |
 
@@ -100,6 +101,60 @@ try {
 ### Return type
 
 [**DetectResponse**](DetectResponse.md)
+
+### Authorization
+
+
+Configure gatewayToken statically:
+```kotlin
+ApiClient.accessToken = ""
+```
+Configure gatewayToken dynamically:
+```kotlin
+apiInstance.accessTokenProvider = { "" }
+```
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+<a id="capabilitiesEmbed"></a>
+# **capabilitiesEmbed**
+> EmbedResponse capabilitiesEmbed(embedRequest)
+
+One unit vector per input — OpenAI-shaped embeddings, in the gateway&#39;s own process by default.
+
+The &#x60;embed&#x60; capability (docs/capability-endpoints.md C4), served since 0.101.0 by the in-process embedder (&#x60;Xenova/multilingual-e5-small&#x60; by default, 384 dimensions, q8 on the ONNX runtime; &#x60;Xenova/all-MiniLM-L6-v2&#x60; as the lighter English-only pick) — or by the server &#x60;capabilities.embed&#x60; names, through its adapter. &#x60;input&#x60; is a string or up to 256 strings; &#x60;kind&#x60; says whether they are queries or passages (E5 prefixes each). The vectors are unit length, so cosine is a dot product. 503 &#x60;provider_warming&#x60; while the model downloads (the first call starts it; a caller is never held), 404 &#x60;no_provider&#x60; when it is turned off (&#x60;capabilities.embed.provider &#x3D; none&#x60;), &#x60;budgetMs&#x60; refused from the record like every capability. The knowledge base (&#x60;/v1/kb&#x60;) uses this for its vector lane; it works on words and the graph until the model is on disk. 
+
+### Example
+```kotlin
+// Import classes:
+//import net.chatpanel.sdk.infrastructure.*
+//import net.chatpanel.sdk.models.*
+
+val apiInstance = CapabilitiesApi()
+val embedRequest : EmbedRequest =  // EmbedRequest | 
+try {
+    val result : EmbedResponse = apiInstance.capabilitiesEmbed(embedRequest)
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling CapabilitiesApi#capabilitiesEmbed")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling CapabilitiesApi#capabilitiesEmbed")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **embedRequest** | [**EmbedRequest**](EmbedRequest.md)|  | |
+
+### Return type
+
+[**EmbedResponse**](EmbedResponse.md)
 
 ### Authorization
 

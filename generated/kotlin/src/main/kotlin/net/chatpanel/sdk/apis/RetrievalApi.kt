@@ -28,6 +28,8 @@ import okhttp3.Call
 import okhttp3.HttpUrl
 
 import net.chatpanel.sdk.models.ErrorResponse
+import net.chatpanel.sdk.models.ExtractContextRequest
+import net.chatpanel.sdk.models.ExtractContextResponse
 import net.chatpanel.sdk.models.ExtractRequest
 import net.chatpanel.sdk.models.ExtractResponse
 import net.chatpanel.sdk.models.ReadRequest
@@ -128,6 +130,80 @@ open class RetrievalApi(basePath: kotlin.String = defaultBasePath, client: Call.
         return RequestConfig(
             method = RequestMethod.POST,
             path = "/v1/extract",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * POST /v1/extract/context
+     * The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do.
+     * The turn pipeline&#39;s document stage as an API. Every ChatPanel client reads a file the person attached BEFORE a small model answers: whole when it fits the window&#39;s share of characters, else the pages that carry the question&#39;s words, each page cited, as one &#x60;prefetch&#x60; block placed before the question (a small model reads context first). A harness built on this SDK gets the same block here: send the question and the documents (the bytes, base64, or the &#x60;hash&#x60; of one &#x60;/v1/extract&#x60; already opened), and put &#x60;attachment.text&#x60; in the user message ahead of the question. &#x60;window&#x60; (tokens) sizes the share — a 4k on-device model gets a few thousand characters, a large window far more — or &#x60;budgetChars&#x60; sets it outright. &#x60;how&#x60; says whether the whole document went or pages were picked; &#x60;read&#x60; lists each document&#39;s pages, &#x60;skipped&#x60; the ones that could not be opened. A document with no text layer is named as a scan inside the block rather than guessed from. Parsed in the same worker as &#x60;/v1/extract&#x60;, on this machine; nothing leaves it. 
+     * @param extractContextRequest 
+     * @return ExtractContextResponse
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun retrievalExtractContext(extractContextRequest: ExtractContextRequest) : ExtractContextResponse {
+        val localVarResponse = retrievalExtractContextWithHttpInfo(extractContextRequest = extractContextRequest)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as ExtractContextResponse
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * POST /v1/extract/context
+     * The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do.
+     * The turn pipeline&#39;s document stage as an API. Every ChatPanel client reads a file the person attached BEFORE a small model answers: whole when it fits the window&#39;s share of characters, else the pages that carry the question&#39;s words, each page cited, as one &#x60;prefetch&#x60; block placed before the question (a small model reads context first). A harness built on this SDK gets the same block here: send the question and the documents (the bytes, base64, or the &#x60;hash&#x60; of one &#x60;/v1/extract&#x60; already opened), and put &#x60;attachment.text&#x60; in the user message ahead of the question. &#x60;window&#x60; (tokens) sizes the share — a 4k on-device model gets a few thousand characters, a large window far more — or &#x60;budgetChars&#x60; sets it outright. &#x60;how&#x60; says whether the whole document went or pages were picked; &#x60;read&#x60; lists each document&#39;s pages, &#x60;skipped&#x60; the ones that could not be opened. A document with no text layer is named as a scan inside the block rather than guessed from. Parsed in the same worker as &#x60;/v1/extract&#x60;, on this machine; nothing leaves it. 
+     * @param extractContextRequest 
+     * @return ApiResponse<ExtractContextResponse?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun retrievalExtractContextWithHttpInfo(extractContextRequest: ExtractContextRequest) : ApiResponse<ExtractContextResponse?> {
+        val localVariableConfig = retrievalExtractContextRequestConfig(extractContextRequest = extractContextRequest)
+
+        return request<ExtractContextRequest, ExtractContextResponse>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation retrievalExtractContext
+     *
+     * @param extractContextRequest 
+     * @return RequestConfig
+     */
+    fun retrievalExtractContextRequestConfig(extractContextRequest: ExtractContextRequest) : RequestConfig<ExtractContextRequest> {
+        val localVariableBody = extractContextRequest
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/v1/extract/context",
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,

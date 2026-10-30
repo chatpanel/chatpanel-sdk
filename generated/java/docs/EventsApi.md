@@ -6,6 +6,8 @@ All URIs are relative to *http://127.0.0.1:4320*
 |------------- | ------------- | -------------|
 | [**eventsCursor**](EventsApi.md#eventsCursor) | **GET** /v1/events/cursor | The gateway&#39;s highest &#x60;seq&#x60; per host — what a client asks for before it pushes. |
 | [**eventsCursorWithHttpInfo**](EventsApi.md#eventsCursorWithHttpInfo) | **GET** /v1/events/cursor | The gateway&#39;s highest &#x60;seq&#x60; per host — what a client asks for before it pushes. |
+| [**eventsDelete**](EventsApi.md#eventsDelete) | **DELETE** /v1/events | Delete one host&#39;s slice of the merged log, or the whole log — only with &#x60;force&#x3D;1&#x60;. |
+| [**eventsDeleteWithHttpInfo**](EventsApi.md#eventsDeleteWithHttpInfo) | **DELETE** /v1/events | Delete one host&#39;s slice of the merged log, or the whole log — only with &#x60;force&#x3D;1&#x60;. |
 | [**eventsPush**](EventsApi.md#eventsPush) | **POST** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named. |
 | [**eventsPushWithHttpInfo**](EventsApi.md#eventsPushWithHttpInfo) | **POST** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named. |
 | [**eventsSince**](EventsApi.md#eventsSince) | **GET** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged. |
@@ -162,6 +164,178 @@ ApiResponse<[**EventsCursor**](EventsCursor.md)>
 |-------------|-------------|------------------|
 | **200** | The cursor and the log&#39;s size. |  -  |
 | **403** | The caller lacks the token this route needs. |  -  |
+| **501** | An error, in the gateway&#39;s words. |  -  |
+
+
+## eventsDelete
+
+> EventsDeleted eventsDelete(host, all, force)
+
+Delete one host&#39;s slice of the merged log, or the whole log — only with &#x60;force&#x3D;1&#x60;.
+
+A client&#39;s \&quot;Clear activity\&quot; reaching the copy held here. Name exactly one of &#x60;host&#x60; or &#x60;all&#x3D;1&#x60;. Without &#x60;force&#x3D;1&#x60; nothing is deleted: the answer is 409 &#x60;confirm_required&#x60; with &#x60;wouldDelete&#x60;, so leaving the flag off (or sending &#x60;force&#x3D;0&#x60;) is a dry run, never a delete. The host&#39;s cursor entry goes with its events, so its next push starts afresh. A tailing stream gets a &#x60;deleted&#x60; frame. Idempotent: a host with nothing left deletes 0.
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.EventsApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure API key authorization: tokenHeader
+        ApiKeyAuth tokenHeader = (ApiKeyAuth) defaultClient.getAuthentication("tokenHeader");
+        tokenHeader.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //tokenHeader.setApiKeyPrefix("Token");
+
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        EventsApi apiInstance = new EventsApi(defaultClient);
+        String host = "host_example"; // String | The host whose events go (a client's own `host`).
+        String all = "1"; // String | Every host's events instead of one.
+        String force = "1"; // String | Required to delete; anything else is a dry run answered 409.
+        try {
+            EventsDeleted result = apiInstance.eventsDelete(host, all, force);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling EventsApi#eventsDelete");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **host** | **String**| The host whose events go (a client&#39;s own &#x60;host&#x60;). | [optional] |
+| **all** | **String**| Every host&#39;s events instead of one. | [optional] [enum: 1, true, yes] |
+| **force** | **String**| Required to delete; anything else is a dry run answered 409. | [optional] [enum: 1, true, yes] |
+
+### Return type
+
+[**EventsDeleted**](EventsDeleted.md)
+
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | What was deleted, and the cursor afterwards. |  -  |
+| **400** | An error, in the gateway&#39;s words. |  -  |
+| **403** | The caller lacks the token this route needs. |  -  |
+| **409** | No &#x60;force&#x3D;1&#x60; — nothing deleted; &#x60;wouldDelete&#x60; says what force would remove. |  -  |
+| **501** | An error, in the gateway&#39;s words. |  -  |
+
+## eventsDeleteWithHttpInfo
+
+> ApiResponse<EventsDeleted> eventsDeleteWithHttpInfo(host, all, force)
+
+Delete one host&#39;s slice of the merged log, or the whole log — only with &#x60;force&#x3D;1&#x60;.
+
+A client&#39;s \&quot;Clear activity\&quot; reaching the copy held here. Name exactly one of &#x60;host&#x60; or &#x60;all&#x3D;1&#x60;. Without &#x60;force&#x3D;1&#x60; nothing is deleted: the answer is 409 &#x60;confirm_required&#x60; with &#x60;wouldDelete&#x60;, so leaving the flag off (or sending &#x60;force&#x3D;0&#x60;) is a dry run, never a delete. The host&#39;s cursor entry goes with its events, so its next push starts afresh. A tailing stream gets a &#x60;deleted&#x60; frame. Idempotent: a host with nothing left deletes 0.
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.ApiResponse;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.EventsApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure API key authorization: tokenHeader
+        ApiKeyAuth tokenHeader = (ApiKeyAuth) defaultClient.getAuthentication("tokenHeader");
+        tokenHeader.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //tokenHeader.setApiKeyPrefix("Token");
+
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        EventsApi apiInstance = new EventsApi(defaultClient);
+        String host = "host_example"; // String | The host whose events go (a client's own `host`).
+        String all = "1"; // String | Every host's events instead of one.
+        String force = "1"; // String | Required to delete; anything else is a dry run answered 409.
+        try {
+            ApiResponse<EventsDeleted> response = apiInstance.eventsDeleteWithHttpInfo(host, all, force);
+            System.out.println("Status code: " + response.getStatusCode());
+            System.out.println("Response headers: " + response.getHeaders());
+            System.out.println("Response body: " + response.getData());
+        } catch (ApiException e) {
+            System.err.println("Exception when calling EventsApi#eventsDelete");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            System.err.println("Reason: " + e.getResponseBody());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **host** | **String**| The host whose events go (a client&#39;s own &#x60;host&#x60;). | [optional] |
+| **all** | **String**| Every host&#39;s events instead of one. | [optional] [enum: 1, true, yes] |
+| **force** | **String**| Required to delete; anything else is a dry run answered 409. | [optional] [enum: 1, true, yes] |
+
+### Return type
+
+ApiResponse<[**EventsDeleted**](EventsDeleted.md)>
+
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | What was deleted, and the cursor afterwards. |  -  |
+| **400** | An error, in the gateway&#39;s words. |  -  |
+| **403** | The caller lacks the token this route needs. |  -  |
+| **409** | No &#x60;force&#x3D;1&#x60; — nothing deleted; &#x60;wouldDelete&#x60; says what force would remove. |  -  |
 | **501** | An error, in the gateway&#39;s words. |  -  |
 
 

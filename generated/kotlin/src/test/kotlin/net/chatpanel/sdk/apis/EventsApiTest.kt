@@ -29,6 +29,8 @@ import io.kotlintest.specs.ShouldSpec
 import net.chatpanel.sdk.apis.EventsApi
 import net.chatpanel.sdk.models.ErrorResponse
 import net.chatpanel.sdk.models.EventsCursor
+import net.chatpanel.sdk.models.EventsDeleteDryRun
+import net.chatpanel.sdk.models.EventsDeleted
 import net.chatpanel.sdk.models.EventsPage
 import net.chatpanel.sdk.models.EventsStats
 import net.chatpanel.sdk.models.PushEventsRequest
@@ -43,6 +45,16 @@ class EventsApiTest : ShouldSpec() {
         should("test eventsCursor") {
             // uncomment below to test eventsCursor
             //val result : EventsCursor = apiInstance.eventsCursor()
+            //result shouldBe ("TODO")
+        }
+
+        // to test eventsDelete
+        should("test eventsDelete") {
+            // uncomment below to test eventsDelete
+            //val host : kotlin.String = host_example // kotlin.String | The host whose events go (a client's own `host`).
+            //val all : kotlin.String = all_example // kotlin.String | Every host's events instead of one.
+            //val force : kotlin.String = force_example // kotlin.String | Required to delete; anything else is a dry run answered 409.
+            //val result : EventsDeleted = apiInstance.eventsDelete(host, all, force)
             //result shouldBe ("TODO")
         }
 

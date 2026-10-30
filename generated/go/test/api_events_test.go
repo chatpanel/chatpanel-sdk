@@ -34,6 +34,18 @@ func Test_chatpanel_EventsAPIService(t *testing.T) {
 
 	})
 
+	t.Run("Test EventsAPIService EventsDelete", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		resp, httpRes, err := apiClient.EventsAPI.EventsDelete(context.Background()).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
 	t.Run("Test EventsAPIService EventsPush", func(t *testing.T) {
 
 		t.Skip("skip test")  // remove to run test

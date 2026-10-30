@@ -32,6 +32,8 @@ import net.chatpanel.sdk.models.DecideRequest
 import net.chatpanel.sdk.models.DecideResponse
 import net.chatpanel.sdk.models.DetectRequest
 import net.chatpanel.sdk.models.DetectResponse
+import net.chatpanel.sdk.models.EmbedRequest
+import net.chatpanel.sdk.models.EmbedResponse
 import net.chatpanel.sdk.models.ErrorResponse
 import net.chatpanel.sdk.models.RerankRequest
 import net.chatpanel.sdk.models.RerankResponse
@@ -201,6 +203,80 @@ open class CapabilitiesApi(basePath: kotlin.String = defaultBasePath, client: Ca
         return RequestConfig(
             method = RequestMethod.POST,
             path = "/v1/detect",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * POST /v1/embeddings
+     * One unit vector per input — OpenAI-shaped embeddings, in the gateway&#39;s own process by default.
+     * The &#x60;embed&#x60; capability (docs/capability-endpoints.md C4), served since 0.101.0 by the in-process embedder (&#x60;Xenova/multilingual-e5-small&#x60; by default, 384 dimensions, q8 on the ONNX runtime; &#x60;Xenova/all-MiniLM-L6-v2&#x60; as the lighter English-only pick) — or by the server &#x60;capabilities.embed&#x60; names, through its adapter. &#x60;input&#x60; is a string or up to 256 strings; &#x60;kind&#x60; says whether they are queries or passages (E5 prefixes each). The vectors are unit length, so cosine is a dot product. 503 &#x60;provider_warming&#x60; while the model downloads (the first call starts it; a caller is never held), 404 &#x60;no_provider&#x60; when it is turned off (&#x60;capabilities.embed.provider &#x3D; none&#x60;), &#x60;budgetMs&#x60; refused from the record like every capability. The knowledge base (&#x60;/v1/kb&#x60;) uses this for its vector lane; it works on words and the graph until the model is on disk. 
+     * @param embedRequest 
+     * @return EmbedResponse
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun capabilitiesEmbed(embedRequest: EmbedRequest) : EmbedResponse {
+        val localVarResponse = capabilitiesEmbedWithHttpInfo(embedRequest = embedRequest)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as EmbedResponse
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * POST /v1/embeddings
+     * One unit vector per input — OpenAI-shaped embeddings, in the gateway&#39;s own process by default.
+     * The &#x60;embed&#x60; capability (docs/capability-endpoints.md C4), served since 0.101.0 by the in-process embedder (&#x60;Xenova/multilingual-e5-small&#x60; by default, 384 dimensions, q8 on the ONNX runtime; &#x60;Xenova/all-MiniLM-L6-v2&#x60; as the lighter English-only pick) — or by the server &#x60;capabilities.embed&#x60; names, through its adapter. &#x60;input&#x60; is a string or up to 256 strings; &#x60;kind&#x60; says whether they are queries or passages (E5 prefixes each). The vectors are unit length, so cosine is a dot product. 503 &#x60;provider_warming&#x60; while the model downloads (the first call starts it; a caller is never held), 404 &#x60;no_provider&#x60; when it is turned off (&#x60;capabilities.embed.provider &#x3D; none&#x60;), &#x60;budgetMs&#x60; refused from the record like every capability. The knowledge base (&#x60;/v1/kb&#x60;) uses this for its vector lane; it works on words and the graph until the model is on disk. 
+     * @param embedRequest 
+     * @return ApiResponse<EmbedResponse?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun capabilitiesEmbedWithHttpInfo(embedRequest: EmbedRequest) : ApiResponse<EmbedResponse?> {
+        val localVariableConfig = capabilitiesEmbedRequestConfig(embedRequest = embedRequest)
+
+        return request<EmbedRequest, EmbedResponse>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation capabilitiesEmbed
+     *
+     * @param embedRequest 
+     * @return RequestConfig
+     */
+    fun capabilitiesEmbedRequestConfig(embedRequest: EmbedRequest) : RequestConfig<EmbedRequest> {
+        val localVariableBody = embedRequest
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/v1/embeddings",
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,

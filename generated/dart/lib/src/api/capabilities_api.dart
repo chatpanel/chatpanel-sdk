@@ -13,6 +13,8 @@ import 'package:chatpanel/src/model/decide_request.dart';
 import 'package:chatpanel/src/model/decide_response.dart';
 import 'package:chatpanel/src/model/detect_request.dart';
 import 'package:chatpanel/src/model/detect_response.dart';
+import 'package:chatpanel/src/model/embed_request.dart';
+import 'package:chatpanel/src/model/embed_response.dart';
 import 'package:chatpanel/src/model/error_response.dart';
 import 'package:chatpanel/src/model/rerank_request.dart';
 import 'package:chatpanel/src/model/rerank_response.dart';
@@ -216,6 +218,107 @@ class CapabilitiesApi {
     }
 
     return Response<DetectResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// One unit vector per input — OpenAI-shaped embeddings, in the gateway&#39;s own process by default.
+  /// The &#x60;embed&#x60; capability (docs/capability-endpoints.md C4), served since 0.101.0 by the in-process embedder (&#x60;Xenova/multilingual-e5-small&#x60; by default, 384 dimensions, q8 on the ONNX runtime; &#x60;Xenova/all-MiniLM-L6-v2&#x60; as the lighter English-only pick) — or by the server &#x60;capabilities.embed&#x60; names, through its adapter. &#x60;input&#x60; is a string or up to 256 strings; &#x60;kind&#x60; says whether they are queries or passages (E5 prefixes each). The vectors are unit length, so cosine is a dot product. 503 &#x60;provider_warming&#x60; while the model downloads (the first call starts it; a caller is never held), 404 &#x60;no_provider&#x60; when it is turned off (&#x60;capabilities.embed.provider &#x3D; none&#x60;), &#x60;budgetMs&#x60; refused from the record like every capability. The knowledge base (&#x60;/v1/kb&#x60;) uses this for its vector lane; it works on words and the graph until the model is on disk. 
+  ///
+  /// Parameters:
+  /// * [embedRequest] 
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [EmbedResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<EmbedResponse>> capabilitiesEmbed({ 
+    required EmbedRequest embedRequest,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/v1/embeddings';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'http',
+            'scheme': 'bearer',
+            'name': 'gatewayToken',
+          },
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      const _type = FullType(EmbedRequest);
+      _bodyData = _serializers.serialize(embedRequest, specifiedType: _type);
+
+    } catch(error, stackTrace) {
+      throw DioException(
+         requestOptions: _options.compose(
+          _dio.options,
+          _path,
+        ),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    EmbedResponse? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(EmbedResponse),
+      ) as EmbedResponse;
+
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<EmbedResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

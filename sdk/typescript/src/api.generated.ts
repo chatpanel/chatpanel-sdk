@@ -25,6 +25,7 @@ export const OPERATIONS = {
   "history.stream": { id: "history.stream", method: "GET", path: "/v1/history/stream", auth: "open", since: "0.11.0", stream: "sse", pathParams: [], queryParams: [] },
   "events.since": { id: "events.since", method: "GET", path: "/v1/events", auth: "token", since: "0.24.0", stream: null, pathParams: [], queryParams: ["cursor","limit","host"] },
   "events.push": { id: "events.push", method: "POST", path: "/v1/events", auth: "token", since: "0.24.0", stream: null, pathParams: [], queryParams: [] },
+  "events.delete": { id: "events.delete", method: "DELETE", path: "/v1/events", auth: "token", since: "0.105.0", stream: null, pathParams: [], queryParams: ["host","all","force"] },
   "events.cursor": { id: "events.cursor", method: "GET", path: "/v1/events/cursor", auth: "token", since: "0.24.0", stream: null, pathParams: [], queryParams: [] },
   "events.stats": { id: "events.stats", method: "GET", path: "/v1/events/stats", auth: "token", since: "0.25.1", stream: null, pathParams: [], queryParams: [] },
   "events.stream": { id: "events.stream", method: "GET", path: "/v1/events/stream", auth: "token", since: "0.24.0", stream: "sse", pathParams: [], queryParams: ["cursor"] },
@@ -270,6 +271,10 @@ export class EventsApi {
   /** Push a batch of this client's durable log as CloudEvents; each event is appended once, each refusal is named. Idempotent on event id, so a retry is free. A `seq` that moves backwards for a host under a new id is a corrupt writer and is refused by itself; the rest of the batch lands. Push what lies above your entry in `cursor` (the gateway's highest `seq` per host) and stop re-sending what `rejected` names. At most 2000 events per batch. A gateway without SQLite answers 501. — Requires the gateway token. Gateway 0.24.0+. */
   push(body: T.PushEventsRequest, opts?: RequestOptions): Promise<T.PushEventsResponse> {
     return this.rt.request(OPERATIONS["events.push"], { path: {  }, query: undefined, headers: opts?.headers, body: body, opts });
+  }
+  /** Delete one host's slice of the merged log, or the whole log — only with `force=1`. A client's "Clear activity" reaching the copy held here. Name exactly one of `host` or `all=1`. Without `force=1` nothing is deleted: the answer is 409 `confirm_required` with `wouldDelete`, so leaving the flag off (or sending `force=0`) is a dry run, never a delete. The host's cursor entry goes with its events, so its next push starts afresh. A tailing stream gets a `deleted` frame. Idempotent: a host with nothing left deletes 0. — Requires the gateway token. Gateway 0.105.0+. */
+  delete(query?: { host?: string; all?: "1" | "true" | "yes"; force?: "1" | "true" | "yes" }, opts?: RequestOptions): Promise<T.EventsDeleted> {
+    return this.rt.request(OPERATIONS["events.delete"], { path: {  }, query: query, headers: opts?.headers, body: undefined, opts });
   }
   /** The gateway's highest `seq` per host — what a client asks for before it pushes. — Requires the gateway token. Gateway 0.24.0+. */
   cursor(opts?: RequestOptions): Promise<T.EventsCursor> {

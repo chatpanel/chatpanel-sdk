@@ -11,6 +11,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**capabilitiesDecide**](CapabilitiesApi.md#capabilitiesdecide) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
 [**capabilitiesDetect**](CapabilitiesApi.md#capabilitiesdetect) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores.
+[**capabilitiesEmbed**](CapabilitiesApi.md#capabilitiesembed) | **POST** /v1/embeddings | One unit vector per input — OpenAI-shaped embeddings, in the gateway&#39;s own process by default.
 [**capabilitiesList**](CapabilitiesApi.md#capabilitieslist) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state.
 [**capabilitiesRerank**](CapabilitiesApi.md#capabilitiesrerank) | **POST** /v1/rerank | Order documents by relevance to a query — a cross-encoder, no language model.
 
@@ -89,6 +90,49 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**DetectResponse**](DetectResponse.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **capabilitiesEmbed**
+> EmbedResponse capabilitiesEmbed(embedRequest)
+
+One unit vector per input — OpenAI-shaped embeddings, in the gateway's own process by default.
+
+The `embed` capability (docs/capability-endpoints.md C4), served since 0.101.0 by the in-process embedder (`Xenova/multilingual-e5-small` by default, 384 dimensions, q8 on the ONNX runtime; `Xenova/all-MiniLM-L6-v2` as the lighter English-only pick) — or by the server `capabilities.embed` names, through its adapter. `input` is a string or up to 256 strings; `kind` says whether they are queries or passages (E5 prefixes each). The vectors are unit length, so cosine is a dot product. 503 `provider_warming` while the model downloads (the first call starts it; a caller is never held), 404 `no_provider` when it is turned off (`capabilities.embed.provider = none`), `budgetMs` refused from the record like every capability. The knowledge base (`/v1/kb`) uses this for its vector lane; it works on words and the graph until the model is on disk. 
+
+### Example
+```dart
+import 'package:chatpanel/api.dart';
+
+final api = Chatpanel().getCapabilitiesApi();
+final EmbedRequest embedRequest = ; // EmbedRequest | 
+
+try {
+    final response = api.capabilitiesEmbed(embedRequest);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling CapabilitiesApi->capabilitiesEmbed: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **embedRequest** | [**EmbedRequest**](EmbedRequest.md)|  | 
+
+### Return type
+
+[**EmbedResponse**](EmbedResponse.md)
 
 ### Authorization
 

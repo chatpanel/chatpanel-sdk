@@ -5,6 +5,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | Method | HTTP request | Description |
 | ------------- | ------------- | ------------- |
 | [**retrievalExtract**](RetrievalApi.md#retrievalExtract) | **POST** /v1/extract | A document&#39;s pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash. |
+| [**retrievalExtractContext**](RetrievalApi.md#retrievalExtractContext) | **POST** /v1/extract/context | The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do. |
 | [**retrievalRead**](RetrievalApi.md#retrievalRead) | **POST** /v1/read | Read one public page as LLM-ready Markdown, cited where it landed, with its sections. |
 | [**retrievalReadAlias**](RetrievalApi.md#retrievalReadAlias) | **GET** /v1/read/{url} | The r.jina.ai-shaped alias — &#x60;GET /v1/read/https://…&#x60; — for clients that already speak it. |
 | [**retrievalSearch**](RetrievalApi.md#retrievalSearch) | **POST** /v1/search | Search the web through the provider this gateway is configured with; optionally read the top results in the same request. |
@@ -47,6 +48,60 @@ try {
 ### Return type
 
 [**ExtractResponse**](ExtractResponse.md)
+
+### Authorization
+
+
+Configure gatewayToken statically:
+```kotlin
+ApiClient.accessToken = ""
+```
+Configure gatewayToken dynamically:
+```kotlin
+apiInstance.accessTokenProvider = { "" }
+```
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+<a id="retrievalExtractContext"></a>
+# **retrievalExtractContext**
+> ExtractContextResponse retrievalExtractContext(extractContextRequest)
+
+The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do.
+
+The turn pipeline&#39;s document stage as an API. Every ChatPanel client reads a file the person attached BEFORE a small model answers: whole when it fits the window&#39;s share of characters, else the pages that carry the question&#39;s words, each page cited, as one &#x60;prefetch&#x60; block placed before the question (a small model reads context first). A harness built on this SDK gets the same block here: send the question and the documents (the bytes, base64, or the &#x60;hash&#x60; of one &#x60;/v1/extract&#x60; already opened), and put &#x60;attachment.text&#x60; in the user message ahead of the question. &#x60;window&#x60; (tokens) sizes the share — a 4k on-device model gets a few thousand characters, a large window far more — or &#x60;budgetChars&#x60; sets it outright. &#x60;how&#x60; says whether the whole document went or pages were picked; &#x60;read&#x60; lists each document&#39;s pages, &#x60;skipped&#x60; the ones that could not be opened. A document with no text layer is named as a scan inside the block rather than guessed from. Parsed in the same worker as &#x60;/v1/extract&#x60;, on this machine; nothing leaves it. 
+
+### Example
+```kotlin
+// Import classes:
+//import net.chatpanel.sdk.infrastructure.*
+//import net.chatpanel.sdk.models.*
+
+val apiInstance = RetrievalApi()
+val extractContextRequest : ExtractContextRequest =  // ExtractContextRequest | 
+try {
+    val result : ExtractContextResponse = apiInstance.retrievalExtractContext(extractContextRequest)
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling RetrievalApi#retrievalExtractContext")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling RetrievalApi#retrievalExtractContext")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **extractContextRequest** | [**ExtractContextRequest**](ExtractContextRequest.md)|  | |
+
+### Return type
+
+[**ExtractContextResponse**](ExtractContextResponse.md)
 
 ### Authorization
 

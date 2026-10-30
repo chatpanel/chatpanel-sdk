@@ -71,15 +71,31 @@ import 'package:chatpanel/src/model/decide_response.dart';
 import 'package:chatpanel/src/model/detect_request.dart';
 import 'package:chatpanel/src/model/detect_response.dart';
 import 'package:chatpanel/src/model/detected_entity.dart';
+import 'package:chatpanel/src/model/embed_request.dart';
+import 'package:chatpanel/src/model/embed_request_input.dart';
+import 'package:chatpanel/src/model/embed_response.dart';
+import 'package:chatpanel/src/model/embed_response_data_inner.dart';
+import 'package:chatpanel/src/model/embed_response_usage.dart';
 import 'package:chatpanel/src/model/engines_list200_response.dart';
 import 'package:chatpanel/src/model/error_response.dart';
 import 'package:chatpanel/src/model/error_response_error.dart';
 import 'package:chatpanel/src/model/error_response_error_one_of.dart';
 import 'package:chatpanel/src/model/events_cursor.dart';
+import 'package:chatpanel/src/model/events_delete_dry_run.dart';
+import 'package:chatpanel/src/model/events_delete_dry_run_error.dart';
+import 'package:chatpanel/src/model/events_deleted.dart';
 import 'package:chatpanel/src/model/events_page.dart';
 import 'package:chatpanel/src/model/events_stats.dart';
 import 'package:chatpanel/src/model/events_stats_stats.dart';
 import 'package:chatpanel/src/model/events_stream_event.dart';
+import 'package:chatpanel/src/model/extract_context_request.dart';
+import 'package:chatpanel/src/model/extract_context_request_documents_inner.dart';
+import 'package:chatpanel/src/model/extract_context_response.dart';
+import 'package:chatpanel/src/model/extract_context_response_attachment.dart';
+import 'package:chatpanel/src/model/extract_context_response_attachment_cites_inner.dart';
+import 'package:chatpanel/src/model/extract_context_response_attachment_docs_inner.dart';
+import 'package:chatpanel/src/model/extract_context_response_read_inner.dart';
+import 'package:chatpanel/src/model/extract_context_response_skipped_inner.dart';
 import 'package:chatpanel/src/model/extract_request.dart';
 import 'package:chatpanel/src/model/extract_response.dart';
 import 'package:chatpanel/src/model/fusion_list.dart';
@@ -102,6 +118,48 @@ import 'package:chatpanel/src/model/ingest_request.dart';
 import 'package:chatpanel/src/model/ingest_request_upserts_inner.dart';
 import 'package:chatpanel/src/model/inline_object.dart';
 import 'package:chatpanel/src/model/inline_object1.dart';
+import 'package:chatpanel/src/model/kb_access.dart';
+import 'package:chatpanel/src/model/kb_access_agents.dart';
+import 'package:chatpanel/src/model/kb_access_request.dart';
+import 'package:chatpanel/src/model/kb_access_request_agents.dart';
+import 'package:chatpanel/src/model/kb_access_response.dart';
+import 'package:chatpanel/src/model/kb_add_request.dart';
+import 'package:chatpanel/src/model/kb_add_response.dart';
+import 'package:chatpanel/src/model/kb_add_response_added_inner.dart';
+import 'package:chatpanel/src/model/kb_add_response_skipped_inner.dart';
+import 'package:chatpanel/src/model/kb_create_request.dart';
+import 'package:chatpanel/src/model/kb_document.dart';
+import 'package:chatpanel/src/model/kb_document_source.dart';
+import 'package:chatpanel/src/model/kb_documents.dart';
+import 'package:chatpanel/src/model/kb_embed_response.dart';
+import 'package:chatpanel/src/model/kb_graph_request.dart';
+import 'package:chatpanel/src/model/kb_graph_response.dart';
+import 'package:chatpanel/src/model/kb_graph_response_neighbours_inner.dart';
+import 'package:chatpanel/src/model/kb_graph_response_node.dart';
+import 'package:chatpanel/src/model/kb_graph_response_path_inner.dart';
+import 'package:chatpanel/src/model/kb_list.dart';
+import 'package:chatpanel/src/model/kb_list_kbs_inner.dart';
+import 'package:chatpanel/src/model/kb_note.dart';
+import 'package:chatpanel/src/model/kb_note_request.dart';
+import 'package:chatpanel/src/model/kb_note_response.dart';
+import 'package:chatpanel/src/model/kb_note_status_request.dart';
+import 'package:chatpanel/src/model/kb_notes.dart';
+import 'package:chatpanel/src/model/kb_ok_response.dart';
+import 'package:chatpanel/src/model/kb_outline.dart';
+import 'package:chatpanel/src/model/kb_outline_outline_inner.dart';
+import 'package:chatpanel/src/model/kb_page.dart';
+import 'package:chatpanel/src/model/kb_passage.dart';
+import 'package:chatpanel/src/model/kb_research_request.dart';
+import 'package:chatpanel/src/model/kb_research_response.dart';
+import 'package:chatpanel/src/model/kb_research_response_ask.dart';
+import 'package:chatpanel/src/model/kb_research_response_attachment.dart';
+import 'package:chatpanel/src/model/kb_research_response_frame.dart';
+import 'package:chatpanel/src/model/kb_research_response_hits_inner.dart';
+import 'package:chatpanel/src/model/kb_search_request.dart';
+import 'package:chatpanel/src/model/kb_search_response.dart';
+import 'package:chatpanel/src/model/kb_search_response_lanes.dart';
+import 'package:chatpanel/src/model/kb_status.dart';
+import 'package:chatpanel/src/model/kb_status_response.dart';
 import 'package:chatpanel/src/model/link_answer_approval_request.dart';
 import 'package:chatpanel/src/model/link_approval.dart';
 import 'package:chatpanel/src/model/link_approvals200_response.dart';
@@ -276,15 +334,31 @@ part 'serializers.g.dart';
   DetectRequest,
   DetectResponse,
   DetectedEntity,
+  EmbedRequest,
+  EmbedRequestInput,
+  EmbedResponse,
+  EmbedResponseDataInner,
+  EmbedResponseUsage,
   EnginesList200Response,
   ErrorResponse,
   ErrorResponseError,
   ErrorResponseErrorOneOf,
   EventsCursor,
+  EventsDeleteDryRun,
+  EventsDeleteDryRunError,
+  EventsDeleted,
   EventsPage,
   EventsStats,
   EventsStatsStats,
   EventsStreamEvent,
+  ExtractContextRequest,
+  ExtractContextRequestDocumentsInner,
+  ExtractContextResponse,
+  ExtractContextResponseAttachment,
+  ExtractContextResponseAttachmentCitesInner,
+  ExtractContextResponseAttachmentDocsInner,
+  ExtractContextResponseReadInner,
+  ExtractContextResponseSkippedInner,
   ExtractRequest,
   ExtractResponse,
   FusionList,
@@ -307,6 +381,48 @@ part 'serializers.g.dart';
   IngestRequestUpsertsInner,
   InlineObject,
   InlineObject1,
+  KbAccess,
+  KbAccessAgents,
+  KbAccessRequest,
+  KbAccessRequestAgents,
+  KbAccessResponse,
+  KbAddRequest,
+  KbAddResponse,
+  KbAddResponseAddedInner,
+  KbAddResponseSkippedInner,
+  KbCreateRequest,
+  KbDocument,
+  KbDocumentSource,
+  KbDocuments,
+  KbEmbedResponse,
+  KbGraphRequest,
+  KbGraphResponse,
+  KbGraphResponseNeighboursInner,
+  KbGraphResponseNode,
+  KbGraphResponsePathInner,
+  KbList,
+  KbListKbsInner,
+  KbNote,
+  KbNoteRequest,
+  KbNoteResponse,
+  KbNoteStatusRequest,
+  KbNotes,
+  KbOkResponse,
+  KbOutline,
+  KbOutlineOutlineInner,
+  KbPage,
+  KbPassage,
+  KbResearchRequest,
+  KbResearchResponse,
+  KbResearchResponseAsk,
+  KbResearchResponseAttachment,
+  KbResearchResponseFrame,
+  KbResearchResponseHitsInner,
+  KbSearchRequest,
+  KbSearchResponse,
+  KbSearchResponseLanes,
+  KbStatus,
+  KbStatusResponse,
   LinkAnswerApprovalRequest,
   LinkApproval,
   LinkApprovals200Response,
@@ -439,10 +555,6 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<FusionListFusionsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(Capability)]),
-        () => ListBuilder<Capability>(),
-      )
-      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CloudEvent)]),
         () => ListBuilder<CloudEvent>(),
       )
@@ -463,12 +575,140 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<TeamRun>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(SearchTrailAsk)]),
-        () => ListBuilder<SearchTrailAsk>(),
-      )
-      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(QuarantinedSkill)]),
         () => ListBuilder<QuarantinedSkill>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ChatCompletionChoicesInner)]),
+        () => ListBuilder<ChatCompletionChoicesInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AgentDef)]),
+        () => ListBuilder<AgentDef>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(KbListKbsInner)]),
+        () => ListBuilder<KbListKbsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(BuiltMap, [FullType(String), FullType(JsonObject)])]),
+        () => ListBuilder<BuiltMap<String, JsonObject>>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(KbGraphResponseNeighboursInner)]),
+        () => ListBuilder<KbGraphResponseNeighboursInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(DecideQuestionOptionsInner)]),
+        () => ListBuilder<DecideQuestionOptionsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ExtractContextResponseReadInner)]),
+        () => ListBuilder<ExtractContextResponseReadInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(HistoryItem)]),
+        () => ListBuilder<HistoryItem>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(Memory)]),
+        () => ListBuilder<Memory>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(EmbedResponseDataInner)]),
+        () => ListBuilder<EmbedResponseDataInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(KbNote)]),
+        () => ListBuilder<KbNote>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(KbDocument)]),
+        () => ListBuilder<KbDocument>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(LinkPartnerFile)]),
+        () => ListBuilder<LinkPartnerFile>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(DecideAnswerOption)]),
+        () => ListBuilder<DecideAnswerOption>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(KbAddResponseAddedInner)]),
+        () => ListBuilder<KbAddResponseAddedInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(LinkApproval)]),
+        () => ListBuilder<LinkApproval>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ExtractContextRequestDocumentsInner)]),
+        () => ListBuilder<ExtractContextRequestDocumentsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AgentCardSupportedInterfacesInner)]),
+        () => ListBuilder<AgentCardSupportedInterfacesInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(IngestRequestUpsertsInner)]),
+        () => ListBuilder<IngestRequestUpsertsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ReadSection)]),
+        () => ListBuilder<ReadSection>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ResearchResponseReadInner)]),
+        () => ListBuilder<ResearchResponseReadInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AgentFidelityDroppedInner)]),
+        () => ListBuilder<AgentFidelityDroppedInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(SearchHit)]),
+        () => ListBuilder<SearchHit>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(KbResearchResponseHitsInner)]),
+        () => ListBuilder<KbResearchResponseHitsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(DetectedEntity)]),
+        () => ListBuilder<DetectedEntity>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ExtractContextResponseAttachmentCitesInner)]),
+        () => ListBuilder<ExtractContextResponseAttachmentCitesInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType(JsonObject)]),
+        () => MapBuilder<String, JsonObject>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ExtractContextResponseSkippedInner)]),
+        () => ListBuilder<ExtractContextResponseSkippedInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(KbAddResponseSkippedInner)]),
+        () => ListBuilder<KbAddResponseSkippedInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(Capability)]),
+        () => ListBuilder<Capability>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType(num)]),
+        () => MapBuilder<String, num>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ExtractContextResponseAttachmentDocsInner)]),
+        () => ListBuilder<ExtractContextResponseAttachmentDocsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(SearchTrailAsk)]),
+        () => ListBuilder<SearchTrailAsk>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(Model)]),
@@ -479,24 +719,16 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<ChatMessage>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(ChatCompletionChoicesInner)]),
-        () => ListBuilder<ChatCompletionChoicesInner>(),
+        const FullType(BuiltList, [FullType(KbPassage)]),
+        () => ListBuilder<KbPassage>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType(DecideAnswer)]),
         () => MapBuilder<String, DecideAnswer>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AgentDef)]),
-        () => ListBuilder<AgentDef>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(BuiltMap, [FullType(String), FullType(JsonObject)])]),
-        () => ListBuilder<BuiltMap<String, JsonObject>>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(DecideQuestionOptionsInner)]),
-        () => ListBuilder<DecideQuestionOptionsInner>(),
+        const FullType(BuiltList, [FullType(KbGraphResponsePathInner)]),
+        () => ListBuilder<KbGraphResponsePathInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(Project)]),
@@ -515,24 +747,16 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<PushEventsResponseRejectedInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(HistoryItem)]),
-        () => ListBuilder<HistoryItem>(),
-      )
-      ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType(DecideQuestion)]),
         () => MapBuilder<String, DecideQuestion>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(Memory)]),
-        () => ListBuilder<Memory>(),
+        const FullType(BuiltList, [FullType(KbOutlineOutlineInner)]),
+        () => ListBuilder<KbOutlineOutlineInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(LinkPartnerFile)]),
-        () => ListBuilder<LinkPartnerFile>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(DecideAnswerOption)]),
-        () => ListBuilder<DecideAnswerOption>(),
+        const FullType(BuiltList, [FullType(num)]),
+        () => ListBuilder<num>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ResearchResponseRowsInner)]),
@@ -543,36 +767,8 @@ Serializers serializers = (_$serializers.toBuilder()
         () => MapBuilder<String, PrefSection>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(LinkApproval)]),
-        () => ListBuilder<LinkApproval>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AgentCardSupportedInterfacesInner)]),
-        () => ListBuilder<AgentCardSupportedInterfacesInner>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(IngestRequestUpsertsInner)]),
-        () => ListBuilder<IngestRequestUpsertsInner>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(ReadSection)]),
-        () => ListBuilder<ReadSection>(),
-      )
-      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(FusionListFusionsInnerMembersInner)]),
         () => ListBuilder<FusionListFusionsInnerMembersInner>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(ResearchResponseReadInner)]),
-        () => ListBuilder<ResearchResponseReadInner>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AgentFidelityDroppedInner)]),
-        () => ListBuilder<AgentFidelityDroppedInner>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(SearchHit)]),
-        () => ListBuilder<SearchHit>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType(FusionListKindsValue)]),
@@ -585,6 +781,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ResearchResponseGroupsInner)]),
         () => ListBuilder<ResearchResponseGroupsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(int)]),
+        () => ListBuilder<int>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
@@ -601,14 +801,6 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ChatCompletionChunkChoicesInner)]),
         () => ListBuilder<ChatCompletionChunkChoicesInner>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(DetectedEntity)]),
-        () => ListBuilder<DetectedEntity>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltMap, [FullType(String), FullType(JsonObject)]),
-        () => MapBuilder<String, JsonObject>(),
       )
       ..add(SearchFilters.serializer)
       ..add(SearchResponse.serializer)

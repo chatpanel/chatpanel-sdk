@@ -877,6 +877,24 @@ class EventsCursor(TypedDict, total=False):
     count: NotRequired[int]
 
 
+class EventsDeleted(TypedDict, total=False):
+    """EventsDeleted"""
+    ok: bool
+    deleted: int  # How many events went.
+    host: NotRequired[str]
+    all: NotRequired[bool]
+    cursor: "EventsCursorMap"
+
+
+class EventsDeleteDryRun(TypedDict, total=False):
+    """EventsDeleteDryRun"""
+    ok: Literal[false]
+    wouldDelete: int  # What `force=1` would delete.
+    host: NotRequired[str]
+    all: NotRequired[bool]
+    error: Dict[str, Any]
+
+
 class EventsPage(TypedDict, total=False):
     """EventsPage"""
     ok: bool

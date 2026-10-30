@@ -5,6 +5,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | Method | HTTP request | Description |
 | ------ | ------------ | ----------- |
 | [**retrieval_extract**](RetrievalApi.md#retrieval_extract) | **POST** /v1/extract | A document&#39;s pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash. |
+| [**retrieval_extract_context**](RetrievalApi.md#retrieval_extract_context) | **POST** /v1/extract/context | The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do. |
 | [**retrieval_read**](RetrievalApi.md#retrieval_read) | **POST** /v1/read | Read one public page as LLM-ready Markdown, cited where it landed, with its sections. |
 | [**retrieval_read_alias**](RetrievalApi.md#retrieval_read_alias) | **GET** /v1/read/{url} | The r.jina.ai-shaped alias — &#x60;GET /v1/read/https://…&#x60; — for clients that already speak it. |
 | [**retrieval_search**](RetrievalApi.md#retrieval_search) | **POST** /v1/search | Search the web through the provider this gateway is configured with; optionally read the top results in the same request. |
@@ -69,6 +70,75 @@ end
 ### Return type
 
 [**ExtractResponse**](ExtractResponse.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+
+## retrieval_extract_context
+
+> <ExtractContextResponse> retrieval_extract_context(extract_context_request)
+
+The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel's own clients do.
+
+The turn pipeline's document stage as an API. Every ChatPanel client reads a file the person attached BEFORE a small model answers: whole when it fits the window's share of characters, else the pages that carry the question's words, each page cited, as one `prefetch` block placed before the question (a small model reads context first). A harness built on this SDK gets the same block here: send the question and the documents (the bytes, base64, or the `hash` of one `/v1/extract` already opened), and put `attachment.text` in the user message ahead of the question. `window` (tokens) sizes the share — a 4k on-device model gets a few thousand characters, a large window far more — or `budgetChars` sets it outright. `how` says whether the whole document went or pages were picked; `read` lists each document's pages, `skipped` the ones that could not be opened. A document with no text layer is named as a scan inside the block rather than guessed from. Parsed in the same worker as `/v1/extract`, on this machine; nothing leaves it. 
+
+### Examples
+
+```ruby
+require 'time'
+require 'chatpanel'
+# setup authorization
+ChatPanel.configure do |config|
+  # Configure Bearer authorization: gatewayToken
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = ChatPanel::RetrievalApi.new
+extract_context_request = ChatPanel::ExtractContextRequest.new({question: 'question_example', documents: [ChatPanel::ExtractContextRequestDocumentsInner.new]}) # ExtractContextRequest | 
+
+begin
+  # The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel's own clients do.
+  result = api_instance.retrieval_extract_context(extract_context_request)
+  p result
+rescue ChatPanel::ApiError => e
+  puts "Error when calling RetrievalApi->retrieval_extract_context: #{e}"
+end
+```
+
+#### Using the retrieval_extract_context_with_http_info variant
+
+This returns an Array which contains the response data, status code and headers.
+
+> <Array(<ExtractContextResponse>, Integer, Hash)> retrieval_extract_context_with_http_info(extract_context_request)
+
+```ruby
+begin
+  # The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel's own clients do.
+  data, status_code, headers = api_instance.retrieval_extract_context_with_http_info(extract_context_request)
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => <ExtractContextResponse>
+rescue ChatPanel::ApiError => e
+  puts "Error when calling RetrievalApi->retrieval_extract_context_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+| Name | Type | Description | Notes |
+| ---- | ---- | ----------- | ----- |
+| **extract_context_request** | [**ExtractContextRequest**](ExtractContextRequest.md) |  |  |
+
+### Return type
+
+[**ExtractContextResponse**](ExtractContextResponse.md)
 
 ### Authorization
 

@@ -20,6 +20,7 @@ import 'package:chatpanel/src/api/events_api.dart';
 import 'package:chatpanel/src/api/fusions_api.dart';
 import 'package:chatpanel/src/api/gateway_api.dart';
 import 'package:chatpanel/src/api/history_api.dart';
+import 'package:chatpanel/src/api/knowledge_api.dart';
 import 'package:chatpanel/src/api/link_api.dart';
 import 'package:chatpanel/src/api/memory_api.dart';
 import 'package:chatpanel/src/api/models_api.dart';
@@ -190,6 +191,12 @@ class Chatpanel {
   /// by doing that all interceptors will not be executed
   HistoryApi getHistoryApi() {
     return HistoryApi(dio, serializers);
+  }
+
+  /// Get KnowledgeApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  KnowledgeApi getKnowledgeApi() {
+    return KnowledgeApi(dio, serializers);
   }
 
   /// Get LinkApi instance, base route and serializer can be overridden by a given but be careful,

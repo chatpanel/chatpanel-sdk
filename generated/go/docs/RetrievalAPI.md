@@ -5,6 +5,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**RetrievalExtract**](RetrievalAPI.md#RetrievalExtract) | **Post** /v1/extract | A document&#39;s pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash.
+[**RetrievalExtractContext**](RetrievalAPI.md#RetrievalExtractContext) | **Post** /v1/extract/context | The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do.
 [**RetrievalRead**](RetrievalAPI.md#RetrievalRead) | **Post** /v1/read | Read one public page as LLM-ready Markdown, cited where it landed, with its sections.
 [**RetrievalReadAlias**](RetrievalAPI.md#RetrievalReadAlias) | **Get** /v1/read/{url} | The r.jina.ai-shaped alias — &#x60;GET /v1/read/https://…&#x60; — for clients that already speak it.
 [**RetrievalSearch**](RetrievalAPI.md#RetrievalSearch) | **Post** /v1/search | Search the web through the provider this gateway is configured with; optionally read the top results in the same request.
@@ -63,6 +64,72 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**ExtractResponse**](ExtractResponse.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
+
+
+## RetrievalExtractContext
+
+> ExtractContextResponse RetrievalExtractContext(ctx).ExtractContextRequest(extractContextRequest).Execute()
+
+The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel's own clients do.
+
+
+
+### Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	openapiclient "github.com/chatpanel/chatpanel-sdk"
+)
+
+func main() {
+	extractContextRequest := *openapiclient.NewExtractContextRequest("Question_example", []openapiclient.ExtractContextRequestDocumentsInner{*openapiclient.NewExtractContextRequestDocumentsInner()}) // ExtractContextRequest | 
+
+	configuration := openapiclient.NewConfiguration()
+	apiClient := openapiclient.NewAPIClient(configuration)
+	resp, r, err := apiClient.RetrievalAPI.RetrievalExtractContext(context.Background()).ExtractContextRequest(extractContextRequest).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `RetrievalAPI.RetrievalExtractContext``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `RetrievalExtractContext`: ExtractContextResponse
+	fmt.Fprintf(os.Stdout, "Response from `RetrievalAPI.RetrievalExtractContext`: %v\n", resp)
+}
+```
+
+### Path Parameters
+
+
+
+### Other Parameters
+
+Other parameters are passed through a pointer to a apiRetrievalExtractContextRequest struct via the builder pattern
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **extractContextRequest** | [**ExtractContextRequest**](ExtractContextRequest.md) |  | 
+
+### Return type
+
+[**ExtractContextResponse**](ExtractContextResponse.md)
 
 ### Authorization
 

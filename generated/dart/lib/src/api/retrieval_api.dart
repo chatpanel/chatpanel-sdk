@@ -10,6 +10,8 @@ import 'package:dio/dio.dart';
 
 import 'package:chatpanel/src/api_util.dart';
 import 'package:chatpanel/src/model/error_response.dart';
+import 'package:chatpanel/src/model/extract_context_request.dart';
+import 'package:chatpanel/src/model/extract_context_response.dart';
 import 'package:chatpanel/src/model/extract_request.dart';
 import 'package:chatpanel/src/model/extract_response.dart';
 import 'package:chatpanel/src/model/read_request.dart';
@@ -117,6 +119,107 @@ class RetrievalApi {
     }
 
     return Response<ExtractResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do.
+  /// The turn pipeline&#39;s document stage as an API. Every ChatPanel client reads a file the person attached BEFORE a small model answers: whole when it fits the window&#39;s share of characters, else the pages that carry the question&#39;s words, each page cited, as one &#x60;prefetch&#x60; block placed before the question (a small model reads context first). A harness built on this SDK gets the same block here: send the question and the documents (the bytes, base64, or the &#x60;hash&#x60; of one &#x60;/v1/extract&#x60; already opened), and put &#x60;attachment.text&#x60; in the user message ahead of the question. &#x60;window&#x60; (tokens) sizes the share — a 4k on-device model gets a few thousand characters, a large window far more — or &#x60;budgetChars&#x60; sets it outright. &#x60;how&#x60; says whether the whole document went or pages were picked; &#x60;read&#x60; lists each document&#39;s pages, &#x60;skipped&#x60; the ones that could not be opened. A document with no text layer is named as a scan inside the block rather than guessed from. Parsed in the same worker as &#x60;/v1/extract&#x60;, on this machine; nothing leaves it. 
+  ///
+  /// Parameters:
+  /// * [extractContextRequest] 
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ExtractContextResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ExtractContextResponse>> retrievalExtractContext({ 
+    required ExtractContextRequest extractContextRequest,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/v1/extract/context';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'http',
+            'scheme': 'bearer',
+            'name': 'gatewayToken',
+          },
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      const _type = FullType(ExtractContextRequest);
+      _bodyData = _serializers.serialize(extractContextRequest, specifiedType: _type);
+
+    } catch(error, stackTrace) {
+      throw DioException(
+         requestOptions: _options.compose(
+          _dio.options,
+          _path,
+        ),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ExtractContextResponse? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(ExtractContextResponse),
+      ) as ExtractContextResponse;
+
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ExtractContextResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

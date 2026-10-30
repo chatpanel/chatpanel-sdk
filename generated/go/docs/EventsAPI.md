@@ -5,6 +5,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**EventsCursor**](EventsAPI.md#EventsCursor) | **Get** /v1/events/cursor | The gateway&#39;s highest &#x60;seq&#x60; per host — what a client asks for before it pushes.
+[**EventsDelete**](EventsAPI.md#EventsDelete) | **Delete** /v1/events | Delete one host&#39;s slice of the merged log, or the whole log — only with &#x60;force&#x3D;1&#x60;.
 [**EventsPush**](EventsAPI.md#EventsPush) | **Post** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named.
 [**EventsSince**](EventsAPI.md#EventsSince) | **Get** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged.
 [**EventsStats**](EventsAPI.md#EventsStats) | **Get** /v1/events/stats | What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
@@ -56,6 +57,76 @@ Other parameters are passed through a pointer to a apiEventsCursorRequest struct
 ### Return type
 
 [**EventsCursor**](EventsCursor.md)
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
+
+
+## EventsDelete
+
+> EventsDeleted EventsDelete(ctx).Host(host).All(all).Force(force).Execute()
+
+Delete one host's slice of the merged log, or the whole log — only with `force=1`.
+
+
+
+### Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	openapiclient "github.com/chatpanel/chatpanel-sdk"
+)
+
+func main() {
+	host := "host_example" // string | The host whose events go (a client's own `host`). (optional)
+	all := "all_example" // string | Every host's events instead of one. (optional)
+	force := "force_example" // string | Required to delete; anything else is a dry run answered 409. (optional)
+
+	configuration := openapiclient.NewConfiguration()
+	apiClient := openapiclient.NewAPIClient(configuration)
+	resp, r, err := apiClient.EventsAPI.EventsDelete(context.Background()).Host(host).All(all).Force(force).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `EventsAPI.EventsDelete``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `EventsDelete`: EventsDeleted
+	fmt.Fprintf(os.Stdout, "Response from `EventsAPI.EventsDelete`: %v\n", resp)
+}
+```
+
+### Path Parameters
+
+
+
+### Other Parameters
+
+Other parameters are passed through a pointer to a apiEventsDeleteRequest struct via the builder pattern
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **host** | **string** | The host whose events go (a client&#39;s own &#x60;host&#x60;). | 
+ **all** | **string** | Every host&#39;s events instead of one. | 
+ **force** | **string** | Required to delete; anything else is a dry run answered 409. | 
+
+### Return type
+
+[**EventsDeleted**](EventsDeleted.md)
 
 ### Authorization
 

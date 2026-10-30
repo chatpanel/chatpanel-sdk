@@ -50,6 +50,76 @@ open class EventsAPI {
     }
 
     /**
+     * enum for parameter all
+     */
+    public enum All_eventsDelete: String, Sendable, CaseIterable {
+        case _1 = "1"
+        case _true = "true"
+        case yes = "yes"
+    }
+
+    /**
+     * enum for parameter force
+     */
+    public enum Force_eventsDelete: String, Sendable, CaseIterable {
+        case _1 = "1"
+        case _true = "true"
+        case yes = "yes"
+    }
+
+    /**
+     Delete one host's slice of the merged log, or the whole log — only with `force=1`.
+     
+     - parameter host: (query) The host whose events go (a client&#39;s own &#x60;host&#x60;). (optional)
+     - parameter all: (query) Every host&#39;s events instead of one. (optional)
+     - parameter force: (query) Required to delete; anything else is a dry run answered 409. (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: EventsDeleted
+     */
+    open class func eventsDelete(host: String? = nil, all: All_eventsDelete? = nil, force: Force_eventsDelete? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> EventsDeleted {
+        return try await eventsDeleteWithRequestBuilder(host: host, all: all, force: force, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     Delete one host's slice of the merged log, or the whole log — only with `force=1`.
+     - DELETE /v1/events
+     - A client's \"Clear activity\" reaching the copy held here. Name exactly one of `host` or `all=1`. Without `force=1` nothing is deleted: the answer is 409 `confirm_required` with `wouldDelete`, so leaving the flag off (or sending `force=0`) is a dry run, never a delete. The host's cursor entry goes with its events, so its next push starts afresh. A tailing stream gets a `deleted` frame. Idempotent: a host with nothing left deletes 0.
+     - API Key:
+       - type: apiKey X-ChatPanel-Token (HEADER)
+       - name: tokenHeader
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter host: (query) The host whose events go (a client&#39;s own &#x60;host&#x60;). (optional)
+     - parameter all: (query) Every host&#39;s events instead of one. (optional)
+     - parameter force: (query) Required to delete; anything else is a dry run answered 409. (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<EventsDeleted> 
+     */
+    open class func eventsDeleteWithRequestBuilder(host: String? = nil, all: All_eventsDelete? = nil, force: Force_eventsDelete? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<EventsDeleted> {
+        let localVariablePath = "/v1/events"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "host": (wrappedValue: host?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+            "all": (wrappedValue: all?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+            "force": (wrappedValue: force?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<EventsDeleted>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
      Push a batch of this client's durable log as CloudEvents; each event is appended once, each refusal is named.
      
      - parameter pushEventsRequest: (body)  

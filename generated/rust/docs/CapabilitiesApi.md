@@ -6,6 +6,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**capabilities_decide**](CapabilitiesApi.md#capabilities_decide) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
 [**capabilities_detect**](CapabilitiesApi.md#capabilities_detect) | **POST** /v1/detect | Find entities in text — the model's own labels, with offsets and scores.
+[**capabilities_embed**](CapabilitiesApi.md#capabilities_embed) | **POST** /v1/embeddings | One unit vector per input — OpenAI-shaped embeddings, in the gateway's own process by default.
 [**capabilities_list**](CapabilitiesApi.md#capabilities_list) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state.
 [**capabilities_rerank**](CapabilitiesApi.md#capabilities_rerank) | **POST** /v1/rerank | Order documents by relevance to a query — a cross-encoder, no language model.
 
@@ -58,6 +59,36 @@ Name | Type | Description  | Required | Notes
 ### Return type
 
 [**models::DetectResponse**](DetectResponse.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## capabilities_embed
+
+> models::EmbedResponse capabilities_embed(embed_request)
+One unit vector per input — OpenAI-shaped embeddings, in the gateway's own process by default.
+
+The `embed` capability (docs/capability-endpoints.md C4), served since 0.101.0 by the in-process embedder (`Xenova/multilingual-e5-small` by default, 384 dimensions, q8 on the ONNX runtime; `Xenova/all-MiniLM-L6-v2` as the lighter English-only pick) — or by the server `capabilities.embed` names, through its adapter. `input` is a string or up to 256 strings; `kind` says whether they are queries or passages (E5 prefixes each). The vectors are unit length, so cosine is a dot product. 503 `provider_warming` while the model downloads (the first call starts it; a caller is never held), 404 `no_provider` when it is turned off (`capabilities.embed.provider = none`), `budgetMs` refused from the record like every capability. The knowledge base (`/v1/kb`) uses this for its vector lane; it works on words and the graph until the model is on disk. 
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**embed_request** | [**EmbedRequest**](EmbedRequest.md) |  | [required] |
+
+### Return type
+
+[**models::EmbedResponse**](EmbedResponse.md)
 
 ### Authorization
 

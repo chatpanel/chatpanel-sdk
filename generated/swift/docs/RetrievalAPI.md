@@ -5,6 +5,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**retrievalExtract**](RetrievalAPI.md#retrievalextract) | **POST** /v1/extract | A document&#39;s pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash.
+[**retrievalExtractContext**](RetrievalAPI.md#retrievalextractcontext) | **POST** /v1/extract/context | The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do.
 [**retrievalRead**](RetrievalAPI.md#retrievalread) | **POST** /v1/read | Read one public page as LLM-ready Markdown, cited where it landed, with its sections.
 [**retrievalReadAlias**](RetrievalAPI.md#retrievalreadalias) | **GET** /v1/read/{url} | The r.jina.ai-shaped alias — &#x60;GET /v1/read/https://…&#x60; — for clients that already speak it.
 [**retrievalSearch**](RetrievalAPI.md#retrievalsearch) | **POST** /v1/search | Search the web through the provider this gateway is configured with; optionally read the top results in the same request.
@@ -49,6 +50,56 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**ExtractResponse**](ExtractResponse.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **retrievalExtractContext**
+```swift
+    open class func retrievalExtractContext(extractContextRequest: ExtractContextRequest, completion: @escaping (_ data: ExtractContextResponse?, _ error: Error?) -> Void)
+```
+
+The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel's own clients do.
+
+The turn pipeline's document stage as an API. Every ChatPanel client reads a file the person attached BEFORE a small model answers: whole when it fits the window's share of characters, else the pages that carry the question's words, each page cited, as one `prefetch` block placed before the question (a small model reads context first). A harness built on this SDK gets the same block here: send the question and the documents (the bytes, base64, or the `hash` of one `/v1/extract` already opened), and put `attachment.text` in the user message ahead of the question. `window` (tokens) sizes the share — a 4k on-device model gets a few thousand characters, a large window far more — or `budgetChars` sets it outright. `how` says whether the whole document went or pages were picked; `read` lists each document's pages, `skipped` the ones that could not be opened. A document with no text layer is named as a scan inside the block rather than guessed from. Parsed in the same worker as `/v1/extract`, on this machine; nothing leaves it. 
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import ChatPanel
+
+let extractContextRequest = ExtractContextRequest(question: "question_example", documents: [ExtractContextRequest_documents_inner(name: "name_example", type: "type_example", data: 123, hash: "hash_example")], window: 123, budgetChars: 123) // ExtractContextRequest | 
+
+// The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel's own clients do.
+RetrievalAPI.retrievalExtractContext(extractContextRequest: extractContextRequest) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **extractContextRequest** | [**ExtractContextRequest**](ExtractContextRequest.md) |  | 
+
+### Return type
+
+[**ExtractContextResponse**](ExtractContextResponse.md)
 
 ### Authorization
 

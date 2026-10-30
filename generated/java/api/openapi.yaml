@@ -24,7 +24,7 @@ info:
   license:
     name: Apache-2.0
   title: ChatPanel Gateway API
-  version: 0.43.0
+  version: 0.46.0
 servers:
 - description: The local gateway. Loopback only.
   url: http://127.0.0.1:4320
@@ -74,6 +74,10 @@ tags:
 - description: "Web retrieval — search through the provider the user chose, and a\
     \ page as LLM-ready Markdown, cited where it landed, with its sections (docs/web-retrieval.md)."
   name: retrieval
+- description: "Knowledge bases — the user's documents (PDFs, office files, folders,\
+    \ pages) indexed on this machine and searched by words, meaning and graph; researched\
+    \ by the harness loop; annotated over time (docs/knowledge-base.md)."
+  name: knowledge
 - description: "What runs processes for the user and how — the process sandbox (through\
     \ the bridge), the container engine on this machine, and the services the gateway\
     \ runs for the user (docs/sandboxing.md S1)."
@@ -680,6 +684,80 @@ paths:
       - application/json
       - text/event-stream
   /v1/events:
+    delete:
+      description: "A client's \"Clear activity\" reaching the copy held here. Name\
+        \ exactly one of `host` or `all=1`. Without `force=1` nothing is deleted:\
+        \ the answer is 409 `confirm_required` with `wouldDelete`, so leaving the\
+        \ flag off (or sending `force=0`) is a dry run, never a delete. The host's\
+        \ cursor entry goes with its events, so its next push starts afresh. A tailing\
+        \ stream gets a `deleted` frame. Idempotent: a host with nothing left deletes\
+        \ 0."
+      operationId: events.delete
+      parameters:
+      - description: The host whose events go (a client's own `host`).
+        explode: true
+        in: query
+        name: host
+        required: false
+        schema:
+          maxLength: 200
+          type: string
+        style: form
+      - description: Every host's events instead of one.
+        explode: true
+        in: query
+        name: all
+        required: false
+        schema:
+          enum:
+          - "1"
+          - "true"
+          - "yes"
+          type: string
+        style: form
+      - description: Required to delete; anything else is a dry run answered 409.
+        explode: true
+        in: query
+        name: force
+        required: false
+        schema:
+          enum:
+          - "1"
+          - "true"
+          - "yes"
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventsDeleted"
+          description: "What was deleted, and the cursor afterwards."
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventsDeleteDryRun"
+          description: No `force=1` — nothing deleted; `wouldDelete` says what force
+            would remove.
+        "501":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "Delete one host's slice of the merged log, or the whole log — only\
+        \ with `force=1`."
+      tags:
+      - events
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.105.0
+      x-accepts:
+      - application/json
     get:
       operationId: events.since
       parameters:
@@ -2492,6 +2570,121 @@ paths:
         \ the top pages"
       x-accepts:
       - application/json
+  /v1/embeddings:
+    post:
+      description: |
+        The `embed` capability (docs/capability-endpoints.md C4), served since 0.101.0 by the
+        in-process embedder (`Xenova/multilingual-e5-small` by default, 384 dimensions, q8 on
+        the ONNX runtime; `Xenova/all-MiniLM-L6-v2` as the lighter English-only pick) — or by
+        the server `capabilities.embed` names, through its adapter. `input` is a string or up to
+        256 strings; `kind` says whether they are queries or passages (E5 prefixes each). The
+        vectors are unit length, so cosine is a dot product. 503 `provider_warming` while the
+        model downloads (the first call starts it; a caller is never held), 404 `no_provider`
+        when it is turned off (`capabilities.embed.provider = none`), `budgetMs` refused from
+        the record like every capability. The knowledge base (`/v1/kb`) uses this for its
+        vector lane; it works on words and the graph until the model is on disk.
+      operationId: capabilities.embed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmbedRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmbedResponse"
+          description: "One embedding per input, in order."
+        "400":
+          $ref: "#/components/responses/Error"
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "Turned off (`no_provider`), or a `model` this gateway does\
+            \ not serve (`model_not_found`)."
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "The model is downloading (`provider_warming`, with `progress`),\
+            \ the budget cannot be met (`over_budget`), or the provider did not answer\
+            \ (`provider_unavailable`)."
+      summary: "One unit vector per input — OpenAI-shaped embeddings, in the gateway's\
+        \ own process by default."
+      tags:
+      - capabilities
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
+      x-chatpanel-scope: "the texts, to the configured embedder — in this process\
+        \ by default"
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/extract/context:
+    post:
+      description: |
+        The turn pipeline's document stage as an API. Every ChatPanel client reads a file the
+        person attached BEFORE a small model answers: whole when it fits the window's share of
+        characters, else the pages that carry the question's words, each page cited, as one
+        `prefetch` block placed before the question (a small model reads context first). A
+        harness built on this SDK gets the same block here: send the question and the documents
+        (the bytes, base64, or the `hash` of one `/v1/extract` already opened), and put
+        `attachment.text` in the user message ahead of the question. `window` (tokens) sizes the
+        share — a 4k on-device model gets a few thousand characters, a large window far more —
+        or `budgetChars` sets it outright. `how` says whether the whole document went or pages
+        were picked; `read` lists each document's pages, `skipped` the ones that could not be
+        opened. A document with no text layer is named as a scan inside the block rather than
+        guessed from. Parsed in the same worker as `/v1/extract`, on this machine; nothing leaves it.
+      operationId: retrieval.extractContext
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExtractContextRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExtractContextResponse"
+          description: "The block to put before the question, and what was read."
+        "400":
+          $ref: "#/components/responses/Error"
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: A `hash` is not open in the worker (`unknown_document`) — send
+            the bytes again.
+        "413":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: A document is over the 64 MB limit (`too_large`).
+        "415":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: No reader for these bytes (`unsupported`).
+      summary: "The attached document(s) read FOR a question — one cited block to\
+        \ put before the question, as ChatPanel's own clients do."
+      tags:
+      - retrieval
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.102.0
+      x-chatpanel-scope: "the documents sent, read on this machine, never sent anywhere"
+      x-content-type: application/json
+      x-accepts:
+      - application/json
   /v1/extract:
     post:
       description: |
@@ -2563,6 +2756,968 @@ paths:
       x-chatpanel-auth: open
       x-chatpanel-since: 0.16.0
       x-chatpanel-scope: "one document, parsed on this machine, never sent anywhere"
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/kb:
+    get:
+      description: "Each base with its id, name, document count, vector count and\
+        \ model. Loads no passages."
+      operationId: knowledge.list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbList"
+          description: The bases.
+      summary: The knowledge bases on this machine.
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
+      x-accepts:
+      - application/json
+    post:
+      description: |
+        A base is a folder under `~/.chatpanel/kb/<id>/` (manifest, passages, notes, vectors, a
+        Markdown report) — a projection over the documents added to it, rebuildable from them.
+        `embed: off` keeps it on words and the graph only. 201 when created, 200 with `existed`
+        when the id was already there.
+      operationId: knowledge.create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KbCreateRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbStatusResponse"
+          description: Created.
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbStatusResponse"
+          description: A base with that id already existed; this is it.
+        "400":
+          $ref: "#/components/responses/Error"
+      summary: Create a knowledge base (or return the one with that id).
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/kb/{id}:
+    delete:
+      operationId: knowledge.delete
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbOkResponse"
+          description: Deleted.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: Delete a base and its folder.
+      tags:
+      - knowledge
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.101.0
+      x-accepts:
+      - application/json
+    get:
+      operationId: knowledge.status
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbStatusResponse"
+          description: The base.
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "What a base holds — its documents, passages, notes, vectors, entities\
+        \ and connections."
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
+      x-accepts:
+      - application/json
+    parameters:
+    - description: The base id.
+      explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        type: string
+      style: simple
+  /v1/kb/{id}/documents:
+    get:
+      operationId: knowledge.documents
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbDocuments"
+          description: The documents.
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: The documents in a base.
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
+      x-accepts:
+      - application/json
+    parameters:
+    - description: The base id.
+      explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        type: string
+      style: simple
+    post:
+      description: |
+        One of four sources: `name` + `data` (the file, base64, up to 64 MB — a PDF, DOCX, XLSX,
+        PPTX, ODF, Markdown or text, parsed in the extract worker); `path` (a file or folder on
+        this machine, walked with the same refusals the `files` tool applies — credential stores
+        withheld and named, `node_modules` and hidden folders skipped, documents up to 64 MB;
+        TOKEN-GATED: a path is a read on the machine, so it is 403 to a caller without the token
+        or the extension origin); `url` (a public page through the `read` capability); `text`.
+        The same bytes added again REPLACE the document. Passages are chunked by the document's
+        own headings with page citations, indexed by words and in the graph, and embedded when
+        the embedder's model is on disk (`embedded` says how many); the report is rewritten.
+      operationId: knowledge.add
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KbAddRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbAddResponse"
+          description: "What was added and what was skipped, with why."
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "A `path` from a caller without the token (`forbidden`), or\
+            \ a credential by content (`refused`)."
+        "404":
+          $ref: "#/components/responses/Error"
+        "413":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Over the 64 MB limit (`too_large`).
+        "415":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Not a document (`unsupported`).
+        "502":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: The URL could not be read (`read_failed`).
+      summary: "Add a document — bytes, a path on this machine, a URL, or text — and\
+        \ index it."
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
+      x-chatpanel-scope: "the document, parsed and indexed on this machine, never\
+        \ sent anywhere"
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/kb/{id}/documents/{doc}:
+    delete:
+      operationId: knowledge.removeDocument
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      - description: The document id.
+        explode: false
+        in: path
+        name: doc
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9_.-]{1,80}$"
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbStatusResponse"
+          description: Removed; the base's status after.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "Remove a document, its passages and vectors (notes keep their text\
+        \ and lose the cite)."
+      tags:
+      - knowledge
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.101.0
+      x-accepts:
+      - application/json
+    get:
+      operationId: knowledge.page
+      parameters:
+      - description: The page to read.
+        explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          minimum: 1
+          type: integer
+        style: form
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      - description: The document id.
+        explode: false
+        in: path
+        name: doc
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9_.-]{1,80}$"
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbPage"
+          description: The page.
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "One page of a document, from the index."
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
+      x-accepts:
+      - application/json
+    parameters:
+    - description: The base id.
+      explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        type: string
+      style: simple
+    - description: The document id.
+      explode: false
+      in: path
+      name: doc
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9_.-]{1,80}$"
+        type: string
+      style: simple
+  /v1/kb/{id}/passages/{passage}:
+    get:
+      operationId: knowledge.passage
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      - description: A passage id (`<doc>#<n>`) or a note id (`note:<id>`).
+        explode: false
+        in: path
+        name: passage
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9_.:#-]{1,100}$"
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbPassage"
+          description: The passage.
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "One passage by id, with its citation."
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
+      x-accepts:
+      - application/json
+    parameters:
+    - description: The base id.
+      explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        type: string
+      style: simple
+    - description: A passage id (`<doc>#<n>`) or a note id (`note:<id>`).
+      explode: false
+      in: path
+      name: passage
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9_.:#-]{1,100}$"
+        type: string
+      style: simple
+  /v1/kb/{id}/outline:
+    get:
+      operationId: knowledge.outline
+      parameters:
+      - description: One document; omit for all.
+        explode: true
+        in: query
+        name: doc
+        required: false
+        schema:
+          maxLength: 80
+          type: string
+        style: form
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbOutline"
+          description: The outline.
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "The table of contents a document's headings imply — every section\
+        \ once, with where it starts."
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
+      x-accepts:
+      - application/json
+    parameters:
+    - description: The base id.
+      explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        type: string
+      style: simple
+  /v1/kb/{id}/search:
+    parameters:
+    - description: The base id.
+      explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        type: string
+      style: simple
+    post:
+      description: |
+        The words in up to four query shapes (BM25), the meaning when the base has vectors (the
+        query embedded by the same model), the graph's one-hop expansion of the best hits (a
+        passage sharing a name or a section with a hit, and `via` says which), and the notes as
+        their own lane — fused by Reciprocal Rank Fusion with the graph at half weight, then the
+        gateway's reranker fused in (never substituted). Each result carries `lanes` (which found
+        it), `scores` (each lane's own, comparable within one query) and `cite` as the model is
+        told to write it (`[report.pdf p.12]`). `docs` scopes to documents; `queries` adds the
+        caller's own phrasings.
+      operationId: knowledge.search
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KbSearchRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbSearchResponse"
+          description: "The results, best first."
+        "400":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "The passages that answer a question — words, meaning and graph fused,\
+        \ a reranker on top, each with its citation."
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/kb/{id}/research:
+    parameters:
+    - description: The base id.
+      explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        type: string
+      style: simple
+    post:
+      description: |
+        The harness's loop (events kb-research.js), not a model's tool calls: a whole-document
+        ask ("what is this about") reads the outline and the opening of each section; a focused
+        one searches, reads the best passages grouped by document in page order, and — with
+        `model` (TOKEN-GATED: the check runs on this gateway's own chat route) — asks that model
+        once whether what was read answers it, then searches once more for what it says is
+        missing. When the hits split evenly across documents and the question names none, the
+        answer is `ask` (which document?) instead of a guess; call again with `answer` to go on,
+        or `ask: false` to never pause. `attachment` is the block a client attaches before the
+        question (`kind: prefetch`), `null` when nothing matched beyond the plain statement.
+      operationId: knowledge.research
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KbResearchRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbResearchResponse"
+          description: "The traversal, the block, or the question for the person."
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: '`model` from a caller without the token (`forbidden`).'
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "The bounded loop over a base — framed, searched, read, checked once,\
+        \ asked when ambiguous — as one cited block for a model."
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/kb/{id}/graph:
+    parameters:
+    - description: The base id.
+      explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        type: string
+      style: simple
+    post:
+      operationId: knowledge.graph
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KbGraphRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbGraphResponse"
+          description: "The node resolved (or `null`), its neighbours, the path when\
+            \ `to` was given."
+        "400":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: What connects to a node — its neighbours up to `hops` away — or the
+        path between two.
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/kb/{id}/report:
+    get:
+      operationId: knowledge.report
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            text/markdown:
+              schema:
+                type: string
+          description: The report.
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "The base written down as Markdown — documents with outlines, the entities\
+        \ that bind them, the communities, the notes."
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
+      x-chatpanel-sdk: manual
+      x-accepts:
+      - application/json
+      - text/markdown
+    parameters:
+    - description: The base id.
+      explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        type: string
+      style: simple
+  /v1/kb/{id}/notes:
+    get:
+      operationId: knowledge.notes
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbNotes"
+          description: The notes.
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: The notes filed into a base.
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
+      x-accepts:
+      - application/json
+    parameters:
+    - description: The base id.
+      explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        type: string
+      style: simple
+    post:
+      description: |
+        How a base improves over time. A note is indexed and searched as its own lane and shown
+        with its status; `status: accepted` is honoured only from a caller with the token (the
+        person, or a client acting for them) — any other caller's note is filed as `proposed`.
+        Unknown cites are dropped.
+      operationId: knowledge.note
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KbNoteRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbNoteResponse"
+          description: Filed.
+        "400":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "File a note — a fact, a summary, a correction — cited to passages;\
+        \ proposed until accepted."
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/kb/{id}/notes/{note}:
+    parameters:
+    - description: The base id.
+      explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        type: string
+      style: simple
+    - description: The note id.
+      explode: false
+      in: path
+      name: note
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9_-]{1,64}$"
+        type: string
+      style: simple
+    post:
+      operationId: knowledge.noteStatus
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      - description: The note id.
+        explode: false
+        in: path
+        name: note
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9_-]{1,64}$"
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KbNoteStatusRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbNoteResponse"
+          description: The note after.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "Accept a proposed note, withdraw it to proposed, or remove it."
+      tags:
+      - knowledge
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.101.0
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/kb/{id}/access:
+    get:
+      operationId: knowledge.access
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbAccessResponse"
+          description: The grant.
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "Who may use a base — every agent, or the ones named."
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.1
+      x-accepts:
+      - application/json
+    parameters:
+    - description: The base id.
+      explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        type: string
+      style: simple
+    post:
+      description: |
+        Grants (docs/knowledge-base.md §3, "knowledge is granted like skills"): a caller with the
+        token or the extension's origin is the owner and reaches every base; any other caller names
+        itself (`X-ChatPanel-Agent: claude`, or `?agent=`) — the gateway's own MCP server sends the
+        connected client's name — and reaches the bases whose `access.agents` is `all` (the default)
+        or names it. `GET /v1/kb` lists only those; a base not granted reads as 404 to that caller.
+      operationId: knowledge.setAccess
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KbAccessRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbAccessResponse"
+          description: The grant after.
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/Error"
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: Grant a base to every agent or to the ones named — the owner's act.
+      tags:
+      - knowledge
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.101.1
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /v1/kb/{id}/embed:
+    parameters:
+    - description: The base id.
+      explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        type: string
+      style: simple
+    post:
+      operationId: knowledge.embed
+      parameters:
+      - description: The base id.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: No fields.
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KbEmbedResponse"
+          description: "How many were embedded now, how many vectors the base holds,\
+            \ and the embedder's state (`ready`, `downloading` with `progress`, `off`)."
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: "Embed every passage that has no vector yet, and say where the embedder\
+        \ stands."
+      tags:
+      - knowledge
+      x-chatpanel-auth: open
+      x-chatpanel-since: 0.101.0
       x-content-type: application/json
       x-accepts:
       - application/json
@@ -5609,6 +6764,1345 @@ components:
       - pages
       - provider
       - type
+    ExtractContextRequest:
+      example:
+        question: question
+        documents:
+        - name: name
+          type: type
+          data: data
+          hash: hash
+        - name: name
+          type: type
+          data: data
+          hash: hash
+        - name: name
+          type: type
+          data: data
+          hash: hash
+        - name: name
+          type: type
+          data: data
+          hash: hash
+        - name: name
+          type: type
+          data: data
+          hash: hash
+        window: 1
+        budgetChars: 800
+      properties:
+        question:
+          description: The question the documents are read for — its content words
+            pick the pages of a long document.
+          maxLength: 2000
+          type: string
+        documents:
+          description: "Each document as its bytes (`name` + `data`, optionally `type`)\
+            \ or as the `hash` `/v1/extract` returned for one already open (optionally\
+            \ `name`, the title the block shows)."
+          items:
+            $ref: "#/components/schemas/ExtractContextRequest_documents_inner"
+          maxItems: 8
+          minItems: 1
+          type: array
+          default: null
+        window:
+          description: "The answering model's window in tokens — sizes the share the\
+            \ documents may take. Absent: a small window's share."
+          minimum: 1
+          type: integer
+        budgetChars:
+          description: "The share outright, in characters; overrides `window`."
+          minimum: 800
+          type: integer
+      required:
+      - documents
+      - question
+    ExtractContextResponse:
+      example:
+        attachment:
+          kind: prefetch
+          prefetch: document
+          title: title
+          text: text
+          chars: 0
+          cites:
+          - title: title
+            page: 6
+          - title: title
+            page: 6
+          docs:
+          - id: id
+            title: title
+            of: 1
+            pages:
+            - 5
+            - 5
+            how: whole
+          - id: id
+            title: title
+            of: 1
+            pages:
+            - 5
+            - 5
+            how: whole
+        read:
+        - id: id
+          title: title
+          of: 5
+          pages:
+          - 2
+          - 2
+          how: whole
+          hash: hash
+        - id: id
+          title: title
+          of: 5
+          pages:
+          - 2
+          - 2
+          how: whole
+          hash: hash
+        skipped:
+        - id: id
+          title: title
+          why: why
+        - id: id
+          title: title
+          why: why
+        how: whole
+        budgetChars: 7
+        provider: provider
+        ms: 9.301444243932576
+      properties:
+        attachment:
+          $ref: "#/components/schemas/ExtractContextResponse_attachment"
+        read:
+          items:
+            $ref: "#/components/schemas/ExtractContextResponse_read_inner"
+          type: array
+          default: null
+        skipped:
+          items:
+            $ref: "#/components/schemas/ExtractContextResponse_skipped_inner"
+          type: array
+          default: null
+        how:
+          enum:
+          - whole
+          - pages
+          - none
+          type: string
+        budgetChars:
+          type: integer
+        provider:
+          description: '`chatpanel-extract`.'
+          type: string
+        ms:
+          type: number
+      required:
+      - attachment
+      - budgetChars
+      - how
+      - ms
+      - provider
+      - read
+      - skipped
+    EmbedRequest:
+      example:
+        input: EmbedRequest_input
+        model: model
+        kind: passage
+        budgetMs: 0.08008281904610115
+      properties:
+        input:
+          $ref: "#/components/schemas/EmbedRequest_input"
+        model:
+          description: The model `GET /v1/capabilities` lists for `embed`; 404 otherwise.
+          type: string
+        kind:
+          default: passage
+          description: What the texts are — a model with instruction prefixes (E5)
+            prefixes each accordingly.
+          enum:
+          - query
+          - passage
+          type: string
+        budgetMs:
+          minimum: 0
+          type: number
+      required:
+      - input
+    EmbedResponse:
+      example:
+        object: list
+        data:
+        - object: embedding
+          index: 0
+          embedding:
+          - 6.027456183070403
+          - 6.027456183070403
+        - object: embedding
+          index: 0
+          embedding:
+          - 6.027456183070403
+          - 6.027456183070403
+        model: model
+        usage:
+          prompt_tokens: 1
+          total_tokens: 5
+        ms: 5.637376656633329
+      properties:
+        object:
+          enum:
+          - list
+          type: string
+        data:
+          items:
+            $ref: "#/components/schemas/EmbedResponse_data_inner"
+          type: array
+          default: null
+        model:
+          type: string
+        usage:
+          $ref: "#/components/schemas/EmbedResponse_usage"
+        ms:
+          type: number
+      required:
+      - data
+      - model
+      - ms
+      - object
+    KbAccess:
+      example:
+        agents: all
+      properties:
+        agents:
+          $ref: "#/components/schemas/KbAccess_agents"
+      required:
+      - agents
+    KbAccessRequest:
+      example:
+        agents: all
+      properties:
+        agents:
+          $ref: "#/components/schemas/KbAccessRequest_agents"
+      required:
+      - agents
+    KbAccessResponse:
+      example:
+        access:
+          agents: all
+      properties:
+        access:
+          $ref: "#/components/schemas/KbAccess"
+      required:
+      - access
+    KbOkResponse:
+      example:
+        ok: true
+      properties:
+        ok:
+          type: boolean
+      required:
+      - ok
+    KbList:
+      example:
+        kbs:
+        - id: id
+          name: name
+          docs: 0
+          updatedAt: 6
+          vectors: 1
+          model: model
+          access:
+            agents: all
+        - id: id
+          name: name
+          docs: 0
+          updatedAt: 6
+          vectors: 1
+          model: model
+          access:
+            agents: all
+      properties:
+        kbs:
+          items:
+            $ref: "#/components/schemas/KbList_kbs_inner"
+          type: array
+          default: null
+      required:
+      - kbs
+    KbCreateRequest:
+      example:
+        id: id
+        name: name
+        embed: auto
+      properties:
+        id:
+          description: Chosen by the caller; made up when absent.
+          pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          type: string
+        name:
+          maxLength: 120
+          type: string
+        embed:
+          default: auto
+          description: "`off`: words and graph only, no vectors."
+          enum:
+          - auto
+          - false
+          type: string
+    KbDocument:
+      example:
+        id: id
+        title: title
+        pages: 7
+        chunks: 1
+        type: type
+        source:
+          kind: file
+          path: path
+          url: url
+          name: name
+        addedAt: 1
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        pages:
+          type: integer
+        chunks:
+          description: Passages.
+          type: integer
+        type:
+          type: string
+        source:
+          $ref: "#/components/schemas/KbDocument_source"
+        addedAt:
+          format: int64
+          type: integer
+      required:
+      - chunks
+      - id
+      - pages
+      - title
+    KbStatus:
+      example:
+        id: id
+        name: name
+        v: 0
+        createdAt: 6
+        updatedAt: 1
+        docs: 5
+        chunks: 5
+        notes: 2
+        proposed: 7
+        vectors: 9
+        model: model
+        dims: 3
+        embed: auto
+        entities: 2
+        edges: 4
+        reach: reach
+        access:
+          agents: all
+        documents:
+        - id: id
+          title: title
+          pages: 7
+          chunks: 1
+          type: type
+          source:
+            kind: file
+            path: path
+            url: url
+            name: name
+          addedAt: 1
+        - id: id
+          title: title
+          pages: 7
+          chunks: 1
+          type: type
+          source:
+            kind: file
+            path: path
+            url: url
+            name: name
+          addedAt: 1
+        bytes: 1
+        dir: dir
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        v:
+          type: integer
+        createdAt:
+          format: int64
+          type: integer
+        updatedAt:
+          format: int64
+          type: integer
+        docs:
+          type: integer
+        chunks:
+          type: integer
+        notes:
+          type: integer
+        proposed:
+          description: Notes awaiting acceptance.
+          type: integer
+        vectors:
+          type: integer
+        model:
+          description: The embedding model the vectors came from.
+          type: string
+        dims:
+          type: integer
+        embed:
+          enum:
+          - auto
+          - false
+          type: string
+        entities:
+          type: integer
+        edges:
+          type: integer
+        reach:
+          description: "The tightest provenance of its documents (`internal`, `web`,\
+            \ or empty)."
+          type: string
+        access:
+          $ref: "#/components/schemas/KbAccess"
+        documents:
+          items:
+            $ref: "#/components/schemas/KbDocument"
+          type: array
+          default: null
+        bytes:
+          description: On disk.
+          format: int64
+          type: integer
+        dir:
+          description: The folder on disk — to a caller with the token only.
+          type: string
+      required:
+      - chunks
+      - docs
+      - documents
+      - edges
+      - entities
+      - id
+      - name
+      - notes
+      - vectors
+    KbStatusResponse:
+      example:
+        kb:
+          id: id
+          name: name
+          v: 0
+          createdAt: 6
+          updatedAt: 1
+          docs: 5
+          chunks: 5
+          notes: 2
+          proposed: 7
+          vectors: 9
+          model: model
+          dims: 3
+          embed: auto
+          entities: 2
+          edges: 4
+          reach: reach
+          access:
+            agents: all
+          documents:
+          - id: id
+            title: title
+            pages: 7
+            chunks: 1
+            type: type
+            source:
+              kind: file
+              path: path
+              url: url
+              name: name
+            addedAt: 1
+          - id: id
+            title: title
+            pages: 7
+            chunks: 1
+            type: type
+            source:
+              kind: file
+              path: path
+              url: url
+              name: name
+            addedAt: 1
+          bytes: 1
+          dir: dir
+        existed: true
+        ok: true
+      properties:
+        kb:
+          $ref: "#/components/schemas/KbStatus"
+        existed:
+          type: boolean
+        ok:
+          type: boolean
+      required:
+      - kb
+    KbDocuments:
+      example:
+        documents:
+        - id: id
+          title: title
+          pages: 7
+          chunks: 1
+          type: type
+          source:
+            kind: file
+            path: path
+            url: url
+            name: name
+          addedAt: 1
+        - id: id
+          title: title
+          pages: 7
+          chunks: 1
+          type: type
+          source:
+            kind: file
+            path: path
+            url: url
+            name: name
+          addedAt: 1
+      properties:
+        documents:
+          items:
+            $ref: "#/components/schemas/KbDocument"
+          type: array
+          default: null
+      required:
+      - documents
+    KbAddRequest:
+      description: "One source: `name` + `data`, or `path`, or `url`, or `text`."
+      example:
+        name: name
+        type: type
+        data: data
+        path: path
+        recursive: true
+        include:
+        - include
+        - include
+        url: url
+        text: text
+        title: title
+        reach: reach
+      properties:
+        name:
+          description: The file name (with `data`); the title for `text` when none
+            is given.
+          type: string
+        type:
+          description: "A type hint (`pdf`, `docx`); the bytes decide."
+          type: string
+        data:
+          description: "The whole file, base64, at most 64 MB decoded."
+          format: byte
+          type: string
+        path:
+          description: A file or folder on this machine (token-gated).
+          type: string
+        recursive:
+          default: true
+          description: "With a folder: walk subfolders."
+          type: boolean
+        include:
+          description: "With a folder: only these extensions (`*.pdf`, `.md`)."
+          items:
+            type: string
+          type: array
+          default: null
+        url:
+          description: "A public http(s) page, read as Markdown."
+          type: string
+        text:
+          description: "Plain text or Markdown, up to 4 M characters."
+          type: string
+        title:
+          maxLength: 200
+          type: string
+        reach:
+          description: Provenance to record on the document (`internal` narrows a
+            turn that uses it).
+          type: string
+    KbAddResponse:
+      example:
+        added:
+        - id: id
+          title: title
+          pages: 0
+          chunks: 6
+          replaced: true
+          scanned: true
+          path: path
+        - id: id
+          title: title
+          pages: 0
+          chunks: 6
+          replaced: true
+          scanned: true
+          path: path
+        skipped:
+        - path: path
+          url: url
+          why: why
+        - path: path
+          url: url
+          why: why
+        embedded: 1
+        kb:
+          id: id
+          name: name
+          v: 0
+          createdAt: 6
+          updatedAt: 1
+          docs: 5
+          chunks: 5
+          notes: 2
+          proposed: 7
+          vectors: 9
+          model: model
+          dims: 3
+          embed: auto
+          entities: 2
+          edges: 4
+          reach: reach
+          access:
+            agents: all
+          documents:
+          - id: id
+            title: title
+            pages: 7
+            chunks: 1
+            type: type
+            source:
+              kind: file
+              path: path
+              url: url
+              name: name
+            addedAt: 1
+          - id: id
+            title: title
+            pages: 7
+            chunks: 1
+            type: type
+            source:
+              kind: file
+              path: path
+              url: url
+              name: name
+            addedAt: 1
+          bytes: 1
+          dir: dir
+        ms: 5.962133916683182
+      properties:
+        added:
+          items:
+            $ref: "#/components/schemas/KbAddResponse_added_inner"
+          type: array
+          default: null
+        skipped:
+          items:
+            $ref: "#/components/schemas/KbAddResponse_skipped_inner"
+          type: array
+          default: null
+        embedded:
+          description: Passages given a vector in this call.
+          type: integer
+        kb:
+          $ref: "#/components/schemas/KbStatus"
+        ms:
+          type: number
+      required:
+      - added
+      - kb
+      - skipped
+    KbPassage:
+      example:
+        id: id
+        doc: doc
+        title: title
+        kind: text
+        page: 0
+        pageEnd: 6
+        section: section
+        text: text
+        chars: 1
+        score: 5.962133916683182
+        scores:
+          key: 5.637376656633329
+        rerank: 2.3021358869347655
+        lanes:
+        - text
+        - text
+        via:
+        - via
+        - via
+        cite: cite
+        status: proposed
+        cites:
+        - cites
+        - cites
+      properties:
+        id:
+          description: "`<doc>#<n>`, or `note:<id>`."
+          type: string
+        doc:
+          type: string
+        title:
+          type: string
+        kind:
+          enum:
+          - text
+          - note
+          type: string
+        page:
+          type: integer
+        pageEnd:
+          type: integer
+        section:
+          description: "The heading path, ` › `-joined."
+          type: string
+        text:
+          type: string
+        chars:
+          type: integer
+        score:
+          description: The fused rank score (RRF) — only its order means anything.
+          type: number
+        scores:
+          additionalProperties:
+            type: number
+          description: "Each lane's own score (`text`, `vector`, `rerank`), comparable\
+            \ within one query."
+          type: object
+        rerank:
+          type: number
+        lanes:
+          items:
+            enum:
+            - text
+            - vector
+            - graph
+            - notes
+            - rerank
+            type: string
+          type: array
+          default: null
+        via:
+          description: "For a graph hit: the node(s) it was reached through."
+          items:
+            type: string
+          type: array
+          default: null
+        cite:
+          description: "As the model is told to write it: `[report.pdf p.12]`."
+          type: string
+        status:
+          description: A note's.
+          enum:
+          - proposed
+          - accepted
+          type: string
+        cites:
+          description: A note's passage ids.
+          items:
+            type: string
+          type: array
+          default: null
+      required:
+      - id
+      - text
+    KbSearchRequest:
+      example:
+        query: query
+        limit: 4
+        hops: 1
+        docs:
+        - docs
+        - docs
+        queries:
+        - queries
+        - queries
+        - queries
+        - queries
+        - queries
+        rerank: true
+        budgetMs: 0.14658129805029452
+      properties:
+        query:
+          maxLength: 2000
+          type: string
+        limit:
+          default: 10
+          maximum: 50
+          minimum: 1
+          type: integer
+        hops:
+          default: 1
+          description: Graph expansion of the best hits; 0 = off.
+          maximum: 2
+          minimum: 0
+          type: integer
+        docs:
+          description: Only these documents.
+          items:
+            type: string
+          type: array
+          default: null
+        queries:
+          description: "The caller's own phrasings, searched too."
+          items:
+            type: string
+          maxItems: 6
+          type: array
+          default: null
+        rerank:
+          default: true
+          description: "`false`: skip the reranker."
+          type: boolean
+        budgetMs:
+          minimum: 0
+          type: number
+      required:
+      - query
+    KbSearchResponse:
+      example:
+        results:
+        - id: id
+          doc: doc
+          title: title
+          kind: text
+          page: 0
+          pageEnd: 6
+          section: section
+          text: text
+          chars: 1
+          score: 5.962133916683182
+          scores:
+            key: 5.637376656633329
+          rerank: 2.3021358869347655
+          lanes:
+          - text
+          - text
+          via:
+          - via
+          - via
+          cite: cite
+          status: proposed
+          cites:
+          - cites
+          - cites
+        - id: id
+          doc: doc
+          title: title
+          kind: text
+          page: 0
+          pageEnd: 6
+          section: section
+          text: text
+          chars: 1
+          score: 5.962133916683182
+          scores:
+            key: 5.637376656633329
+          rerank: 2.3021358869347655
+          lanes:
+          - text
+          - text
+          via:
+          - via
+          - via
+          cite: cite
+          status: proposed
+          cites:
+          - cites
+          - cites
+        lanes:
+          text: 0
+          vector: 6
+          graph: 1
+          notes: 5
+        queries:
+        - queries
+        - queries
+        ms: 5.637376656633329
+      properties:
+        results:
+          items:
+            $ref: "#/components/schemas/KbPassage"
+          type: array
+          default: null
+        lanes:
+          $ref: "#/components/schemas/KbSearchResponse_lanes"
+        queries:
+          description: The query shapes searched.
+          items:
+            type: string
+          type: array
+          default: null
+        ms:
+          type: number
+      required:
+      - lanes
+      - ms
+      - queries
+      - results
+    KbResearchRequest:
+      example:
+        question: question
+        answer: answer
+        ask: true
+        model: model
+        previous:
+          key: ""
+        docs:
+        - docs
+        - docs
+      properties:
+        question:
+          maxLength: 2000
+          type: string
+        answer:
+          description: "The person's answer to a previous `ask` (a document title,\
+            \ or `all`)."
+          maxLength: 400
+          type: string
+        ask:
+          default: true
+          description: "`false`: never pause; search every document."
+          type: boolean
+        model:
+          description: A model (from `GET /v1/models`) for the evidence check; token-gated.
+          type: string
+        previous:
+          additionalProperties: true
+          description: "The previous response's `frame`, for a follow-up."
+          type: object
+        docs:
+          description: Only these documents.
+          items:
+            type: string
+          type: array
+          default: null
+      required:
+      - question
+    KbResearchResponse:
+      example:
+        attachment:
+          id: id
+          kind: kind
+          prefetch: prefetch
+          title: title
+          text: text
+          chars: 0
+          cites:
+          - key: ""
+          - key: ""
+        read:
+        - key: ""
+        - key: ""
+        hits:
+        - id: id
+          doc: doc
+          title: title
+          page: 6
+          section: section
+          cite: cite
+          lanes:
+          - lanes
+          - lanes
+          via:
+          - via
+          - via
+        - id: id
+          doc: doc
+          title: title
+          page: 6
+          section: section
+          cite: cite
+          lanes:
+          - lanes
+          - lanes
+          via:
+          - via
+          - via
+        queries:
+        - queries
+        - queries
+        verdict: true
+        rounds: 1
+        ask:
+          question: question
+          options:
+          - options
+          - options
+          kind: kind
+          step: step
+        how: how
+        frame:
+          whole: true
+          docs:
+          - docs
+          - docs
+        ms: 5.962133916683182
+      properties:
+        attachment:
+          $ref: "#/components/schemas/KbResearchResponse_attachment"
+        read:
+          description: "What was read, grouped by document in page order (or the outline\
+            \ for a whole-document ask)."
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          default: null
+        hits:
+          items:
+            $ref: "#/components/schemas/KbResearchResponse_hits_inner"
+          type: array
+          default: null
+        queries:
+          items:
+            type: string
+          type: array
+          default: null
+        verdict:
+          description: The check's answer when a model was given.
+          enum:
+          - true
+          - partly
+          - false
+          - null
+          type: string
+          nullable: true
+        rounds:
+          type: integer
+        ask:
+          $ref: "#/components/schemas/KbResearchResponse_ask"
+        how:
+          description: "How it was searched, in words."
+          type: string
+        frame:
+          $ref: "#/components/schemas/KbResearchResponse_frame"
+        ms:
+          type: number
+      required:
+      - hits
+      - ms
+      - queries
+      - read
+      - rounds
+    KbGraphRequest:
+      example:
+        node: node
+        to: to
+        hops: 1
+        kinds:
+        - doc
+        - doc
+        limit: 60
+      properties:
+        node:
+          description: "An entity, section or topic by name (or a node id)."
+          maxLength: 200
+          type: string
+        to:
+          description: "A second node: the path from `node` to it."
+          maxLength: 200
+          type: string
+        hops:
+          default: 1
+          maximum: 3
+          minimum: 1
+          type: integer
+        kinds:
+          items:
+            enum:
+            - doc
+            - section
+            - entity
+            - topic
+            - note
+            - chunk
+            type: string
+          type: array
+          default: null
+        limit:
+          default: 20
+          maximum: 100
+          minimum: 1
+          type: integer
+      required:
+      - node
+    KbGraphResponse:
+      example:
+        node:
+          id: id
+          kind: kind
+          label: label
+        neighbours:
+        - id: id
+          kind: kind
+          label: label
+          weight: 0.8008281904610115
+          via:
+          - key: ""
+          - key: ""
+        - id: id
+          kind: kind
+          label: label
+          weight: 0.8008281904610115
+          via:
+          - key: ""
+          - key: ""
+        to: to
+        path:
+        - id: id
+          label: label
+          kind: kind
+        - id: id
+          label: label
+          kind: kind
+        message: message
+      properties:
+        node:
+          $ref: "#/components/schemas/KbGraphResponse_node"
+        neighbours:
+          items:
+            $ref: "#/components/schemas/KbGraphResponse_neighbours_inner"
+          type: array
+          default: null
+        to:
+          type: string
+        path:
+          items:
+            $ref: "#/components/schemas/KbGraphResponse_path_inner"
+          type: array
+          nullable: true
+          default: null
+        message:
+          type: string
+      required:
+      - neighbours
+      - node
+    KbPage:
+      example:
+        doc: doc
+        title: title
+        page: 0
+        pages: 6
+        text: text
+      properties:
+        doc:
+          type: string
+        title:
+          type: string
+        page:
+          type: integer
+        pages:
+          type: integer
+        text:
+          type: string
+      required:
+      - doc
+      - page
+      - pages
+      - text
+    KbOutline:
+      example:
+        outline:
+        - doc: doc
+          section: section
+          level: 0
+          page: 6
+          chunks: 1
+          chars: 5
+          first: first
+        - doc: doc
+          section: section
+          level: 0
+          page: 6
+          chunks: 1
+          chars: 5
+          first: first
+      properties:
+        outline:
+          items:
+            $ref: "#/components/schemas/KbOutline_outline_inner"
+          type: array
+          default: null
+      required:
+      - outline
+    KbNote:
+      example:
+        id: id
+        text: text
+        cites:
+        - cites
+        - cites
+        by: by
+        status: proposed
+        at: 0
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        cites:
+          items:
+            type: string
+          type: array
+          default: null
+        by:
+          type: string
+        status:
+          enum:
+          - proposed
+          - accepted
+          type: string
+        at:
+          format: int64
+          type: integer
+      required:
+      - at
+      - id
+      - status
+      - text
+    KbNotes:
+      example:
+        notes:
+        - id: id
+          text: text
+          cites:
+          - cites
+          - cites
+          by: by
+          status: proposed
+          at: 0
+        - id: id
+          text: text
+          cites:
+          - cites
+          - cites
+          by: by
+          status: proposed
+          at: 0
+      properties:
+        notes:
+          items:
+            $ref: "#/components/schemas/KbNote"
+          type: array
+          default: null
+      required:
+      - notes
+    KbNoteRequest:
+      example:
+        text: text
+        cites:
+        - cites
+        - cites
+        - cites
+        - cites
+        - cites
+        status: proposed
+        by: by
+      properties:
+        text:
+          maxLength: 4000
+          type: string
+        cites:
+          items:
+            type: string
+          maxItems: 20
+          type: array
+          default: null
+        status:
+          description: '`accepted` is honoured from a caller with the token only.'
+          enum:
+          - proposed
+          - accepted
+          type: string
+        by:
+          maxLength: 40
+          type: string
+      required:
+      - text
+    KbNoteResponse:
+      example:
+        note:
+          id: id
+          text: text
+          cites:
+          - cites
+          - cites
+          by: by
+          status: proposed
+          at: 0
+        removed: true
+      properties:
+        note:
+          $ref: "#/components/schemas/KbNote"
+        removed:
+          type: boolean
+      required:
+      - note
+    KbNoteStatusRequest:
+      example:
+        status: proposed
+      properties:
+        status:
+          enum:
+          - proposed
+          - accepted
+          - removed
+          type: string
+      required:
+      - status
+    KbEmbedResponse:
+      example:
+        embedded: 0
+        vectors: 6
+        model: model
+        dims: 1
+        state: state
+        progress:
+          key: ""
+      properties:
+        embedded:
+          type: integer
+        vectors:
+          type: integer
+        model:
+          type: string
+        dims:
+          type: integer
+        state:
+          description: "`ready`, `idle`, `loading`, `downloading`, `down`, `off`."
+          type: string
+        progress:
+          additionalProperties: true
+          type: object
+      required:
+      - embedded
+      - state
+      - vectors
     ReadRequest:
       example:
         url: url
@@ -6632,6 +9126,62 @@ components:
       required:
       - cursor
       - ok
+    EventsDeleted:
+      example:
+        ok: true
+        deleted: 0
+        host: host
+        all: true
+        cursor:
+          key: 0
+      properties:
+        ok:
+          type: boolean
+        deleted:
+          description: How many events went.
+          type: integer
+        host:
+          type: string
+        all:
+          type: boolean
+        cursor:
+          additionalProperties:
+            minimum: 0
+            type: integer
+          description: "`{ host: seq }` — the highest seq held per host."
+          type: object
+      required:
+      - cursor
+      - deleted
+      - ok
+    EventsDeleteDryRun:
+      example:
+        ok: true
+        wouldDelete: 1
+        host: host
+        all: true
+        error:
+          message: message
+          type: confirm_required
+          code: confirm_required
+      properties:
+        ok:
+          enum:
+          - false
+          type: boolean
+        wouldDelete:
+          description: What `force=1` would delete.
+          type: integer
+        host:
+          type: string
+        all:
+          type: boolean
+        error:
+          $ref: "#/components/schemas/EventsDeleteDryRun_error"
+      required:
+      - error
+      - ok
+      - wouldDelete
     EventsPage:
       example:
         ok: true
@@ -9686,6 +12236,517 @@ components:
       oneOf:
       - type: string
       - $ref: "#/components/schemas/DecideOption"
+    ExtractContextRequest_documents_inner:
+      example:
+        name: name
+        type: type
+        data: data
+        hash: hash
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        data:
+          format: byte
+          type: string
+        hash:
+          pattern: "^[0-9a-f]{64}$"
+          type: string
+    ExtractContextResponse_attachment_cites_inner:
+      example:
+        title: title
+        page: 6
+      properties:
+        title:
+          type: string
+        page:
+          type: integer
+    ExtractContextResponse_attachment_docs_inner:
+      example:
+        id: id
+        title: title
+        of: 1
+        pages:
+        - 5
+        - 5
+        how: whole
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        of:
+          type: integer
+        pages:
+          items:
+            type: integer
+          type: array
+          default: null
+        how:
+          enum:
+          - whole
+          - pages
+          type: string
+    ExtractContextResponse_attachment:
+      description: The block to put BEFORE the question; null when nothing could be
+        read.
+      example:
+        kind: prefetch
+        prefetch: document
+        title: title
+        text: text
+        chars: 0
+        cites:
+        - title: title
+          page: 6
+        - title: title
+          page: 6
+        docs:
+        - id: id
+          title: title
+          of: 1
+          pages:
+          - 5
+          - 5
+          how: whole
+        - id: id
+          title: title
+          of: 1
+          pages:
+          - 5
+          - 5
+          how: whole
+      properties:
+        kind:
+          enum:
+          - prefetch
+          type: string
+        prefetch:
+          enum:
+          - document
+          type: string
+        title:
+          type: string
+        text:
+          description: "Per document: a one-sentence head naming it and its pages\
+            \ (a sentence, not a tag — an on-device model judges the prompt's language\
+            \ before reading it), then `--- page n ---` and that page's text."
+          type: string
+        chars:
+          type: integer
+        cites:
+          items:
+            $ref: "#/components/schemas/ExtractContextResponse_attachment_cites_inner"
+          type: array
+          default: null
+        docs:
+          items:
+            $ref: "#/components/schemas/ExtractContextResponse_attachment_docs_inner"
+          type: array
+          default: null
+      nullable: true
+    ExtractContextResponse_read_inner:
+      example:
+        id: id
+        title: title
+        of: 5
+        pages:
+        - 2
+        - 2
+        how: whole
+        hash: hash
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        of:
+          description: The document's page count.
+          type: integer
+        pages:
+          description: The pages in the block.
+          items:
+            type: integer
+          type: array
+          default: null
+        how:
+          enum:
+          - whole
+          - pages
+          type: string
+        hash:
+          description: The document's hash — reuse it on the next call.
+          type: string
+    ExtractContextResponse_skipped_inner:
+      example:
+        id: id
+        title: title
+        why: why
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        why:
+          type: string
+    EmbedRequest_input:
+      description: "A string, or 1–256 strings."
+      oneOf:
+      - type: string
+      - items:
+          type: string
+        maxItems: 256
+        minItems: 1
+        type: array
+        default: null
+    EmbedResponse_data_inner:
+      example:
+        object: embedding
+        index: 0
+        embedding:
+        - 6.027456183070403
+        - 6.027456183070403
+      properties:
+        object:
+          enum:
+          - embedding
+          type: string
+        index:
+          minimum: 0
+          type: integer
+        embedding:
+          description: Unit length.
+          items:
+            type: number
+          type: array
+          default: null
+      required:
+      - embedding
+      - index
+      - object
+    EmbedResponse_usage:
+      example:
+        prompt_tokens: 1
+        total_tokens: 5
+      properties:
+        prompt_tokens:
+          type: integer
+        total_tokens:
+          type: integer
+    KbAccess_agents:
+      description: "`all`, or the agent names (lower-case) that may use the base —\
+        \ the owner always may."
+      oneOf:
+      - enum:
+        - all
+        type: string
+      - items:
+          type: string
+        maxItems: 100
+        type: array
+        default: null
+    KbAccessRequest_agents:
+      description: "`all`, or the agent names to grant."
+      oneOf:
+      - enum:
+        - all
+        type: string
+      - items:
+          type: string
+        maxItems: 100
+        type: array
+        default: null
+    KbList_kbs_inner:
+      example:
+        id: id
+        name: name
+        docs: 0
+        updatedAt: 6
+        vectors: 1
+        model: model
+        access:
+          agents: all
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        docs:
+          type: integer
+        updatedAt:
+          format: int64
+          type: integer
+        vectors:
+          type: integer
+        model:
+          type: string
+        access:
+          $ref: "#/components/schemas/KbAccess"
+      required:
+      - docs
+      - id
+      - name
+    KbDocument_source:
+      example:
+        kind: file
+        path: path
+        url: url
+        name: name
+      properties:
+        kind:
+          enum:
+          - file
+          - url
+          - bytes
+          - text
+          type: string
+        path:
+          type: string
+        url:
+          type: string
+        name:
+          type: string
+    KbAddResponse_added_inner:
+      example:
+        id: id
+        title: title
+        pages: 0
+        chunks: 6
+        replaced: true
+        scanned: true
+        path: path
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        pages:
+          type: integer
+        chunks:
+          type: integer
+        replaced:
+          type: boolean
+        scanned:
+          description: "A PDF with no text layer: indexed empty."
+          type: boolean
+        path:
+          description: Relative to the folder given.
+          type: string
+      required:
+      - chunks
+      - id
+      - pages
+      - title
+    KbAddResponse_skipped_inner:
+      example:
+        path: path
+        url: url
+        why: why
+      properties:
+        path:
+          type: string
+        url:
+          type: string
+        why:
+          type: string
+    KbSearchResponse_lanes:
+      description: How many candidates each lane found.
+      example:
+        text: 0
+        vector: 6
+        graph: 1
+        notes: 5
+      properties:
+        text:
+          type: integer
+        vector:
+          type: integer
+        graph:
+          type: integer
+        notes:
+          type: integer
+    KbResearchResponse_attachment:
+      description: "The block for the model (`kind: prefetch`, `prefetch: kb`), or\
+        \ null."
+      example:
+        id: id
+        kind: kind
+        prefetch: prefetch
+        title: title
+        text: text
+        chars: 0
+        cites:
+        - key: ""
+        - key: ""
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        prefetch:
+          type: string
+        title:
+          type: string
+        text:
+          type: string
+        chars:
+          type: integer
+        cites:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          default: null
+      nullable: true
+    KbResearchResponse_hits_inner:
+      example:
+        id: id
+        doc: doc
+        title: title
+        page: 6
+        section: section
+        cite: cite
+        lanes:
+        - lanes
+        - lanes
+        via:
+        - via
+        - via
+      properties:
+        id:
+          type: string
+        doc:
+          type: string
+        title:
+          type: string
+        page:
+          type: integer
+        section:
+          type: string
+        cite:
+          type: string
+        lanes:
+          items:
+            type: string
+          type: array
+          default: null
+        via:
+          items:
+            type: string
+          type: array
+          default: null
+    KbResearchResponse_ask:
+      description: "The question for the person, when the hits split evenly across\
+        \ documents."
+      example:
+        question: question
+        options:
+        - options
+        - options
+        kind: kind
+        step: step
+      properties:
+        question:
+          type: string
+        options:
+          items:
+            type: string
+          type: array
+          default: null
+        kind:
+          type: string
+        step:
+          type: string
+      nullable: true
+    KbResearchResponse_frame:
+      example:
+        whole: true
+        docs:
+        - docs
+        - docs
+      properties:
+        whole:
+          type: boolean
+        docs:
+          items:
+            type: string
+          type: array
+          default: null
+    KbGraphResponse_node:
+      example:
+        id: id
+        kind: kind
+        label: label
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        label:
+          type: string
+      nullable: true
+    KbGraphResponse_neighbours_inner:
+      example:
+        id: id
+        kind: kind
+        label: label
+        weight: 0.8008281904610115
+        via:
+        - key: ""
+        - key: ""
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        label:
+          type: string
+        weight:
+          type: number
+        via:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          default: null
+    KbGraphResponse_path_inner:
+      example:
+        id: id
+        label: label
+        kind: kind
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        kind:
+          type: string
+    KbOutline_outline_inner:
+      example:
+        doc: doc
+        section: section
+        level: 0
+        page: 6
+        chunks: 1
+        chars: 5
+        first: first
+      properties:
+        doc:
+          type: string
+        section:
+          type: string
+        level:
+          type: integer
+        page:
+          type: integer
+        chunks:
+          type: integer
+        chars:
+          type: integer
+        first:
+          description: The first passage id of the section.
+          type: string
     ResearchResponse_rows_inner:
       additionalProperties: true
       example:
@@ -9811,6 +12872,25 @@ components:
       required:
       - code
       - message
+    EventsDeleteDryRun_error:
+      example:
+        message: message
+        type: confirm_required
+        code: confirm_required
+      properties:
+        message:
+          type: string
+        type:
+          enum:
+          - confirm_required
+          type: string
+        code:
+          enum:
+          - confirm_required
+          type: string
+      required:
+      - message
+      - type
     EventsStats_stats:
       additionalProperties: true
       example:

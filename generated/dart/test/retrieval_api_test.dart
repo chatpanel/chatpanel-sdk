@@ -16,6 +16,15 @@ void main() {
       // TODO
     });
 
+    // The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel's own clients do.
+    //
+    // The turn pipeline's document stage as an API. Every ChatPanel client reads a file the person attached BEFORE a small model answers: whole when it fits the window's share of characters, else the pages that carry the question's words, each page cited, as one `prefetch` block placed before the question (a small model reads context first). A harness built on this SDK gets the same block here: send the question and the documents (the bytes, base64, or the `hash` of one `/v1/extract` already opened), and put `attachment.text` in the user message ahead of the question. `window` (tokens) sizes the share — a 4k on-device model gets a few thousand characters, a large window far more — or `budgetChars` sets it outright. `how` says whether the whole document went or pages were picked; `read` lists each document's pages, `skipped` the ones that could not be opened. A document with no text layer is named as a scan inside the block rather than guessed from. Parsed in the same worker as `/v1/extract`, on this machine; nothing leaves it. 
+    //
+    //Future<ExtractContextResponse> retrievalExtractContext(ExtractContextRequest extractContextRequest) async
+    test('test retrievalExtractContext', () async {
+      // TODO
+    });
+
     // Read one public page as LLM-ready Markdown, cited where it landed, with its sections.
     //
     // The `read` capability (docs/web-retrieval.md §4.2). The page is fetched from this machine as the user's agent — public web only (the shared SSRF guard, re-checked where a redirect lands), a browser User-Agent, no cookies — and turned into Markdown that keeps headings, lists, tables, code and links. `url` in the answer is where the page should be CITED: the same-origin canonical when it declares one, else where the fetch landed; `sections` are the page's own heading ids with their offset into the content so a citation can point at `url#section`. A page that could not be read as the article — a login wall, a paywall, a 429 — is a 200 with `restricted.reason` and the caller's `snippet` standing in for the content, never the wall rendered as prose. `maxChars` cuts at a section boundary. A read is served from this process's page cache when fresh (`cached: true`), revalidated with its ETag when stale. `budgetMs` is refused (503 `over_budget`) from the provider's own record, never missed. Providers are listed by `GET /v1/capabilities`: `defuddle` (in-process), `text` (the DOM-less fallback), `remote` (an `r.jina.ai`-shaped reader configured under `read.remote`). 

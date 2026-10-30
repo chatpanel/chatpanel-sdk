@@ -25,6 +25,15 @@ void main() {
       // TODO
     });
 
+    // One unit vector per input — OpenAI-shaped embeddings, in the gateway's own process by default.
+    //
+    // The `embed` capability (docs/capability-endpoints.md C4), served since 0.101.0 by the in-process embedder (`Xenova/multilingual-e5-small` by default, 384 dimensions, q8 on the ONNX runtime; `Xenova/all-MiniLM-L6-v2` as the lighter English-only pick) — or by the server `capabilities.embed` names, through its adapter. `input` is a string or up to 256 strings; `kind` says whether they are queries or passages (E5 prefixes each). The vectors are unit length, so cosine is a dot product. 503 `provider_warming` while the model downloads (the first call starts it; a caller is never held), 404 `no_provider` when it is turned off (`capabilities.embed.provider = none`), `budgetMs` refused from the record like every capability. The knowledge base (`/v1/kb`) uses this for its vector lane; it works on words and the graph until the model is on disk. 
+    //
+    //Future<EmbedResponse> capabilitiesEmbed(EmbedRequest embedRequest) async
+    test('test capabilitiesEmbed', () async {
+      // TODO
+    });
+
     // What this provider can do — which capabilities, models, measured cost and runtime state.
     //
     // The discovery document a client chooses a provider from: one entry per capability (`detect`, `stt`, `tts` today; `decide`, `rerank`, `embed` as they land), each at its standard route, with the models it can serve, the loaded model's own label vocabulary (`detect`), the measured latency record, and the runtime's state. Never loads a model. 

@@ -5,6 +5,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | Method | HTTP request | Description |
 |--------|--------------|-------------|
 | [**RetrievalExtract**](RetrievalApi.md#retrievalextract) | **POST** /v1/extract | A document&#39;s pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash. |
+| [**RetrievalExtractContext**](RetrievalApi.md#retrievalextractcontext) | **POST** /v1/extract/context | The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do. |
 | [**RetrievalRead**](RetrievalApi.md#retrievalread) | **POST** /v1/read | Read one public page as LLM-ready Markdown, cited where it landed, with its sections. |
 | [**RetrievalReadAlias**](RetrievalApi.md#retrievalreadalias) | **GET** /v1/read/{url} | The r.jina.ai-shaped alias — &#x60;GET /v1/read/https://…&#x60; — for clients that already speak it. |
 | [**RetrievalSearch**](RetrievalApi.md#retrievalsearch) | **POST** /v1/search | Search the web through the provider this gateway is configured with; optionally read the top results in the same request. |
@@ -49,6 +50,46 @@ The `extract` capability (docs/capability-endpoints.md): the third leg beside `s
 | **415** | No reader for these bytes (&#x60;unsupported&#x60;). |  -  |
 | **503** | The budget cannot be met (&#x60;over_budget&#x60;, with &#x60;predictedMs&#x60;). |  -  |
 | **504** | The parse took too long and the worker was restarted (&#x60;extract_timeout&#x60;). |  -  |
+
+[[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
+
+<a id="retrievalextractcontext"></a>
+# **RetrievalExtractContext**
+> ExtractContextResponse RetrievalExtractContext (ExtractContextRequest extractContextRequest)
+
+The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel's own clients do.
+
+The turn pipeline's document stage as an API. Every ChatPanel client reads a file the person attached BEFORE a small model answers: whole when it fits the window's share of characters, else the pages that carry the question's words, each page cited, as one `prefetch` block placed before the question (a small model reads context first). A harness built on this SDK gets the same block here: send the question and the documents (the bytes, base64, or the `hash` of one `/v1/extract` already opened), and put `attachment.text` in the user message ahead of the question. `window` (tokens) sizes the share — a 4k on-device model gets a few thousand characters, a large window far more — or `budgetChars` sets it outright. `how` says whether the whole document went or pages were picked; `read` lists each document's pages, `skipped` the ones that could not be opened. A document with no text layer is named as a scan inside the block rather than guessed from. Parsed in the same worker as `/v1/extract`, on this machine; nothing leaves it. 
+
+
+### Parameters
+
+| Name | Type | Description | Notes |
+|------|------|-------------|-------|
+| **extractContextRequest** | [**ExtractContextRequest**](ExtractContextRequest.md) |  |  |
+
+### Return type
+
+[**ExtractContextResponse**](ExtractContextResponse.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | The block to put before the question, and what was read. |  -  |
+| **400** | An error, in the gateway&#39;s words. |  -  |
+| **404** | A &#x60;hash&#x60; is not open in the worker (&#x60;unknown_document&#x60;) — send the bytes again. |  -  |
+| **413** | A document is over the 64 MB limit (&#x60;too_large&#x60;). |  -  |
+| **415** | No reader for these bytes (&#x60;unsupported&#x60;). |  -  |
 
 [[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
 

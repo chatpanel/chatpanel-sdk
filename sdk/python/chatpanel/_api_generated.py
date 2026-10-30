@@ -25,6 +25,7 @@ OPERATIONS: Dict[str, Operation] = {
     "history.stream": Operation(id="history.stream", method="GET", path="/v1/history/stream", auth="open", since="0.11.0", stream="sse", path_params=(), query_params=()),
     "events.since": Operation(id="events.since", method="GET", path="/v1/events", auth="token", since="0.24.0", stream=None, path_params=(), query_params=("cursor", "limit", "host",)),
     "events.push": Operation(id="events.push", method="POST", path="/v1/events", auth="token", since="0.24.0", stream=None, path_params=(), query_params=()),
+    "events.delete": Operation(id="events.delete", method="DELETE", path="/v1/events", auth="token", since="0.105.0", stream=None, path_params=(), query_params=("host", "all", "force",)),
     "events.cursor": Operation(id="events.cursor", method="GET", path="/v1/events/cursor", auth="token", since="0.24.0", stream=None, path_params=(), query_params=()),
     "events.stats": Operation(id="events.stats", method="GET", path="/v1/events/stats", auth="token", since="0.25.1", stream=None, path_params=(), query_params=()),
     "events.stream": Operation(id="events.stream", method="GET", path="/v1/events/stream", auth="token", since="0.24.0", stream="sse", path_params=(), query_params=("cursor",)),
@@ -262,6 +263,10 @@ class EventsApi:
     def push(self, body: "T.PushEventsRequest", query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.PushEventsResponse":
         """Push a batch of this client's durable log as CloudEvents; each event is appended once, each refusal is named. Idempotent on event id, so a retry is free. A `seq` that moves backwards for a host under a new id is a corrupt writer and is refused by itself; the rest of the batch lands. Push what lies above your entry in `cursor` (the gateway's highest `seq` per host) and stop re-sending what `rejected` names. At most 2000 events per batch. A gateway without SQLite answers 501. — Requires the gateway token. Gateway 0.24.0+."""
         return self._rt.request(OPERATIONS["events.push"], path={}, query=query, headers=headers, body=body, timeout=timeout)
+
+    def delete(self, query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.EventsDeleted":
+        """Delete one host's slice of the merged log, or the whole log — only with `force=1`. A client's "Clear activity" reaching the copy held here. Name exactly one of `host` or `all=1`. Without `force=1` nothing is deleted: the answer is 409 `confirm_required` with `wouldDelete`, so leaving the flag off (or sending `force=0`) is a dry run, never a delete. The host's cursor entry goes with its events, so its next push starts afresh. A tailing stream gets a `deleted` frame. Idempotent: a host with nothing left deletes 0. — Requires the gateway token. Gateway 0.105.0+."""
+        return self._rt.request(OPERATIONS["events.delete"], path={}, query=query, headers=headers, body=None, timeout=timeout)
 
     def cursor(self, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> "T.EventsCursor":
         """The gateway's highest `seq` per host — what a client asks for before it pushes. — Requires the gateway token. Gateway 0.24.0+."""

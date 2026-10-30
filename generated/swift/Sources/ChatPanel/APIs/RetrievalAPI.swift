@@ -50,6 +50,46 @@ open class RetrievalAPI {
     }
 
     /**
+     The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel's own clients do.
+     
+     - parameter extractContextRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: ExtractContextResponse
+     */
+    open class func retrievalExtractContext(extractContextRequest: ExtractContextRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> ExtractContextResponse {
+        return try await retrievalExtractContextWithRequestBuilder(extractContextRequest: extractContextRequest, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel's own clients do.
+     - POST /v1/extract/context
+     - The turn pipeline's document stage as an API. Every ChatPanel client reads a file the person attached BEFORE a small model answers: whole when it fits the window's share of characters, else the pages that carry the question's words, each page cited, as one `prefetch` block placed before the question (a small model reads context first). A harness built on this SDK gets the same block here: send the question and the documents (the bytes, base64, or the `hash` of one `/v1/extract` already opened), and put `attachment.text` in the user message ahead of the question. `window` (tokens) sizes the share — a 4k on-device model gets a few thousand characters, a large window far more — or `budgetChars` sets it outright. `how` says whether the whole document went or pages were picked; `read` lists each document's pages, `skipped` the ones that could not be opened. A document with no text layer is named as a scan inside the block rather than guessed from. Parsed in the same worker as `/v1/extract`, on this machine; nothing leaves it. 
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter extractContextRequest: (body)  
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<ExtractContextResponse> 
+     */
+    open class func retrievalExtractContextWithRequestBuilder(extractContextRequest: ExtractContextRequest, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<ExtractContextResponse> {
+        let localVariablePath = "/v1/extract/context"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: extractContextRequest, codableHelper: apiConfiguration.codableHelper)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            "Content-Type": "application/json",
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<ExtractContextResponse>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
      Read one public page as LLM-ready Markdown, cited where it landed, with its sections.
      
      - parameter readRequest: (body)  

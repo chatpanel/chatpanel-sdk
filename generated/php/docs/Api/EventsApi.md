@@ -7,6 +7,7 @@ All URIs are relative to http://127.0.0.1:4320, except if the operation defines 
 | Method | HTTP request | Description |
 | ------------- | ------------- | ------------- |
 | [**eventsCursor()**](EventsApi.md#eventsCursor) | **GET** /v1/events/cursor | The gateway&#39;s highest &#x60;seq&#x60; per host — what a client asks for before it pushes. |
+| [**eventsDelete()**](EventsApi.md#eventsDelete) | **DELETE** /v1/events | Delete one host&#39;s slice of the merged log, or the whole log — only with &#x60;force&#x3D;1&#x60;. |
 | [**eventsPush()**](EventsApi.md#eventsPush) | **POST** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named. |
 | [**eventsSince()**](EventsApi.md#eventsSince) | **GET** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged. |
 | [**eventsStats()**](EventsApi.md#eventsStats) | **GET** /v1/events/stats | What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap. |
@@ -59,6 +60,75 @@ This endpoint does not need any parameter.
 ### Return type
 
 [**\ChatPanelSdk\Model\EventsCursor**](../Model/EventsCursor.md)
+
+### Authorization
+
+[tokenHeader](../../README.md#tokenHeader), [gatewayToken](../../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+[[Back to top]](#) [[Back to API list]](../../README.md#endpoints)
+[[Back to Model list]](../../README.md#models)
+[[Back to README]](../../README.md)
+
+## `eventsDelete()`
+
+```php
+eventsDelete($host, $all, $force): \ChatPanelSdk\Model\EventsDeleted
+```
+
+Delete one host's slice of the merged log, or the whole log — only with `force=1`.
+
+A client's \"Clear activity\" reaching the copy held here. Name exactly one of `host` or `all=1`. Without `force=1` nothing is deleted: the answer is 409 `confirm_required` with `wouldDelete`, so leaving the flag off (or sending `force=0`) is a dry run, never a delete. The host's cursor entry goes with its events, so its next push starts afresh. A tailing stream gets a `deleted` frame. Idempotent: a host with nothing left deletes 0.
+
+### Example
+
+```php
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+
+// Configure API key authorization: tokenHeader
+$config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setApiKey('X-ChatPanel-Token', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// $config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-ChatPanel-Token', 'Bearer');
+
+// Configure Bearer authorization: gatewayToken
+$config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setAccessToken('YOUR_ACCESS_TOKEN');
+
+
+$apiInstance = new ChatPanelSdk\Api\EventsApi(
+    // If you want use custom http client, pass your client which implements `GuzzleHttp\ClientInterface`.
+    // This is optional, `GuzzleHttp\Client` will be used as default.
+    new GuzzleHttp\Client(),
+    $config
+);
+$host = 'host_example'; // string | The host whose events go (a client's own `host`).
+$all = 'all_example'; // string | Every host's events instead of one.
+$force = 'force_example'; // string | Required to delete; anything else is a dry run answered 409.
+
+try {
+    $result = $apiInstance->eventsDelete($host, $all, $force);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling EventsApi->eventsDelete: ', $e->getMessage(), PHP_EOL;
+}
+```
+
+### Parameters
+
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **host** | **string**| The host whose events go (a client&#39;s own &#x60;host&#x60;). | [optional] |
+| **all** | **string**| Every host&#39;s events instead of one. | [optional] |
+| **force** | **string**| Required to delete; anything else is a dry run answered 409. | [optional] |
+
+### Return type
+
+[**\ChatPanelSdk\Model\EventsDeleted**](../Model/EventsDeleted.md)
 
 ### Authorization
 

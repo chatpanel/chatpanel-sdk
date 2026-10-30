@@ -11,6 +11,8 @@ import 'package:dio/dio.dart';
 import 'package:chatpanel/src/api_util.dart';
 import 'package:chatpanel/src/model/error_response.dart';
 import 'package:chatpanel/src/model/events_cursor.dart';
+import 'package:chatpanel/src/model/events_delete_dry_run.dart';
+import 'package:chatpanel/src/model/events_deleted.dart';
 import 'package:chatpanel/src/model/events_page.dart';
 import 'package:chatpanel/src/model/events_stats.dart';
 import 'package:chatpanel/src/model/push_events_request.dart';
@@ -97,6 +99,103 @@ class EventsApi {
     }
 
     return Response<EventsCursor>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Delete one host&#39;s slice of the merged log, or the whole log — only with &#x60;force&#x3D;1&#x60;.
+  /// A client&#39;s \&quot;Clear activity\&quot; reaching the copy held here. Name exactly one of &#x60;host&#x60; or &#x60;all&#x3D;1&#x60;. Without &#x60;force&#x3D;1&#x60; nothing is deleted: the answer is 409 &#x60;confirm_required&#x60; with &#x60;wouldDelete&#x60;, so leaving the flag off (or sending &#x60;force&#x3D;0&#x60;) is a dry run, never a delete. The host&#39;s cursor entry goes with its events, so its next push starts afresh. A tailing stream gets a &#x60;deleted&#x60; frame. Idempotent: a host with nothing left deletes 0.
+  ///
+  /// Parameters:
+  /// * [host] - The host whose events go (a client's own `host`).
+  /// * [all] - Every host's events instead of one.
+  /// * [force] - Required to delete; anything else is a dry run answered 409.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [EventsDeleted] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<EventsDeleted>> eventsDelete({ 
+    String? host,
+    String? all,
+    String? force,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/v1/events';
+    final _options = Options(
+      method: r'DELETE',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'tokenHeader',
+            'keyName': 'X-ChatPanel-Token',
+            'where': 'header',
+          },{
+            'type': 'http',
+            'scheme': 'bearer',
+            'name': 'gatewayToken',
+          },
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (host != null) r'host': encodeQueryParameter(_serializers, host, const FullType(String)),
+      if (all != null) r'all': encodeQueryParameter(_serializers, all, const FullType(String)),
+      if (force != null) r'force': encodeQueryParameter(_serializers, force, const FullType(String)),
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    EventsDeleted? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(EventsDeleted),
+      ) as EventsDeleted;
+
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<EventsDeleted>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

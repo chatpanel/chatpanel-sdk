@@ -28,6 +28,8 @@ import io.kotlintest.specs.ShouldSpec
 
 import net.chatpanel.sdk.apis.RetrievalApi
 import net.chatpanel.sdk.models.ErrorResponse
+import net.chatpanel.sdk.models.ExtractContextRequest
+import net.chatpanel.sdk.models.ExtractContextResponse
 import net.chatpanel.sdk.models.ExtractRequest
 import net.chatpanel.sdk.models.ExtractResponse
 import net.chatpanel.sdk.models.ReadRequest
@@ -47,6 +49,14 @@ class RetrievalApiTest : ShouldSpec() {
             // uncomment below to test retrievalExtract
             //val extractRequest : ExtractRequest =  // ExtractRequest | 
             //val result : ExtractResponse = apiInstance.retrievalExtract(extractRequest)
+            //result shouldBe ("TODO")
+        }
+
+        // to test retrievalExtractContext
+        should("test retrievalExtractContext") {
+            // uncomment below to test retrievalExtractContext
+            //val extractContextRequest : ExtractContextRequest =  // ExtractContextRequest | 
+            //val result : ExtractContextResponse = apiInstance.retrievalExtractContext(extractContextRequest)
             //result shouldBe ("TODO")
         }
 

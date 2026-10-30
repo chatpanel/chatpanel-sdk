@@ -6,6 +6,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**CapabilitiesDecide**](CapabilitiesAPI.md#CapabilitiesDecide) | **Post** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
 [**CapabilitiesDetect**](CapabilitiesAPI.md#CapabilitiesDetect) | **Post** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores.
+[**CapabilitiesEmbed**](CapabilitiesAPI.md#CapabilitiesEmbed) | **Post** /v1/embeddings | One unit vector per input — OpenAI-shaped embeddings, in the gateway&#39;s own process by default.
 [**CapabilitiesList**](CapabilitiesAPI.md#CapabilitiesList) | **Get** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state.
 [**CapabilitiesRerank**](CapabilitiesAPI.md#CapabilitiesRerank) | **Post** /v1/rerank | Order documents by relevance to a query — a cross-encoder, no language model.
 
@@ -128,6 +129,72 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**DetectResponse**](DetectResponse.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
+
+
+## CapabilitiesEmbed
+
+> EmbedResponse CapabilitiesEmbed(ctx).EmbedRequest(embedRequest).Execute()
+
+One unit vector per input — OpenAI-shaped embeddings, in the gateway's own process by default.
+
+
+
+### Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	openapiclient "github.com/chatpanel/chatpanel-sdk"
+)
+
+func main() {
+	embedRequest := *openapiclient.NewEmbedRequest(openapiclient.EmbedRequest_input{ArrayOfString: new([]string)}) // EmbedRequest | 
+
+	configuration := openapiclient.NewConfiguration()
+	apiClient := openapiclient.NewAPIClient(configuration)
+	resp, r, err := apiClient.CapabilitiesAPI.CapabilitiesEmbed(context.Background()).EmbedRequest(embedRequest).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `CapabilitiesAPI.CapabilitiesEmbed``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `CapabilitiesEmbed`: EmbedResponse
+	fmt.Fprintf(os.Stdout, "Response from `CapabilitiesAPI.CapabilitiesEmbed`: %v\n", resp)
+}
+```
+
+### Path Parameters
+
+
+
+### Other Parameters
+
+Other parameters are passed through a pointer to a apiCapabilitiesEmbedRequest struct via the builder pattern
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **embedRequest** | [**EmbedRequest**](EmbedRequest.md) |  | 
+
+### Return type
+
+[**EmbedResponse**](EmbedResponse.md)
 
 ### Authorization
 

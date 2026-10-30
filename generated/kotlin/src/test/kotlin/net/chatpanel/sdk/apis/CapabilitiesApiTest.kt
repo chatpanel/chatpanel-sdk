@@ -32,6 +32,8 @@ import net.chatpanel.sdk.models.DecideRequest
 import net.chatpanel.sdk.models.DecideResponse
 import net.chatpanel.sdk.models.DetectRequest
 import net.chatpanel.sdk.models.DetectResponse
+import net.chatpanel.sdk.models.EmbedRequest
+import net.chatpanel.sdk.models.EmbedResponse
 import net.chatpanel.sdk.models.ErrorResponse
 import net.chatpanel.sdk.models.RerankRequest
 import net.chatpanel.sdk.models.RerankResponse
@@ -54,6 +56,14 @@ class CapabilitiesApiTest : ShouldSpec() {
             // uncomment below to test capabilitiesDetect
             //val detectRequest : DetectRequest =  // DetectRequest | 
             //val result : DetectResponse = apiInstance.capabilitiesDetect(detectRequest)
+            //result shouldBe ("TODO")
+        }
+
+        // to test capabilitiesEmbed
+        should("test capabilitiesEmbed") {
+            // uncomment below to test capabilitiesEmbed
+            //val embedRequest : EmbedRequest =  // EmbedRequest | 
+            //val result : EmbedResponse = apiInstance.capabilitiesEmbed(embedRequest)
             //result shouldBe ("TODO")
         }
 

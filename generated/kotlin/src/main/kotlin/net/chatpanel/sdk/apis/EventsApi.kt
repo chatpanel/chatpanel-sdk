@@ -29,6 +29,8 @@ import okhttp3.HttpUrl
 
 import net.chatpanel.sdk.models.ErrorResponse
 import net.chatpanel.sdk.models.EventsCursor
+import net.chatpanel.sdk.models.EventsDeleteDryRun
+import net.chatpanel.sdk.models.EventsDeleted
 import net.chatpanel.sdk.models.EventsPage
 import net.chatpanel.sdk.models.EventsStats
 import net.chatpanel.sdk.models.PushEventsRequest
@@ -121,6 +123,132 @@ open class EventsApi(basePath: kotlin.String = defaultBasePath, client: Call.Fac
         return RequestConfig(
             method = RequestMethod.GET,
             path = "/v1/events/cursor",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * enum for parameter all
+     */
+     enum class AllEventsDelete(val value: kotlin.String) {
+         @Json(name = "1") _1("1"),
+         @Json(name = "true") `true`("true"),
+         @Json(name = "yes") yes("yes");
+
+        /**
+         * Override [toString()] to avoid using the enum variable name as the value, and instead use
+         * the actual value defined in the API spec file.
+         *
+         * This solves a problem when the variable name and its value are different, and ensures that
+         * the client sends the correct enum values to the server always.
+         */
+        override fun toString(): kotlin.String = "$value"
+     }
+
+    /**
+     * enum for parameter force
+     */
+     enum class ForceEventsDelete(val value: kotlin.String) {
+         @Json(name = "1") _1("1"),
+         @Json(name = "true") `true`("true"),
+         @Json(name = "yes") yes("yes");
+
+        /**
+         * Override [toString()] to avoid using the enum variable name as the value, and instead use
+         * the actual value defined in the API spec file.
+         *
+         * This solves a problem when the variable name and its value are different, and ensures that
+         * the client sends the correct enum values to the server always.
+         */
+        override fun toString(): kotlin.String = "$value"
+     }
+
+    /**
+     * DELETE /v1/events
+     * Delete one host&#39;s slice of the merged log, or the whole log — only with &#x60;force&#x3D;1&#x60;.
+     * A client&#39;s \&quot;Clear activity\&quot; reaching the copy held here. Name exactly one of &#x60;host&#x60; or &#x60;all&#x3D;1&#x60;. Without &#x60;force&#x3D;1&#x60; nothing is deleted: the answer is 409 &#x60;confirm_required&#x60; with &#x60;wouldDelete&#x60;, so leaving the flag off (or sending &#x60;force&#x3D;0&#x60;) is a dry run, never a delete. The host&#39;s cursor entry goes with its events, so its next push starts afresh. A tailing stream gets a &#x60;deleted&#x60; frame. Idempotent: a host with nothing left deletes 0.
+     * @param host The host whose events go (a client&#39;s own &#x60;host&#x60;). (optional)
+     * @param all Every host&#39;s events instead of one. (optional)
+     * @param force Required to delete; anything else is a dry run answered 409. (optional)
+     * @return EventsDeleted
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun eventsDelete(host: kotlin.String? = null, all: AllEventsDelete? = null, force: ForceEventsDelete? = null) : EventsDeleted {
+        val localVarResponse = eventsDeleteWithHttpInfo(host = host, all = all, force = force)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as EventsDeleted
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * DELETE /v1/events
+     * Delete one host&#39;s slice of the merged log, or the whole log — only with &#x60;force&#x3D;1&#x60;.
+     * A client&#39;s \&quot;Clear activity\&quot; reaching the copy held here. Name exactly one of &#x60;host&#x60; or &#x60;all&#x3D;1&#x60;. Without &#x60;force&#x3D;1&#x60; nothing is deleted: the answer is 409 &#x60;confirm_required&#x60; with &#x60;wouldDelete&#x60;, so leaving the flag off (or sending &#x60;force&#x3D;0&#x60;) is a dry run, never a delete. The host&#39;s cursor entry goes with its events, so its next push starts afresh. A tailing stream gets a &#x60;deleted&#x60; frame. Idempotent: a host with nothing left deletes 0.
+     * @param host The host whose events go (a client&#39;s own &#x60;host&#x60;). (optional)
+     * @param all Every host&#39;s events instead of one. (optional)
+     * @param force Required to delete; anything else is a dry run answered 409. (optional)
+     * @return ApiResponse<EventsDeleted?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun eventsDeleteWithHttpInfo(host: kotlin.String?, all: AllEventsDelete?, force: ForceEventsDelete?) : ApiResponse<EventsDeleted?> {
+        val localVariableConfig = eventsDeleteRequestConfig(host = host, all = all, force = force)
+
+        return request<Unit, EventsDeleted>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation eventsDelete
+     *
+     * @param host The host whose events go (a client&#39;s own &#x60;host&#x60;). (optional)
+     * @param all Every host&#39;s events instead of one. (optional)
+     * @param force Required to delete; anything else is a dry run answered 409. (optional)
+     * @return RequestConfig
+     */
+    fun eventsDeleteRequestConfig(host: kotlin.String?, all: AllEventsDelete?, force: ForceEventsDelete?) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf<kotlin.String, kotlin.collections.List<kotlin.String>>()
+            .apply {
+                if (host != null) {
+                    put("host", listOf(host.toString()))
+                }
+                if (all != null) {
+                    put("all", listOf(all.value))
+                }
+                if (force != null) {
+                    put("force", listOf(force.value))
+                }
+            }
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.DELETE,
+            path = "/v1/events",
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,

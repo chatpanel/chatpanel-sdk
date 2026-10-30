@@ -118,6 +118,7 @@ Class | Method | HTTP request | Description
 *BrowserApi* | [**browserStream**](docs/Api/BrowserApi.md#browserstream) | **GET** /v1/browser/stream | The browser&#39;s end — &#x60;hello&#x60; with its session, then a &#x60;call&#x60; frame per action to run.
 *CapabilitiesApi* | [**capabilitiesDecide**](docs/Api/CapabilitiesApi.md#capabilitiesdecide) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
 *CapabilitiesApi* | [**capabilitiesDetect**](docs/Api/CapabilitiesApi.md#capabilitiesdetect) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores.
+*CapabilitiesApi* | [**capabilitiesEmbed**](docs/Api/CapabilitiesApi.md#capabilitiesembed) | **POST** /v1/embeddings | One unit vector per input — OpenAI-shaped embeddings, in the gateway&#39;s own process by default.
 *CapabilitiesApi* | [**capabilitiesList**](docs/Api/CapabilitiesApi.md#capabilitieslist) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state.
 *CapabilitiesApi* | [**capabilitiesRerank**](docs/Api/CapabilitiesApi.md#capabilitiesrerank) | **POST** /v1/rerank | Order documents by relevance to a query — a cross-encoder, no language model.
 *ChatApi* | [**chatCompletions**](docs/Api/ChatApi.md#chatcompletions) | **POST** /v1/chat/completions | One chat turn through the gateway (OpenAI-compatible).
@@ -125,6 +126,7 @@ Class | Method | HTTP request | Description
 *EnginesApi* | [**enginesCard**](docs/Api/EnginesApi.md#enginescard) | **GET** /v1/engines/{engineKey}/card | One engine&#39;s card, optionally with entries.
 *EnginesApi* | [**enginesList**](docs/Api/EnginesApi.md#engineslist) | **GET** /v1/engines | Every engine&#39;s card.
 *EventsApi* | [**eventsCursor**](docs/Api/EventsApi.md#eventscursor) | **GET** /v1/events/cursor | The gateway&#39;s highest &#x60;seq&#x60; per host — what a client asks for before it pushes.
+*EventsApi* | [**eventsDelete**](docs/Api/EventsApi.md#eventsdelete) | **DELETE** /v1/events | Delete one host&#39;s slice of the merged log, or the whole log — only with &#x60;force&#x3D;1&#x60;.
 *EventsApi* | [**eventsPush**](docs/Api/EventsApi.md#eventspush) | **POST** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named.
 *EventsApi* | [**eventsSince**](docs/Api/EventsApi.md#eventssince) | **GET** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged.
 *EventsApi* | [**eventsStats**](docs/Api/EventsApi.md#eventsstats) | **GET** /v1/events/stats | What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
@@ -146,6 +148,26 @@ Class | Method | HTTP request | Description
 *HistoryApi* | [**historySmartSearch**](docs/Api/HistoryApi.md#historysmartsearch) | **POST** /v1/history/smart-search | Several phrasings at once, rank-fused; briefs lead.
 *HistoryApi* | [**historyStatus**](docs/Api/HistoryApi.md#historystatus) | **GET** /v1/history/status | Size and freshness of the warm index (and the lossless tier from 0.10.0).
 *HistoryApi* | [**historyStream**](docs/Api/HistoryApi.md#historystream) | **GET** /v1/history/stream | Live record changes — &#x60;hello&#x60; once, then a &#x60;records&#x60; event per change.
+*KnowledgeApi* | [**knowledgeAccess**](docs/Api/KnowledgeApi.md#knowledgeaccess) | **GET** /v1/kb/{id}/access | Who may use a base — every agent, or the ones named.
+*KnowledgeApi* | [**knowledgeAdd**](docs/Api/KnowledgeApi.md#knowledgeadd) | **POST** /v1/kb/{id}/documents | Add a document — bytes, a path on this machine, a URL, or text — and index it.
+*KnowledgeApi* | [**knowledgeCreate**](docs/Api/KnowledgeApi.md#knowledgecreate) | **POST** /v1/kb | Create a knowledge base (or return the one with that id).
+*KnowledgeApi* | [**knowledgeDelete**](docs/Api/KnowledgeApi.md#knowledgedelete) | **DELETE** /v1/kb/{id} | Delete a base and its folder.
+*KnowledgeApi* | [**knowledgeDocuments**](docs/Api/KnowledgeApi.md#knowledgedocuments) | **GET** /v1/kb/{id}/documents | The documents in a base.
+*KnowledgeApi* | [**knowledgeEmbed**](docs/Api/KnowledgeApi.md#knowledgeembed) | **POST** /v1/kb/{id}/embed | Embed every passage that has no vector yet, and say where the embedder stands.
+*KnowledgeApi* | [**knowledgeGraph**](docs/Api/KnowledgeApi.md#knowledgegraph) | **POST** /v1/kb/{id}/graph | What connects to a node — its neighbours up to &#x60;hops&#x60; away — or the path between two.
+*KnowledgeApi* | [**knowledgeList**](docs/Api/KnowledgeApi.md#knowledgelist) | **GET** /v1/kb | The knowledge bases on this machine.
+*KnowledgeApi* | [**knowledgeNote**](docs/Api/KnowledgeApi.md#knowledgenote) | **POST** /v1/kb/{id}/notes | File a note — a fact, a summary, a correction — cited to passages; proposed until accepted.
+*KnowledgeApi* | [**knowledgeNoteStatus**](docs/Api/KnowledgeApi.md#knowledgenotestatus) | **POST** /v1/kb/{id}/notes/{note} | Accept a proposed note, withdraw it to proposed, or remove it.
+*KnowledgeApi* | [**knowledgeNotes**](docs/Api/KnowledgeApi.md#knowledgenotes) | **GET** /v1/kb/{id}/notes | The notes filed into a base.
+*KnowledgeApi* | [**knowledgeOutline**](docs/Api/KnowledgeApi.md#knowledgeoutline) | **GET** /v1/kb/{id}/outline | The table of contents a document&#39;s headings imply — every section once, with where it starts.
+*KnowledgeApi* | [**knowledgePage**](docs/Api/KnowledgeApi.md#knowledgepage) | **GET** /v1/kb/{id}/documents/{doc} | One page of a document, from the index.
+*KnowledgeApi* | [**knowledgePassage**](docs/Api/KnowledgeApi.md#knowledgepassage) | **GET** /v1/kb/{id}/passages/{passage} | One passage by id, with its citation.
+*KnowledgeApi* | [**knowledgeRemoveDocument**](docs/Api/KnowledgeApi.md#knowledgeremovedocument) | **DELETE** /v1/kb/{id}/documents/{doc} | Remove a document, its passages and vectors (notes keep their text and lose the cite).
+*KnowledgeApi* | [**knowledgeReport**](docs/Api/KnowledgeApi.md#knowledgereport) | **GET** /v1/kb/{id}/report | The base written down as Markdown — documents with outlines, the entities that bind them, the communities, the notes.
+*KnowledgeApi* | [**knowledgeResearch**](docs/Api/KnowledgeApi.md#knowledgeresearch) | **POST** /v1/kb/{id}/research | The bounded loop over a base — framed, searched, read, checked once, asked when ambiguous — as one cited block for a model.
+*KnowledgeApi* | [**knowledgeSearch**](docs/Api/KnowledgeApi.md#knowledgesearch) | **POST** /v1/kb/{id}/search | The passages that answer a question — words, meaning and graph fused, a reranker on top, each with its citation.
+*KnowledgeApi* | [**knowledgeSetAccess**](docs/Api/KnowledgeApi.md#knowledgesetaccess) | **POST** /v1/kb/{id}/access | Grant a base to every agent or to the ones named — the owner&#39;s act.
+*KnowledgeApi* | [**knowledgeStatus**](docs/Api/KnowledgeApi.md#knowledgestatus) | **GET** /v1/kb/{id} | What a base holds — its documents, passages, notes, vectors, entities and connections.
 *LinkApi* | [**linkAnswerApproval**](docs/Api/LinkApi.md#linkanswerapproval) | **POST** /v1/link/approvals/{approvalId} | The owner&#39;s answer — once, this action for the rest of the conversation, everything in it, or no.
 *LinkApi* | [**linkApprovals**](docs/Api/LinkApi.md#linkapprovals) | **GET** /v1/link/approvals | What partners&#39; agents are waiting on the owner for — each request a partner&#39;s coding agent made that the owner&#39;s settings do not already allow.
 *LinkApi* | [**linkApprovalsStream**](docs/Api/LinkApi.md#linkapprovalsstream) | **GET** /v1/link/approvals/stream | The waiting requests as they change — one &#x60;approvals&#x60; event with the whole list on each change, and at connect.
@@ -180,6 +202,7 @@ Class | Method | HTTP request | Description
 *ProjectsApi* | [**projectsRecruit**](docs/Api/ProjectsApi.md#projectsrecruit) | **POST** /v1/projects/{projectId}/jobs/{jobId}/recruit | One pass — fit recomputed, the evaluation read through the schema, the pick landed as events.
 *RedactionApi* | [**redactionPreview**](docs/Api/RedactionApi.md#redactionpreview) | **POST** /redact | What the model would receive if this text were sent now.
 *RetrievalApi* | [**retrievalExtract**](docs/Api/RetrievalApi.md#retrievalextract) | **POST** /v1/extract | A document&#39;s pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash.
+*RetrievalApi* | [**retrievalExtractContext**](docs/Api/RetrievalApi.md#retrievalextractcontext) | **POST** /v1/extract/context | The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do.
 *RetrievalApi* | [**retrievalRead**](docs/Api/RetrievalApi.md#retrievalread) | **POST** /v1/read | Read one public page as LLM-ready Markdown, cited where it landed, with its sections.
 *RetrievalApi* | [**retrievalReadAlias**](docs/Api/RetrievalApi.md#retrievalreadalias) | **GET** /v1/read/{url} | The r.jina.ai-shaped alias — &#x60;GET /v1/read/https://…&#x60; — for clients that already speak it.
 *RetrievalApi* | [**retrievalSearch**](docs/Api/RetrievalApi.md#retrievalsearch) | **POST** /v1/search | Search the web through the provider this gateway is configured with; optionally read the top results in the same request.
@@ -267,15 +290,31 @@ Class | Method | HTTP request | Description
 - [DetectRequest](docs/Model/DetectRequest.md)
 - [DetectResponse](docs/Model/DetectResponse.md)
 - [DetectedEntity](docs/Model/DetectedEntity.md)
+- [EmbedRequest](docs/Model/EmbedRequest.md)
+- [EmbedRequestInput](docs/Model/EmbedRequestInput.md)
+- [EmbedResponse](docs/Model/EmbedResponse.md)
+- [EmbedResponseDataInner](docs/Model/EmbedResponseDataInner.md)
+- [EmbedResponseUsage](docs/Model/EmbedResponseUsage.md)
 - [EnginesList200Response](docs/Model/EnginesList200Response.md)
 - [ErrorResponse](docs/Model/ErrorResponse.md)
 - [ErrorResponseError](docs/Model/ErrorResponseError.md)
 - [ErrorResponseErrorOneOf](docs/Model/ErrorResponseErrorOneOf.md)
 - [EventsCursor](docs/Model/EventsCursor.md)
+- [EventsDeleteDryRun](docs/Model/EventsDeleteDryRun.md)
+- [EventsDeleteDryRunError](docs/Model/EventsDeleteDryRunError.md)
+- [EventsDeleted](docs/Model/EventsDeleted.md)
 - [EventsPage](docs/Model/EventsPage.md)
 - [EventsStats](docs/Model/EventsStats.md)
 - [EventsStatsStats](docs/Model/EventsStatsStats.md)
 - [EventsStreamEvent](docs/Model/EventsStreamEvent.md)
+- [ExtractContextRequest](docs/Model/ExtractContextRequest.md)
+- [ExtractContextRequestDocumentsInner](docs/Model/ExtractContextRequestDocumentsInner.md)
+- [ExtractContextResponse](docs/Model/ExtractContextResponse.md)
+- [ExtractContextResponseAttachment](docs/Model/ExtractContextResponseAttachment.md)
+- [ExtractContextResponseAttachmentCitesInner](docs/Model/ExtractContextResponseAttachmentCitesInner.md)
+- [ExtractContextResponseAttachmentDocsInner](docs/Model/ExtractContextResponseAttachmentDocsInner.md)
+- [ExtractContextResponseReadInner](docs/Model/ExtractContextResponseReadInner.md)
+- [ExtractContextResponseSkippedInner](docs/Model/ExtractContextResponseSkippedInner.md)
 - [ExtractRequest](docs/Model/ExtractRequest.md)
 - [ExtractResponse](docs/Model/ExtractResponse.md)
 - [FusionList](docs/Model/FusionList.md)
@@ -298,6 +337,48 @@ Class | Method | HTTP request | Description
 - [IngestRequestUpsertsInner](docs/Model/IngestRequestUpsertsInner.md)
 - [InlineObject](docs/Model/InlineObject.md)
 - [InlineObject1](docs/Model/InlineObject1.md)
+- [KbAccess](docs/Model/KbAccess.md)
+- [KbAccessAgents](docs/Model/KbAccessAgents.md)
+- [KbAccessRequest](docs/Model/KbAccessRequest.md)
+- [KbAccessRequestAgents](docs/Model/KbAccessRequestAgents.md)
+- [KbAccessResponse](docs/Model/KbAccessResponse.md)
+- [KbAddRequest](docs/Model/KbAddRequest.md)
+- [KbAddResponse](docs/Model/KbAddResponse.md)
+- [KbAddResponseAddedInner](docs/Model/KbAddResponseAddedInner.md)
+- [KbAddResponseSkippedInner](docs/Model/KbAddResponseSkippedInner.md)
+- [KbCreateRequest](docs/Model/KbCreateRequest.md)
+- [KbDocument](docs/Model/KbDocument.md)
+- [KbDocumentSource](docs/Model/KbDocumentSource.md)
+- [KbDocuments](docs/Model/KbDocuments.md)
+- [KbEmbedResponse](docs/Model/KbEmbedResponse.md)
+- [KbGraphRequest](docs/Model/KbGraphRequest.md)
+- [KbGraphResponse](docs/Model/KbGraphResponse.md)
+- [KbGraphResponseNeighboursInner](docs/Model/KbGraphResponseNeighboursInner.md)
+- [KbGraphResponseNode](docs/Model/KbGraphResponseNode.md)
+- [KbGraphResponsePathInner](docs/Model/KbGraphResponsePathInner.md)
+- [KbList](docs/Model/KbList.md)
+- [KbListKbsInner](docs/Model/KbListKbsInner.md)
+- [KbNote](docs/Model/KbNote.md)
+- [KbNoteRequest](docs/Model/KbNoteRequest.md)
+- [KbNoteResponse](docs/Model/KbNoteResponse.md)
+- [KbNoteStatusRequest](docs/Model/KbNoteStatusRequest.md)
+- [KbNotes](docs/Model/KbNotes.md)
+- [KbOkResponse](docs/Model/KbOkResponse.md)
+- [KbOutline](docs/Model/KbOutline.md)
+- [KbOutlineOutlineInner](docs/Model/KbOutlineOutlineInner.md)
+- [KbPage](docs/Model/KbPage.md)
+- [KbPassage](docs/Model/KbPassage.md)
+- [KbResearchRequest](docs/Model/KbResearchRequest.md)
+- [KbResearchResponse](docs/Model/KbResearchResponse.md)
+- [KbResearchResponseAsk](docs/Model/KbResearchResponseAsk.md)
+- [KbResearchResponseAttachment](docs/Model/KbResearchResponseAttachment.md)
+- [KbResearchResponseFrame](docs/Model/KbResearchResponseFrame.md)
+- [KbResearchResponseHitsInner](docs/Model/KbResearchResponseHitsInner.md)
+- [KbSearchRequest](docs/Model/KbSearchRequest.md)
+- [KbSearchResponse](docs/Model/KbSearchResponse.md)
+- [KbSearchResponseLanes](docs/Model/KbSearchResponseLanes.md)
+- [KbStatus](docs/Model/KbStatus.md)
+- [KbStatusResponse](docs/Model/KbStatusResponse.md)
 - [LinkAnswerApprovalRequest](docs/Model/LinkAnswerApprovalRequest.md)
 - [LinkApproval](docs/Model/LinkApproval.md)
 - [LinkApprovals200Response](docs/Model/LinkApprovals200Response.md)
@@ -443,6 +524,6 @@ vendor/bin/phpunit
 
 This PHP package is automatically generated by the [OpenAPI Generator](https://openapi-generator.tech) project:
 
-- API version: `0.43.0`
+- API version: `0.46.0`
     - Generator version: `7.25.0`
 - Build package: `org.openapitools.codegen.languages.PhpClientCodegen`

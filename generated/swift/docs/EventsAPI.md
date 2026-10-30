@@ -5,6 +5,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**eventsCursor**](EventsAPI.md#eventscursor) | **GET** /v1/events/cursor | The gateway&#39;s highest &#x60;seq&#x60; per host — what a client asks for before it pushes.
+[**eventsDelete**](EventsAPI.md#eventsdelete) | **DELETE** /v1/events | Delete one host&#39;s slice of the merged log, or the whole log — only with &#x60;force&#x3D;1&#x60;.
 [**eventsPush**](EventsAPI.md#eventspush) | **POST** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named.
 [**eventsSince**](EventsAPI.md#eventssince) | **GET** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged.
 [**eventsStats**](EventsAPI.md#eventsstats) | **GET** /v1/events/stats | What the merged log measures — bytes and events per turn, per surface, per host and per day; the dedup hit-rate; tool calls; a year projected against the cap.
@@ -43,6 +44,60 @@ This endpoint does not need any parameter.
 ### Return type
 
 [**EventsCursor**](EventsCursor.md)
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **eventsDelete**
+```swift
+    open class func eventsDelete(host: String? = nil, all: All_eventsDelete? = nil, force: Force_eventsDelete? = nil, completion: @escaping (_ data: EventsDeleted?, _ error: Error?) -> Void)
+```
+
+Delete one host's slice of the merged log, or the whole log — only with `force=1`.
+
+A client's \"Clear activity\" reaching the copy held here. Name exactly one of `host` or `all=1`. Without `force=1` nothing is deleted: the answer is 409 `confirm_required` with `wouldDelete`, so leaving the flag off (or sending `force=0`) is a dry run, never a delete. The host's cursor entry goes with its events, so its next push starts afresh. A tailing stream gets a `deleted` frame. Idempotent: a host with nothing left deletes 0.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import ChatPanel
+
+let host = "host_example" // String | The host whose events go (a client's own `host`). (optional)
+let all = "all_example" // String | Every host's events instead of one. (optional)
+let force = "force_example" // String | Required to delete; anything else is a dry run answered 409. (optional)
+
+// Delete one host's slice of the merged log, or the whole log — only with `force=1`.
+EventsAPI.eventsDelete(host: host, all: all, force: force) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **host** | **String** | The host whose events go (a client&#39;s own &#x60;host&#x60;). | [optional] 
+ **all** | **String** | Every host&#39;s events instead of one. | [optional] 
+ **force** | **String** | Required to delete; anything else is a dry run answered 409. | [optional] 
+
+### Return type
+
+[**EventsDeleted**](EventsDeleted.md)
 
 ### Authorization
 

@@ -2,7 +2,7 @@
 
 ChatPanel Gateway API
 
-- API version: 0.43.0
+- API version: 0.46.0
 
 - Generator version: 7.25.0
 
@@ -60,7 +60,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>net.chatpanel</groupId>
   <artifactId>chatpanel-sdk</artifactId>
-  <version>0.43.0</version>
+  <version>0.46.0</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -70,7 +70,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "net.chatpanel:chatpanel-sdk:0.43.0"
+compile "net.chatpanel:chatpanel-sdk:0.46.0"
 ```
 
 ### Others
@@ -83,7 +83,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/chatpanel-sdk-0.43.0.jar`
+- `target/chatpanel-sdk-0.46.0.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -166,6 +166,8 @@ Class | Method | HTTP request | Description
 *CapabilitiesApi* | [**capabilitiesDecideWithHttpInfo**](docs/CapabilitiesApi.md#capabilitiesDecideWithHttpInfo) | **POST** /v1/decide | Typed decisions over a text — a choice, a score or a yes/no, each with a probability.
 *CapabilitiesApi* | [**capabilitiesDetect**](docs/CapabilitiesApi.md#capabilitiesDetect) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores.
 *CapabilitiesApi* | [**capabilitiesDetectWithHttpInfo**](docs/CapabilitiesApi.md#capabilitiesDetectWithHttpInfo) | **POST** /v1/detect | Find entities in text — the model&#39;s own labels, with offsets and scores.
+*CapabilitiesApi* | [**capabilitiesEmbed**](docs/CapabilitiesApi.md#capabilitiesEmbed) | **POST** /v1/embeddings | One unit vector per input — OpenAI-shaped embeddings, in the gateway&#39;s own process by default.
+*CapabilitiesApi* | [**capabilitiesEmbedWithHttpInfo**](docs/CapabilitiesApi.md#capabilitiesEmbedWithHttpInfo) | **POST** /v1/embeddings | One unit vector per input — OpenAI-shaped embeddings, in the gateway&#39;s own process by default.
 *CapabilitiesApi* | [**capabilitiesList**](docs/CapabilitiesApi.md#capabilitiesList) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state.
 *CapabilitiesApi* | [**capabilitiesListWithHttpInfo**](docs/CapabilitiesApi.md#capabilitiesListWithHttpInfo) | **GET** /v1/capabilities | What this provider can do — which capabilities, models, measured cost and runtime state.
 *CapabilitiesApi* | [**capabilitiesRerank**](docs/CapabilitiesApi.md#capabilitiesRerank) | **POST** /v1/rerank | Order documents by relevance to a query — a cross-encoder, no language model.
@@ -180,6 +182,8 @@ Class | Method | HTTP request | Description
 *EnginesApi* | [**enginesListWithHttpInfo**](docs/EnginesApi.md#enginesListWithHttpInfo) | **GET** /v1/engines | Every engine&#39;s card.
 *EventsApi* | [**eventsCursor**](docs/EventsApi.md#eventsCursor) | **GET** /v1/events/cursor | The gateway&#39;s highest &#x60;seq&#x60; per host — what a client asks for before it pushes.
 *EventsApi* | [**eventsCursorWithHttpInfo**](docs/EventsApi.md#eventsCursorWithHttpInfo) | **GET** /v1/events/cursor | The gateway&#39;s highest &#x60;seq&#x60; per host — what a client asks for before it pushes.
+*EventsApi* | [**eventsDelete**](docs/EventsApi.md#eventsDelete) | **DELETE** /v1/events | Delete one host&#39;s slice of the merged log, or the whole log — only with &#x60;force&#x3D;1&#x60;.
+*EventsApi* | [**eventsDeleteWithHttpInfo**](docs/EventsApi.md#eventsDeleteWithHttpInfo) | **DELETE** /v1/events | Delete one host&#39;s slice of the merged log, or the whole log — only with &#x60;force&#x3D;1&#x60;.
 *EventsApi* | [**eventsPush**](docs/EventsApi.md#eventsPush) | **POST** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named.
 *EventsApi* | [**eventsPushWithHttpInfo**](docs/EventsApi.md#eventsPushWithHttpInfo) | **POST** /v1/events | Push a batch of this client&#39;s durable log as CloudEvents; each event is appended once, each refusal is named.
 *EventsApi* | [**eventsSince**](docs/EventsApi.md#eventsSince) | **GET** /v1/events | The merged log above a cursor — host by host in &#x60;seq&#x60; order, as CloudEvents, paged.
@@ -222,6 +226,46 @@ Class | Method | HTTP request | Description
 *HistoryApi* | [**historyStatusWithHttpInfo**](docs/HistoryApi.md#historyStatusWithHttpInfo) | **GET** /v1/history/status | Size and freshness of the warm index (and the lossless tier from 0.10.0).
 *HistoryApi* | [**historyStream**](docs/HistoryApi.md#historyStream) | **GET** /v1/history/stream | Live record changes — &#x60;hello&#x60; once, then a &#x60;records&#x60; event per change.
 *HistoryApi* | [**historyStreamWithHttpInfo**](docs/HistoryApi.md#historyStreamWithHttpInfo) | **GET** /v1/history/stream | Live record changes — &#x60;hello&#x60; once, then a &#x60;records&#x60; event per change.
+*KnowledgeApi* | [**knowledgeAccess**](docs/KnowledgeApi.md#knowledgeAccess) | **GET** /v1/kb/{id}/access | Who may use a base — every agent, or the ones named.
+*KnowledgeApi* | [**knowledgeAccessWithHttpInfo**](docs/KnowledgeApi.md#knowledgeAccessWithHttpInfo) | **GET** /v1/kb/{id}/access | Who may use a base — every agent, or the ones named.
+*KnowledgeApi* | [**knowledgeAdd**](docs/KnowledgeApi.md#knowledgeAdd) | **POST** /v1/kb/{id}/documents | Add a document — bytes, a path on this machine, a URL, or text — and index it.
+*KnowledgeApi* | [**knowledgeAddWithHttpInfo**](docs/KnowledgeApi.md#knowledgeAddWithHttpInfo) | **POST** /v1/kb/{id}/documents | Add a document — bytes, a path on this machine, a URL, or text — and index it.
+*KnowledgeApi* | [**knowledgeCreate**](docs/KnowledgeApi.md#knowledgeCreate) | **POST** /v1/kb | Create a knowledge base (or return the one with that id).
+*KnowledgeApi* | [**knowledgeCreateWithHttpInfo**](docs/KnowledgeApi.md#knowledgeCreateWithHttpInfo) | **POST** /v1/kb | Create a knowledge base (or return the one with that id).
+*KnowledgeApi* | [**knowledgeDelete**](docs/KnowledgeApi.md#knowledgeDelete) | **DELETE** /v1/kb/{id} | Delete a base and its folder.
+*KnowledgeApi* | [**knowledgeDeleteWithHttpInfo**](docs/KnowledgeApi.md#knowledgeDeleteWithHttpInfo) | **DELETE** /v1/kb/{id} | Delete a base and its folder.
+*KnowledgeApi* | [**knowledgeDocuments**](docs/KnowledgeApi.md#knowledgeDocuments) | **GET** /v1/kb/{id}/documents | The documents in a base.
+*KnowledgeApi* | [**knowledgeDocumentsWithHttpInfo**](docs/KnowledgeApi.md#knowledgeDocumentsWithHttpInfo) | **GET** /v1/kb/{id}/documents | The documents in a base.
+*KnowledgeApi* | [**knowledgeEmbed**](docs/KnowledgeApi.md#knowledgeEmbed) | **POST** /v1/kb/{id}/embed | Embed every passage that has no vector yet, and say where the embedder stands.
+*KnowledgeApi* | [**knowledgeEmbedWithHttpInfo**](docs/KnowledgeApi.md#knowledgeEmbedWithHttpInfo) | **POST** /v1/kb/{id}/embed | Embed every passage that has no vector yet, and say where the embedder stands.
+*KnowledgeApi* | [**knowledgeGraph**](docs/KnowledgeApi.md#knowledgeGraph) | **POST** /v1/kb/{id}/graph | What connects to a node — its neighbours up to &#x60;hops&#x60; away — or the path between two.
+*KnowledgeApi* | [**knowledgeGraphWithHttpInfo**](docs/KnowledgeApi.md#knowledgeGraphWithHttpInfo) | **POST** /v1/kb/{id}/graph | What connects to a node — its neighbours up to &#x60;hops&#x60; away — or the path between two.
+*KnowledgeApi* | [**knowledgeList**](docs/KnowledgeApi.md#knowledgeList) | **GET** /v1/kb | The knowledge bases on this machine.
+*KnowledgeApi* | [**knowledgeListWithHttpInfo**](docs/KnowledgeApi.md#knowledgeListWithHttpInfo) | **GET** /v1/kb | The knowledge bases on this machine.
+*KnowledgeApi* | [**knowledgeNote**](docs/KnowledgeApi.md#knowledgeNote) | **POST** /v1/kb/{id}/notes | File a note — a fact, a summary, a correction — cited to passages; proposed until accepted.
+*KnowledgeApi* | [**knowledgeNoteWithHttpInfo**](docs/KnowledgeApi.md#knowledgeNoteWithHttpInfo) | **POST** /v1/kb/{id}/notes | File a note — a fact, a summary, a correction — cited to passages; proposed until accepted.
+*KnowledgeApi* | [**knowledgeNoteStatus**](docs/KnowledgeApi.md#knowledgeNoteStatus) | **POST** /v1/kb/{id}/notes/{note} | Accept a proposed note, withdraw it to proposed, or remove it.
+*KnowledgeApi* | [**knowledgeNoteStatusWithHttpInfo**](docs/KnowledgeApi.md#knowledgeNoteStatusWithHttpInfo) | **POST** /v1/kb/{id}/notes/{note} | Accept a proposed note, withdraw it to proposed, or remove it.
+*KnowledgeApi* | [**knowledgeNotes**](docs/KnowledgeApi.md#knowledgeNotes) | **GET** /v1/kb/{id}/notes | The notes filed into a base.
+*KnowledgeApi* | [**knowledgeNotesWithHttpInfo**](docs/KnowledgeApi.md#knowledgeNotesWithHttpInfo) | **GET** /v1/kb/{id}/notes | The notes filed into a base.
+*KnowledgeApi* | [**knowledgeOutline**](docs/KnowledgeApi.md#knowledgeOutline) | **GET** /v1/kb/{id}/outline | The table of contents a document&#39;s headings imply — every section once, with where it starts.
+*KnowledgeApi* | [**knowledgeOutlineWithHttpInfo**](docs/KnowledgeApi.md#knowledgeOutlineWithHttpInfo) | **GET** /v1/kb/{id}/outline | The table of contents a document&#39;s headings imply — every section once, with where it starts.
+*KnowledgeApi* | [**knowledgePage**](docs/KnowledgeApi.md#knowledgePage) | **GET** /v1/kb/{id}/documents/{doc} | One page of a document, from the index.
+*KnowledgeApi* | [**knowledgePageWithHttpInfo**](docs/KnowledgeApi.md#knowledgePageWithHttpInfo) | **GET** /v1/kb/{id}/documents/{doc} | One page of a document, from the index.
+*KnowledgeApi* | [**knowledgePassage**](docs/KnowledgeApi.md#knowledgePassage) | **GET** /v1/kb/{id}/passages/{passage} | One passage by id, with its citation.
+*KnowledgeApi* | [**knowledgePassageWithHttpInfo**](docs/KnowledgeApi.md#knowledgePassageWithHttpInfo) | **GET** /v1/kb/{id}/passages/{passage} | One passage by id, with its citation.
+*KnowledgeApi* | [**knowledgeRemoveDocument**](docs/KnowledgeApi.md#knowledgeRemoveDocument) | **DELETE** /v1/kb/{id}/documents/{doc} | Remove a document, its passages and vectors (notes keep their text and lose the cite).
+*KnowledgeApi* | [**knowledgeRemoveDocumentWithHttpInfo**](docs/KnowledgeApi.md#knowledgeRemoveDocumentWithHttpInfo) | **DELETE** /v1/kb/{id}/documents/{doc} | Remove a document, its passages and vectors (notes keep their text and lose the cite).
+*KnowledgeApi* | [**knowledgeReport**](docs/KnowledgeApi.md#knowledgeReport) | **GET** /v1/kb/{id}/report | The base written down as Markdown — documents with outlines, the entities that bind them, the communities, the notes.
+*KnowledgeApi* | [**knowledgeReportWithHttpInfo**](docs/KnowledgeApi.md#knowledgeReportWithHttpInfo) | **GET** /v1/kb/{id}/report | The base written down as Markdown — documents with outlines, the entities that bind them, the communities, the notes.
+*KnowledgeApi* | [**knowledgeResearch**](docs/KnowledgeApi.md#knowledgeResearch) | **POST** /v1/kb/{id}/research | The bounded loop over a base — framed, searched, read, checked once, asked when ambiguous — as one cited block for a model.
+*KnowledgeApi* | [**knowledgeResearchWithHttpInfo**](docs/KnowledgeApi.md#knowledgeResearchWithHttpInfo) | **POST** /v1/kb/{id}/research | The bounded loop over a base — framed, searched, read, checked once, asked when ambiguous — as one cited block for a model.
+*KnowledgeApi* | [**knowledgeSearch**](docs/KnowledgeApi.md#knowledgeSearch) | **POST** /v1/kb/{id}/search | The passages that answer a question — words, meaning and graph fused, a reranker on top, each with its citation.
+*KnowledgeApi* | [**knowledgeSearchWithHttpInfo**](docs/KnowledgeApi.md#knowledgeSearchWithHttpInfo) | **POST** /v1/kb/{id}/search | The passages that answer a question — words, meaning and graph fused, a reranker on top, each with its citation.
+*KnowledgeApi* | [**knowledgeSetAccess**](docs/KnowledgeApi.md#knowledgeSetAccess) | **POST** /v1/kb/{id}/access | Grant a base to every agent or to the ones named — the owner&#39;s act.
+*KnowledgeApi* | [**knowledgeSetAccessWithHttpInfo**](docs/KnowledgeApi.md#knowledgeSetAccessWithHttpInfo) | **POST** /v1/kb/{id}/access | Grant a base to every agent or to the ones named — the owner&#39;s act.
+*KnowledgeApi* | [**knowledgeStatus**](docs/KnowledgeApi.md#knowledgeStatus) | **GET** /v1/kb/{id} | What a base holds — its documents, passages, notes, vectors, entities and connections.
+*KnowledgeApi* | [**knowledgeStatusWithHttpInfo**](docs/KnowledgeApi.md#knowledgeStatusWithHttpInfo) | **GET** /v1/kb/{id} | What a base holds — its documents, passages, notes, vectors, entities and connections.
 *LinkApi* | [**linkAnswerApproval**](docs/LinkApi.md#linkAnswerApproval) | **POST** /v1/link/approvals/{approvalId} | The owner&#39;s answer — once, this action for the rest of the conversation, everything in it, or no.
 *LinkApi* | [**linkAnswerApprovalWithHttpInfo**](docs/LinkApi.md#linkAnswerApprovalWithHttpInfo) | **POST** /v1/link/approvals/{approvalId} | The owner&#39;s answer — once, this action for the rest of the conversation, everything in it, or no.
 *LinkApi* | [**linkApprovals**](docs/LinkApi.md#linkApprovals) | **GET** /v1/link/approvals | What partners&#39; agents are waiting on the owner for — each request a partner&#39;s coding agent made that the owner&#39;s settings do not already allow.
@@ -290,6 +334,8 @@ Class | Method | HTTP request | Description
 *RedactionApi* | [**redactionPreviewWithHttpInfo**](docs/RedactionApi.md#redactionPreviewWithHttpInfo) | **POST** /redact | What the model would receive if this text were sent now.
 *RetrievalApi* | [**retrievalExtract**](docs/RetrievalApi.md#retrievalExtract) | **POST** /v1/extract | A document&#39;s pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash.
 *RetrievalApi* | [**retrievalExtractWithHttpInfo**](docs/RetrievalApi.md#retrievalExtractWithHttpInfo) | **POST** /v1/extract | A document&#39;s pages from its bytes — a PDF, a Word file, a sheet, a deck — parsed once, paged by hash.
+*RetrievalApi* | [**retrievalExtractContext**](docs/RetrievalApi.md#retrievalExtractContext) | **POST** /v1/extract/context | The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do.
+*RetrievalApi* | [**retrievalExtractContextWithHttpInfo**](docs/RetrievalApi.md#retrievalExtractContextWithHttpInfo) | **POST** /v1/extract/context | The attached document(s) read FOR a question — one cited block to put before the question, as ChatPanel&#39;s own clients do.
 *RetrievalApi* | [**retrievalRead**](docs/RetrievalApi.md#retrievalRead) | **POST** /v1/read | Read one public page as LLM-ready Markdown, cited where it landed, with its sections.
 *RetrievalApi* | [**retrievalReadWithHttpInfo**](docs/RetrievalApi.md#retrievalReadWithHttpInfo) | **POST** /v1/read | Read one public page as LLM-ready Markdown, cited where it landed, with its sections.
 *RetrievalApi* | [**retrievalReadAlias**](docs/RetrievalApi.md#retrievalReadAlias) | **GET** /v1/read/{url} | The r.jina.ai-shaped alias — &#x60;GET /v1/read/https://…&#x60; — for clients that already speak it.
@@ -405,15 +451,31 @@ Class | Method | HTTP request | Description
  - [DetectRequest](docs/DetectRequest.md)
  - [DetectResponse](docs/DetectResponse.md)
  - [DetectedEntity](docs/DetectedEntity.md)
+ - [EmbedRequest](docs/EmbedRequest.md)
+ - [EmbedRequestInput](docs/EmbedRequestInput.md)
+ - [EmbedResponse](docs/EmbedResponse.md)
+ - [EmbedResponseDataInner](docs/EmbedResponseDataInner.md)
+ - [EmbedResponseUsage](docs/EmbedResponseUsage.md)
  - [EnginesList200Response](docs/EnginesList200Response.md)
  - [ErrorResponse](docs/ErrorResponse.md)
  - [ErrorResponseError](docs/ErrorResponseError.md)
  - [ErrorResponseErrorOneOf](docs/ErrorResponseErrorOneOf.md)
  - [EventsCursor](docs/EventsCursor.md)
+ - [EventsDeleteDryRun](docs/EventsDeleteDryRun.md)
+ - [EventsDeleteDryRunError](docs/EventsDeleteDryRunError.md)
+ - [EventsDeleted](docs/EventsDeleted.md)
  - [EventsPage](docs/EventsPage.md)
  - [EventsStats](docs/EventsStats.md)
  - [EventsStatsStats](docs/EventsStatsStats.md)
  - [EventsStreamEvent](docs/EventsStreamEvent.md)
+ - [ExtractContextRequest](docs/ExtractContextRequest.md)
+ - [ExtractContextRequestDocumentsInner](docs/ExtractContextRequestDocumentsInner.md)
+ - [ExtractContextResponse](docs/ExtractContextResponse.md)
+ - [ExtractContextResponseAttachment](docs/ExtractContextResponseAttachment.md)
+ - [ExtractContextResponseAttachmentCitesInner](docs/ExtractContextResponseAttachmentCitesInner.md)
+ - [ExtractContextResponseAttachmentDocsInner](docs/ExtractContextResponseAttachmentDocsInner.md)
+ - [ExtractContextResponseReadInner](docs/ExtractContextResponseReadInner.md)
+ - [ExtractContextResponseSkippedInner](docs/ExtractContextResponseSkippedInner.md)
  - [ExtractRequest](docs/ExtractRequest.md)
  - [ExtractResponse](docs/ExtractResponse.md)
  - [FusionList](docs/FusionList.md)
@@ -436,6 +498,48 @@ Class | Method | HTTP request | Description
  - [IngestRequestUpsertsInner](docs/IngestRequestUpsertsInner.md)
  - [InlineObject](docs/InlineObject.md)
  - [InlineObject1](docs/InlineObject1.md)
+ - [KbAccess](docs/KbAccess.md)
+ - [KbAccessAgents](docs/KbAccessAgents.md)
+ - [KbAccessRequest](docs/KbAccessRequest.md)
+ - [KbAccessRequestAgents](docs/KbAccessRequestAgents.md)
+ - [KbAccessResponse](docs/KbAccessResponse.md)
+ - [KbAddRequest](docs/KbAddRequest.md)
+ - [KbAddResponse](docs/KbAddResponse.md)
+ - [KbAddResponseAddedInner](docs/KbAddResponseAddedInner.md)
+ - [KbAddResponseSkippedInner](docs/KbAddResponseSkippedInner.md)
+ - [KbCreateRequest](docs/KbCreateRequest.md)
+ - [KbDocument](docs/KbDocument.md)
+ - [KbDocumentSource](docs/KbDocumentSource.md)
+ - [KbDocuments](docs/KbDocuments.md)
+ - [KbEmbedResponse](docs/KbEmbedResponse.md)
+ - [KbGraphRequest](docs/KbGraphRequest.md)
+ - [KbGraphResponse](docs/KbGraphResponse.md)
+ - [KbGraphResponseNeighboursInner](docs/KbGraphResponseNeighboursInner.md)
+ - [KbGraphResponseNode](docs/KbGraphResponseNode.md)
+ - [KbGraphResponsePathInner](docs/KbGraphResponsePathInner.md)
+ - [KbList](docs/KbList.md)
+ - [KbListKbsInner](docs/KbListKbsInner.md)
+ - [KbNote](docs/KbNote.md)
+ - [KbNoteRequest](docs/KbNoteRequest.md)
+ - [KbNoteResponse](docs/KbNoteResponse.md)
+ - [KbNoteStatusRequest](docs/KbNoteStatusRequest.md)
+ - [KbNotes](docs/KbNotes.md)
+ - [KbOkResponse](docs/KbOkResponse.md)
+ - [KbOutline](docs/KbOutline.md)
+ - [KbOutlineOutlineInner](docs/KbOutlineOutlineInner.md)
+ - [KbPage](docs/KbPage.md)
+ - [KbPassage](docs/KbPassage.md)
+ - [KbResearchRequest](docs/KbResearchRequest.md)
+ - [KbResearchResponse](docs/KbResearchResponse.md)
+ - [KbResearchResponseAsk](docs/KbResearchResponseAsk.md)
+ - [KbResearchResponseAttachment](docs/KbResearchResponseAttachment.md)
+ - [KbResearchResponseFrame](docs/KbResearchResponseFrame.md)
+ - [KbResearchResponseHitsInner](docs/KbResearchResponseHitsInner.md)
+ - [KbSearchRequest](docs/KbSearchRequest.md)
+ - [KbSearchResponse](docs/KbSearchResponse.md)
+ - [KbSearchResponseLanes](docs/KbSearchResponseLanes.md)
+ - [KbStatus](docs/KbStatus.md)
+ - [KbStatusResponse](docs/KbStatusResponse.md)
  - [LinkAnswerApprovalRequest](docs/LinkAnswerApprovalRequest.md)
  - [LinkApproval](docs/LinkApproval.md)
  - [LinkApprovals200Response](docs/LinkApprovals200Response.md)
