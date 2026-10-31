@@ -153,7 +153,9 @@ function pyType(s) {
   if (s.$ref) return `"${refName(s.$ref)}"`;
   if (s.oneOf || s.anyOf) return `Union[${(s.oneOf || s.anyOf).map(pyType).join(', ')}]`;
   if (s.allOf) return 'Dict[str, Any]';
-  if (s.enum) return `Literal[${s.enum.map((v) => JSON.stringify(v)).join(', ')}]`;
+  // JSON's null/true/false are Python's None/True/False: `Literal[..., null]` is a NameError the
+  // moment the annotation is evaluated — on import before Python 3.14, so 0.25–0.27 never imported there.
+  if (s.enum) return `Literal[${s.enum.map((v) => (v === null ? 'None' : v === true ? 'True' : v === false ? 'False' : JSON.stringify(v))).join(', ')}]`;
   const types = Array.isArray(s.type) ? s.type : [s.type];
   const one = (t) => {
     switch (t) {

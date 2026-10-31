@@ -567,7 +567,7 @@ class KbResearchResponse(TypedDict, total=False):
     read: List[Dict[str, Any]]  # What was read, grouped by document in page order (or the outline for a whole-document ask).
     hits: List[Dict[str, Any]]
     queries: List[str]
-    verdict: NotRequired[Literal["yes", "partly", "no", null]]  # The check's answer when a model was given.
+    verdict: NotRequired[Literal["yes", "partly", "no", None]]  # The check's answer when a model was given.
     rounds: int
     ask: NotRequired[Dict[str, Any]]  # The question for the person, when the hits split evenly across documents.
     how: NotRequired[str]  # How it was searched, in words.
@@ -888,7 +888,7 @@ class EventsDeleted(TypedDict, total=False):
 
 class EventsDeleteDryRun(TypedDict, total=False):
     """EventsDeleteDryRun"""
-    ok: Literal[false]
+    ok: Literal[False]
     wouldDelete: int  # What `force=1` would delete.
     host: NotRequired[str]
     all: NotRequired[bool]
