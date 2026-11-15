@@ -34,4 +34,11 @@ jobs:
           remote=$(npm view @chatpanel/sdk version 2>/dev/null || echo none)
           echo "local=$local remote=$remote"; echo "publish=$([ "$local" != "$remote" ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
       - if: steps.v.outputs.publish == 'yes'
-        run: cd sdk/typescript && npm publish --provenance --access public
+        run: |
+          # npm's lookup above can lag a publish by minutes; a version just published from the owner's
+          # machine reads as new and npm answers 409. It IS on npm: a pass.
+          cd sdk/typescript
+          if out=$(npm publish --provenance --access public 2>&1); then echo "$out"
+          elif echo "$out" | grep -qiE 'cannot publish over (the )?previously (published|staged) version'; then
+            echo "$out"; echo "::notice title=Already on npm::@chatpanel/sdk was published by another route while npm's lookup still lagged — nothing to do."
+          else echo "$out"; exit 1; fi
