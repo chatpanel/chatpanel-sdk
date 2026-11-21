@@ -6,6 +6,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | ------ | ------------ | ----------- |
 | [**runtime_engine**](RuntimeApi.md#runtime_engine) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed). |
 | [**runtime_plan**](RuntimeApi.md#runtime_plan) | **GET** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free. |
+| [**runtime_recipe**](RuntimeApi.md#runtime_recipe) | **GET** /v1/runtime/recipe | What a GGUF repo runs as on this machine, before anything is downloaded. |
 | [**runtime_service**](RuntimeApi.md#runtime_service) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it. |
 | [**runtime_status**](RuntimeApi.md#runtime_status) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services. |
 
@@ -158,6 +159,84 @@ end
 ### Authorization
 
 [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+
+## runtime_recipe
+
+> <RuntimeRecipe> runtime_recipe(model, opts)
+
+What a GGUF repo runs as on this machine, before anything is downloaded.
+
+For llama.cpp: the repo's file list read from Hugging Face, and 64 KB of one weights file's header for its architecture. Answers the quant picked (Q4_K_M when none is named), every quant with its size and whether it fits in about three quarters of the machine's memory, the vision projector and the speculative-decoding draft the repo ships (with the `--spec-type` its name means), and the layout chosen — `alt` when the repo also carries the weights as `.gguf_file` and only that layout is one the installed llama.cpp knows. A repo whose architecture the installed llama.cpp cannot load is a 400 with `code: unsupported_arch`. Nothing is saved; a start pulls the same recipe. 
+
+### Examples
+
+```ruby
+require 'time'
+require 'chatpanel'
+# setup authorization
+ChatPanel.configure do |config|
+  # Configure API key authorization: tokenHeader
+  config.api_key['X-ChatPanel-Token'] = 'YOUR API KEY'
+  # Uncomment the following line to set a prefix for the API key, e.g. 'Bearer' (defaults to nil)
+  # config.api_key_prefix['X-ChatPanel-Token'] = 'Bearer'
+
+  # Configure Bearer authorization: gatewayToken
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = ChatPanel::RuntimeApi.new
+model = 'model_example' # String | A Hugging Face owner/name, or owner/name:QUANT.
+opts = {
+  service: 'service_example' # String | 
+}
+
+begin
+  # What a GGUF repo runs as on this machine, before anything is downloaded.
+  result = api_instance.runtime_recipe(model, opts)
+  p result
+rescue ChatPanel::ApiError => e
+  puts "Error when calling RuntimeApi->runtime_recipe: #{e}"
+end
+```
+
+#### Using the runtime_recipe_with_http_info variant
+
+This returns an Array which contains the response data, status code and headers.
+
+> <Array(<RuntimeRecipe>, Integer, Hash)> runtime_recipe_with_http_info(model, opts)
+
+```ruby
+begin
+  # What a GGUF repo runs as on this machine, before anything is downloaded.
+  data, status_code, headers = api_instance.runtime_recipe_with_http_info(model, opts)
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => <RuntimeRecipe>
+rescue ChatPanel::ApiError => e
+  puts "Error when calling RuntimeApi->runtime_recipe_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+| Name | Type | Description | Notes |
+| ---- | ---- | ----------- | ----- |
+| **model** | **String** | A Hugging Face owner/name, or owner/name:QUANT. |  |
+| **service** | **String** |  | [optional][default to &#39;llama&#39;] |
+
+### Return type
+
+[**RuntimeRecipe**](RuntimeRecipe.md)
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
 
 ### HTTP request headers
 

@@ -118,6 +118,55 @@ open class RuntimeAPI {
     }
 
     /**
+     What a GGUF repo runs as on this machine, before anything is downloaded.
+     
+     - parameter model: (query) A Hugging Face owner/name, or owner/name:QUANT. 
+     - parameter service: (query)  (optional, default to "llama")
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RuntimeRecipe
+     */
+    open class func runtimeRecipe(model: String, service: String? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> RuntimeRecipe {
+        return try await runtimeRecipeWithRequestBuilder(model: model, service: service, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     What a GGUF repo runs as on this machine, before anything is downloaded.
+     - GET /v1/runtime/recipe
+     - For llama.cpp: the repo's file list read from Hugging Face, and 64 KB of one weights file's header for its architecture. Answers the quant picked (Q4_K_M when none is named), every quant with its size and whether it fits in about three quarters of the machine's memory, the vision projector and the speculative-decoding draft the repo ships (with the `--spec-type` its name means), and the layout chosen — `alt` when the repo also carries the weights as `.gguf_file` and only that layout is one the installed llama.cpp knows. A repo whose architecture the installed llama.cpp cannot load is a 400 with `code: unsupported_arch`. Nothing is saved; a start pulls the same recipe. 
+     - API Key:
+       - type: apiKey X-ChatPanel-Token (HEADER)
+       - name: tokenHeader
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter model: (query) A Hugging Face owner/name, or owner/name:QUANT. 
+     - parameter service: (query)  (optional, default to "llama")
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<RuntimeRecipe> 
+     */
+    open class func runtimeRecipeWithRequestBuilder(model: String, service: String? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<RuntimeRecipe> {
+        let localVariablePath = "/v1/runtime/recipe"
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "service": (wrappedValue: service?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+            "model": (wrappedValue: model.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<RuntimeRecipe>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
      * enum for parameter id
      */
     public enum Id_runtimeService: String, Sendable, CaseIterable {

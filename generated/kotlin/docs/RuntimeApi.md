@@ -6,6 +6,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | ------------- | ------------- | ------------- |
 | [**runtimeEngine**](RuntimeApi.md#runtimeEngine) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed). |
 | [**runtimePlan**](RuntimeApi.md#runtimePlan) | **GET** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free. |
+| [**runtimeRecipe**](RuntimeApi.md#runtimeRecipe) | **GET** /v1/runtime/recipe | What a GGUF repo runs as on this machine, before anything is downloaded. |
 | [**runtimeService**](RuntimeApi.md#runtimeService) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it. |
 | [**runtimeStatus**](RuntimeApi.md#runtimeStatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services. |
 
@@ -115,6 +116,65 @@ try {
 ### Authorization
 
 
+Configure gatewayToken statically:
+```kotlin
+ApiClient.accessToken = ""
+```
+Configure gatewayToken dynamically:
+```kotlin
+apiInstance.accessTokenProvider = { "" }
+```
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+<a id="runtimeRecipe"></a>
+# **runtimeRecipe**
+> RuntimeRecipe runtimeRecipe(model, service)
+
+What a GGUF repo runs as on this machine, before anything is downloaded.
+
+For llama.cpp: the repo&#39;s file list read from Hugging Face, and 64 KB of one weights file&#39;s header for its architecture. Answers the quant picked (Q4_K_M when none is named), every quant with its size and whether it fits in about three quarters of the machine&#39;s memory, the vision projector and the speculative-decoding draft the repo ships (with the &#x60;--spec-type&#x60; its name means), and the layout chosen — &#x60;alt&#x60; when the repo also carries the weights as &#x60;.gguf_file&#x60; and only that layout is one the installed llama.cpp knows. A repo whose architecture the installed llama.cpp cannot load is a 400 with &#x60;code: unsupported_arch&#x60;. Nothing is saved; a start pulls the same recipe. 
+
+### Example
+```kotlin
+// Import classes:
+//import net.chatpanel.sdk.infrastructure.*
+//import net.chatpanel.sdk.models.*
+
+val apiInstance = RuntimeApi()
+val model : kotlin.String = model_example // kotlin.String | A Hugging Face owner/name, or owner/name:QUANT.
+val service : kotlin.String = service_example // kotlin.String | 
+try {
+    val result : RuntimeRecipe = apiInstance.runtimeRecipe(model, service)
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling RuntimeApi#runtimeRecipe")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling RuntimeApi#runtimeRecipe")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **model** | **kotlin.String**| A Hugging Face owner/name, or owner/name:QUANT. | |
+| **service** | **kotlin.String**|  | [optional] [default to &quot;llama&quot;] |
+
+### Return type
+
+[**RuntimeRecipe**](RuntimeRecipe.md)
+
+### Authorization
+
+
+Configure tokenHeader:
+    ApiClient.apiKey["X-ChatPanel-Token"] = ""
+    ApiClient.apiKeyPrefix["X-ChatPanel-Token"] = ""
 Configure gatewayToken statically:
 ```kotlin
 ApiClient.accessToken = ""

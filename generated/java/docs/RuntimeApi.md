@@ -8,6 +8,8 @@ All URIs are relative to *http://127.0.0.1:4320*
 | [**runtimeEngineWithHttpInfo**](RuntimeApi.md#runtimeEngineWithHttpInfo) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed). |
 | [**runtimePlan**](RuntimeApi.md#runtimePlan) | **GET** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free. |
 | [**runtimePlanWithHttpInfo**](RuntimeApi.md#runtimePlanWithHttpInfo) | **GET** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free. |
+| [**runtimeRecipe**](RuntimeApi.md#runtimeRecipe) | **GET** /v1/runtime/recipe | What a GGUF repo runs as on this machine, before anything is downloaded. |
+| [**runtimeRecipeWithHttpInfo**](RuntimeApi.md#runtimeRecipeWithHttpInfo) | **GET** /v1/runtime/recipe | What a GGUF repo runs as on this machine, before anything is downloaded. |
 | [**runtimeService**](RuntimeApi.md#runtimeService) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it. |
 | [**runtimeServiceWithHttpInfo**](RuntimeApi.md#runtimeServiceWithHttpInfo) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it. |
 | [**runtimeStatus**](RuntimeApi.md#runtimeStatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services. |
@@ -335,6 +337,170 @@ ApiResponse<[**RuntimePlan**](RuntimePlan.md)>
 |-------------|-------------|------------------|
 | **200** | The plan. |  -  |
 | **400** | Unknown service, a service that takes no model, or an unlisted model without &#x60;need_mb&#x60;. |  -  |
+
+
+## runtimeRecipe
+
+> RuntimeRecipe runtimeRecipe(model, service)
+
+What a GGUF repo runs as on this machine, before anything is downloaded.
+
+For llama.cpp: the repo&#39;s file list read from Hugging Face, and 64 KB of one weights file&#39;s header for its architecture. Answers the quant picked (Q4_K_M when none is named), every quant with its size and whether it fits in about three quarters of the machine&#39;s memory, the vision projector and the speculative-decoding draft the repo ships (with the &#x60;--spec-type&#x60; its name means), and the layout chosen — &#x60;alt&#x60; when the repo also carries the weights as &#x60;.gguf_file&#x60; and only that layout is one the installed llama.cpp knows. A repo whose architecture the installed llama.cpp cannot load is a 400 with &#x60;code: unsupported_arch&#x60;. Nothing is saved; a start pulls the same recipe. 
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.RuntimeApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure API key authorization: tokenHeader
+        ApiKeyAuth tokenHeader = (ApiKeyAuth) defaultClient.getAuthentication("tokenHeader");
+        tokenHeader.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //tokenHeader.setApiKeyPrefix("Token");
+
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        RuntimeApi apiInstance = new RuntimeApi(defaultClient);
+        String model = "model_example"; // String | A Hugging Face owner/name, or owner/name:QUANT.
+        String service = "llama"; // String | 
+        try {
+            RuntimeRecipe result = apiInstance.runtimeRecipe(model, service);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling RuntimeApi#runtimeRecipe");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **model** | **String**| A Hugging Face owner/name, or owner/name:QUANT. | |
+| **service** | **String**|  | [optional] [default to llama] |
+
+### Return type
+
+[**RuntimeRecipe**](RuntimeRecipe.md)
+
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | The recipe. |  -  |
+| **400** | Not llama.cpp, not a Hugging Face id, no such quant, or an architecture the installed llama.cpp cannot load (&#x60;code: unsupported_arch&#x60;). |  -  |
+| **403** | Neither the extension&#39;s origin nor the gateway token. |  -  |
+
+## runtimeRecipeWithHttpInfo
+
+> ApiResponse<RuntimeRecipe> runtimeRecipeWithHttpInfo(model, service)
+
+What a GGUF repo runs as on this machine, before anything is downloaded.
+
+For llama.cpp: the repo&#39;s file list read from Hugging Face, and 64 KB of one weights file&#39;s header for its architecture. Answers the quant picked (Q4_K_M when none is named), every quant with its size and whether it fits in about three quarters of the machine&#39;s memory, the vision projector and the speculative-decoding draft the repo ships (with the &#x60;--spec-type&#x60; its name means), and the layout chosen — &#x60;alt&#x60; when the repo also carries the weights as &#x60;.gguf_file&#x60; and only that layout is one the installed llama.cpp knows. A repo whose architecture the installed llama.cpp cannot load is a 400 with &#x60;code: unsupported_arch&#x60;. Nothing is saved; a start pulls the same recipe. 
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.ApiResponse;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.RuntimeApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure API key authorization: tokenHeader
+        ApiKeyAuth tokenHeader = (ApiKeyAuth) defaultClient.getAuthentication("tokenHeader");
+        tokenHeader.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //tokenHeader.setApiKeyPrefix("Token");
+
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        RuntimeApi apiInstance = new RuntimeApi(defaultClient);
+        String model = "model_example"; // String | A Hugging Face owner/name, or owner/name:QUANT.
+        String service = "llama"; // String | 
+        try {
+            ApiResponse<RuntimeRecipe> response = apiInstance.runtimeRecipeWithHttpInfo(model, service);
+            System.out.println("Status code: " + response.getStatusCode());
+            System.out.println("Response headers: " + response.getHeaders());
+            System.out.println("Response body: " + response.getData());
+        } catch (ApiException e) {
+            System.err.println("Exception when calling RuntimeApi#runtimeRecipe");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            System.err.println("Reason: " + e.getResponseBody());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **model** | **String**| A Hugging Face owner/name, or owner/name:QUANT. | |
+| **service** | **String**|  | [optional] [default to llama] |
+
+### Return type
+
+ApiResponse<[**RuntimeRecipe**](RuntimeRecipe.md)>
+
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | The recipe. |  -  |
+| **400** | Not llama.cpp, not a Hugging Face id, no such quant, or an architecture the installed llama.cpp cannot load (&#x60;code: unsupported_arch&#x60;). |  -  |
+| **403** | Neither the extension&#39;s origin nor the gateway token. |  -  |
 
 
 ## runtimeService

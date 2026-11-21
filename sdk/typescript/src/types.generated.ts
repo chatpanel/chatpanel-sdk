@@ -194,6 +194,38 @@ export interface RuntimeActionResult {
   plan?: RuntimePlan;
 }
 
+export interface RuntimeRecipe {
+  ok: boolean;
+  /** owner/name:QUANT — what to pass as the service's model. */
+  model: string;
+  quant: string;
+  /** The weights' general.architecture; null when the header could not be read. */
+  arch?: string | null;
+  layout?: "main" | "alt";
+  /** The weights file in the repo (the first shard of a split model). */
+  main?: string;
+  /** Bytes of the weights for this quant. */
+  size?: number;
+  /** Weights + projector + draft against about three quarters of the memory; null when the memory is unknown. */
+  fits?: boolean | null;
+  ramGB?: number;
+  quants: Array<{
+    quant: string;
+    size: number;
+    fits?: boolean | null;
+  }>;
+  projector?: null | {
+    path: string;
+    size?: number;
+  };
+  draft?: null | {
+    path: string;
+    size?: number;
+    /** llama-server --spec-type: draft-dspark, draft-mtp, draft-eagle3, draft-dflash or draft-simple. */
+    spec: string;
+  };
+}
+
 /** Whether a local model fits in memory (gateway 0.74+) — `GET /v1/runtime/plan`, and on a start the live-memory check refused. */
 export interface RuntimePlan {
   ok: boolean;

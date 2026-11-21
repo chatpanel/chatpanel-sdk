@@ -48,6 +48,18 @@ func Test_chatpanel_RuntimeAPIService(t *testing.T) {
 
 	})
 
+	t.Run("Test RuntimeAPIService RuntimeRecipe", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		resp, httpRes, err := apiClient.RuntimeAPI.RuntimeRecipe(context.Background()).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
 	t.Run("Test RuntimeAPIService RuntimeService", func(t *testing.T) {
 
 		t.Skip("skip test")  // remove to run test

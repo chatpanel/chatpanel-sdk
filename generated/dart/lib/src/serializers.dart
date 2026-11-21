@@ -239,6 +239,10 @@ import 'package:chatpanel/src/model/runtime_document_processes.dart';
 import 'package:chatpanel/src/model/runtime_engine_request.dart';
 import 'package:chatpanel/src/model/runtime_plan.dart';
 import 'package:chatpanel/src/model/runtime_plan_live.dart';
+import 'package:chatpanel/src/model/runtime_recipe.dart';
+import 'package:chatpanel/src/model/runtime_recipe_draft.dart';
+import 'package:chatpanel/src/model/runtime_recipe_projector.dart';
+import 'package:chatpanel/src/model/runtime_recipe_quants_inner.dart';
 import 'package:chatpanel/src/model/runtime_service_request.dart';
 import 'package:chatpanel/src/model/search_filters.dart';
 import 'package:chatpanel/src/model/search_hit.dart';
@@ -502,6 +506,10 @@ part 'serializers.g.dart';
   RuntimeEngineRequest,
   RuntimePlan,
   RuntimePlanLive,
+  RuntimeRecipe,
+  RuntimeRecipeDraft,
+  RuntimeRecipeProjector,
+  RuntimeRecipeQuantsInner,
   RuntimeServiceRequest,
   SearchFilters,$SearchFilters,
   SearchHit,
@@ -541,6 +549,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(LinkDevice)]),
         () => ListBuilder<LinkDevice>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(RuntimeRecipeQuantsInner)]),
+        () => ListBuilder<RuntimeRecipeQuantsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ResearchResponseReadInnerSpeakersInner)]),

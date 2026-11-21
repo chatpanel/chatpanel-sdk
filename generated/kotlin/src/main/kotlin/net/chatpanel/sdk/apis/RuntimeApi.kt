@@ -32,6 +32,7 @@ import net.chatpanel.sdk.models.RuntimeActionResult
 import net.chatpanel.sdk.models.RuntimeDocument
 import net.chatpanel.sdk.models.RuntimeEngineRequest
 import net.chatpanel.sdk.models.RuntimePlan
+import net.chatpanel.sdk.models.RuntimeRecipe
 import net.chatpanel.sdk.models.RuntimeServiceRequest
 
 import com.squareup.moshi.Json
@@ -241,6 +242,88 @@ open class RuntimeApi(basePath: kotlin.String = defaultBasePath, client: Call.Fa
         return RequestConfig(
             method = RequestMethod.GET,
             path = "/v1/runtime/plan",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * GET /v1/runtime/recipe
+     * What a GGUF repo runs as on this machine, before anything is downloaded.
+     * For llama.cpp: the repo&#39;s file list read from Hugging Face, and 64 KB of one weights file&#39;s header for its architecture. Answers the quant picked (Q4_K_M when none is named), every quant with its size and whether it fits in about three quarters of the machine&#39;s memory, the vision projector and the speculative-decoding draft the repo ships (with the &#x60;--spec-type&#x60; its name means), and the layout chosen — &#x60;alt&#x60; when the repo also carries the weights as &#x60;.gguf_file&#x60; and only that layout is one the installed llama.cpp knows. A repo whose architecture the installed llama.cpp cannot load is a 400 with &#x60;code: unsupported_arch&#x60;. Nothing is saved; a start pulls the same recipe. 
+     * @param model A Hugging Face owner/name, or owner/name:QUANT.
+     * @param service  (optional, default to "llama")
+     * @return RuntimeRecipe
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun runtimeRecipe(model: kotlin.String, service: kotlin.String? = "llama") : RuntimeRecipe {
+        val localVarResponse = runtimeRecipeWithHttpInfo(model = model, service = service)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as RuntimeRecipe
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * GET /v1/runtime/recipe
+     * What a GGUF repo runs as on this machine, before anything is downloaded.
+     * For llama.cpp: the repo&#39;s file list read from Hugging Face, and 64 KB of one weights file&#39;s header for its architecture. Answers the quant picked (Q4_K_M when none is named), every quant with its size and whether it fits in about three quarters of the machine&#39;s memory, the vision projector and the speculative-decoding draft the repo ships (with the &#x60;--spec-type&#x60; its name means), and the layout chosen — &#x60;alt&#x60; when the repo also carries the weights as &#x60;.gguf_file&#x60; and only that layout is one the installed llama.cpp knows. A repo whose architecture the installed llama.cpp cannot load is a 400 with &#x60;code: unsupported_arch&#x60;. Nothing is saved; a start pulls the same recipe. 
+     * @param model A Hugging Face owner/name, or owner/name:QUANT.
+     * @param service  (optional, default to "llama")
+     * @return ApiResponse<RuntimeRecipe?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun runtimeRecipeWithHttpInfo(model: kotlin.String, service: kotlin.String?) : ApiResponse<RuntimeRecipe?> {
+        val localVariableConfig = runtimeRecipeRequestConfig(model = model, service = service)
+
+        return request<Unit, RuntimeRecipe>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation runtimeRecipe
+     *
+     * @param model A Hugging Face owner/name, or owner/name:QUANT.
+     * @param service  (optional, default to "llama")
+     * @return RequestConfig
+     */
+    fun runtimeRecipeRequestConfig(model: kotlin.String, service: kotlin.String?) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf<kotlin.String, kotlin.collections.List<kotlin.String>>()
+            .apply {
+                if (service != null) {
+                    put("service", listOf(service.toString()))
+                }
+                put("model", listOf(model.toString()))
+            }
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.GET,
+            path = "/v1/runtime/recipe",
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,

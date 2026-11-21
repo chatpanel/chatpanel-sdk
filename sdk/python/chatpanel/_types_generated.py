@@ -148,6 +148,22 @@ class RuntimeActionResult(TypedDict, total=False):
     plan: NotRequired["RuntimePlan"]
 
 
+class RuntimeRecipe(TypedDict, total=False):
+    """RuntimeRecipe"""
+    ok: bool
+    model: str  # owner/name:QUANT — what to pass as the service's model.
+    quant: str
+    arch: NotRequired[Union[str, None]]  # The weights' general.architecture; null when the header could not be read.
+    layout: NotRequired[Literal["main", "alt"]]
+    main: NotRequired[str]  # The weights file in the repo (the first shard of a split model).
+    size: NotRequired[int]  # Bytes of the weights for this quant.
+    fits: NotRequired[Union[bool, None]]  # Weights + projector + draft against about three quarters of the memory; null when the memory is unknown.
+    ramGB: NotRequired[float]
+    quants: List[Dict[str, Any]]
+    projector: NotRequired[Union[None, Dict[str, Any]]]
+    draft: NotRequired[Union[None, Dict[str, Any]]]
+
+
 class RuntimePlan(TypedDict, total=False):
     """Whether a local model fits in memory (gateway 0.74+) — `GET /v1/runtime/plan`, and on a start the live-memory check refused."""
     ok: bool

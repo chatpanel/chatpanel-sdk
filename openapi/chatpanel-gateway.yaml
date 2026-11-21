@@ -24,7 +24,7 @@ openapi: 3.1.0
 # ---------------------------------------------------------------------------------------
 info:
   title: ChatPanel Gateway API
-  version: 0.46.0
+  version: 0.47.0
   summary: The local privacy gateway's HTTP API — chat, history, memory, preferences, teams, projects, skills.
   description: |
     The ChatPanel gateway runs on the user's machine (loopback only, port 4320 by default). It
@@ -1466,6 +1466,39 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/RuntimeDocument' }
 
+  /v1/runtime/recipe:
+    get:
+      operationId: runtime.recipe
+      tags: [runtime]
+      summary: What a GGUF repo runs as on this machine, before anything is downloaded.
+      description: |
+        For llama.cpp: the repo's file list read from Hugging Face, and 64 KB of one weights
+        file's header for its architecture. Answers the quant picked (Q4_K_M when none is named),
+        every quant with its size and whether it fits in about three quarters of the machine's
+        memory, the vision projector and the speculative-decoding draft the repo ships (with the
+        `--spec-type` its name means), and the layout chosen — `alt` when the repo also carries
+        the weights as `.gguf_file` and only that layout is one the installed llama.cpp knows. A
+        repo whose architecture the installed llama.cpp cannot load is a 400 with
+        `code: unsupported_arch`. Nothing is saved; a start pulls the same recipe.
+      x-chatpanel-auth: token
+      x-chatpanel-since: '0.122.0'
+      security: [{ gatewayToken: [] }, { tokenHeader: [] }]
+      parameters:
+        - { name: service, in: query, required: false, schema: { type: string, default: llama, maxLength: 32 } }
+        - { name: model, in: query, required: true, description: "A Hugging Face owner/name, or owner/name:QUANT.", schema: { type: string, maxLength: 256 } }
+      responses:
+        '200':
+          description: The recipe.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RuntimeRecipe' }
+        '400':
+          description: "Not llama.cpp, not a Hugging Face id, no such quant, or an architecture the installed llama.cpp cannot load (`code: unsupported_arch`)."
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RuntimeActionResult' }
+        '403':
+          description: Neither the extension's origin nor the gateway token.
   /v1/runtime/plan:
     get:
       operationId: runtime.plan
@@ -3617,6 +3650,36 @@ components:
         note: { type: string, description: "A model pick that fits but is tight for the engine's memory." }
         plan: { $ref: '#/components/schemas/RuntimePlan' }
       required: [ok]
+    RuntimeRecipe:
+      type: object
+      required: [ok, model, quant, quants]
+      properties:
+        ok: { type: boolean }
+        model: { type: string, description: "owner/name:QUANT — what to pass as the service's model." }
+        quant: { type: string }
+        arch: { type: [string, 'null'], description: The weights' general.architecture; null when the header could not be read. }
+        layout: { type: string, enum: [main, alt] }
+        main: { type: string, description: The weights file in the repo (the first shard of a split model). }
+        size: { type: integer, description: Bytes of the weights for this quant. }
+        fits: { type: [boolean, 'null'], description: Weights + projector + draft against about three quarters of the memory; null when the memory is unknown. }
+        ramGB: { type: number }
+        quants:
+          type: array
+          items:
+            type: object
+            required: [quant, size]
+            properties:
+              quant: { type: string }
+              size: { type: integer }
+              fits: { type: [boolean, 'null'] }
+        projector:
+          oneOf:
+            - { type: 'null' }
+            - { type: object, required: [path], properties: { path: { type: string }, size: { type: integer } } }
+        draft:
+          oneOf:
+            - { type: 'null' }
+            - { type: object, required: [path, spec], properties: { path: { type: string }, size: { type: integer }, spec: { type: string, description: "llama-server --spec-type: draft-dspark, draft-mtp, draft-eagle3, draft-dflash or draft-simple." } } }
     RuntimePlan:
       type: object
       description: "Whether a local model fits in memory (gateway 0.74+) — `GET /v1/runtime/plan`, and on a start the live-memory check refused."

@@ -2,7 +2,7 @@
 
 ChatPanel Gateway API
 
-- API version: 0.46.0
+- API version: 0.47.0
 
 - Generator version: 7.25.0
 
@@ -60,7 +60,7 @@ Add this dependency to your project's POM:
 <dependency>
   <groupId>net.chatpanel</groupId>
   <artifactId>chatpanel-sdk</artifactId>
-  <version>0.46.0</version>
+  <version>0.47.0</version>
   <scope>compile</scope>
 </dependency>
 ```
@@ -70,7 +70,7 @@ Add this dependency to your project's POM:
 Add this dependency to your project's build file:
 
 ```groovy
-compile "net.chatpanel:chatpanel-sdk:0.46.0"
+compile "net.chatpanel:chatpanel-sdk:0.47.0"
 ```
 
 ### Others
@@ -83,7 +83,7 @@ mvn clean package
 
 Then manually install the following JARs:
 
-- `target/chatpanel-sdk-0.46.0.jar`
+- `target/chatpanel-sdk-0.47.0.jar`
 - `target/lib/*.jar`
 
 ## Getting Started
@@ -348,6 +348,8 @@ Class | Method | HTTP request | Description
 *RuntimeApi* | [**runtimeEngineWithHttpInfo**](docs/RuntimeApi.md#runtimeEngineWithHttpInfo) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed).
 *RuntimeApi* | [**runtimePlan**](docs/RuntimeApi.md#runtimePlan) | **GET** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
 *RuntimeApi* | [**runtimePlanWithHttpInfo**](docs/RuntimeApi.md#runtimePlanWithHttpInfo) | **GET** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+*RuntimeApi* | [**runtimeRecipe**](docs/RuntimeApi.md#runtimeRecipe) | **GET** /v1/runtime/recipe | What a GGUF repo runs as on this machine, before anything is downloaded.
+*RuntimeApi* | [**runtimeRecipeWithHttpInfo**](docs/RuntimeApi.md#runtimeRecipeWithHttpInfo) | **GET** /v1/runtime/recipe | What a GGUF repo runs as on this machine, before anything is downloaded.
 *RuntimeApi* | [**runtimeService**](docs/RuntimeApi.md#runtimeService) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it.
 *RuntimeApi* | [**runtimeServiceWithHttpInfo**](docs/RuntimeApi.md#runtimeServiceWithHttpInfo) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it.
 *RuntimeApi* | [**runtimeStatus**](docs/RuntimeApi.md#runtimeStatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
@@ -619,6 +621,10 @@ Class | Method | HTTP request | Description
  - [RuntimeEngineRequest](docs/RuntimeEngineRequest.md)
  - [RuntimePlan](docs/RuntimePlan.md)
  - [RuntimePlanLive](docs/RuntimePlanLive.md)
+ - [RuntimeRecipe](docs/RuntimeRecipe.md)
+ - [RuntimeRecipeDraft](docs/RuntimeRecipeDraft.md)
+ - [RuntimeRecipeProjector](docs/RuntimeRecipeProjector.md)
+ - [RuntimeRecipeQuantsInner](docs/RuntimeRecipeQuantsInner.md)
  - [RuntimeServiceRequest](docs/RuntimeServiceRequest.md)
  - [SearchFilters](docs/SearchFilters.md)
  - [SearchHit](docs/SearchHit.md)

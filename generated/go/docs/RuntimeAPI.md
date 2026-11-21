@@ -6,6 +6,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**RuntimeEngine**](RuntimeAPI.md#RuntimeEngine) | **Post** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed).
 [**RuntimePlan**](RuntimeAPI.md#RuntimePlan) | **Get** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+[**RuntimeRecipe**](RuntimeAPI.md#RuntimeRecipe) | **Get** /v1/runtime/recipe | What a GGUF repo runs as on this machine, before anything is downloaded.
 [**RuntimeService**](RuntimeAPI.md#RuntimeService) | **Post** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it.
 [**RuntimeStatus**](RuntimeAPI.md#RuntimeStatus) | **Get** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
 
@@ -144,6 +145,74 @@ Name | Type | Description  | Notes
 ### Authorization
 
 [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
+
+
+## RuntimeRecipe
+
+> RuntimeRecipe RuntimeRecipe(ctx).Model(model).Service(service).Execute()
+
+What a GGUF repo runs as on this machine, before anything is downloaded.
+
+
+
+### Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	openapiclient "github.com/chatpanel/chatpanel-sdk"
+)
+
+func main() {
+	model := "model_example" // string | A Hugging Face owner/name, or owner/name:QUANT.
+	service := "service_example" // string |  (optional) (default to "llama")
+
+	configuration := openapiclient.NewConfiguration()
+	apiClient := openapiclient.NewAPIClient(configuration)
+	resp, r, err := apiClient.RuntimeAPI.RuntimeRecipe(context.Background()).Model(model).Service(service).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `RuntimeAPI.RuntimeRecipe``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `RuntimeRecipe`: RuntimeRecipe
+	fmt.Fprintf(os.Stdout, "Response from `RuntimeAPI.RuntimeRecipe`: %v\n", resp)
+}
+```
+
+### Path Parameters
+
+
+
+### Other Parameters
+
+Other parameters are passed through a pointer to a apiRuntimeRecipeRequest struct via the builder pattern
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **model** | **string** | A Hugging Face owner/name, or owner/name:QUANT. | 
+ **service** | **string** |  | [default to &quot;llama&quot;]
+
+### Return type
+
+[**RuntimeRecipe**](RuntimeRecipe.md)
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
 
 ### HTTP request headers
 

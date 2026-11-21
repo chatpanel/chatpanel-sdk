@@ -8,6 +8,7 @@ All URIs are relative to http://127.0.0.1:4320, except if the operation defines 
 | ------------- | ------------- | ------------- |
 | [**runtimeEngine()**](RuntimeApi.md#runtimeEngine) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed). |
 | [**runtimePlan()**](RuntimeApi.md#runtimePlan) | **GET** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free. |
+| [**runtimeRecipe()**](RuntimeApi.md#runtimeRecipe) | **GET** /v1/runtime/recipe | What a GGUF repo runs as on this machine, before anything is downloaded. |
 | [**runtimeService()**](RuntimeApi.md#runtimeService) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it. |
 | [**runtimeStatus()**](RuntimeApi.md#runtimeStatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services. |
 
@@ -135,6 +136,73 @@ try {
 ### Authorization
 
 [gatewayToken](../../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+[[Back to top]](#) [[Back to API list]](../../README.md#endpoints)
+[[Back to Model list]](../../README.md#models)
+[[Back to README]](../../README.md)
+
+## `runtimeRecipe()`
+
+```php
+runtimeRecipe($model, $service): \ChatPanelSdk\Model\RuntimeRecipe
+```
+
+What a GGUF repo runs as on this machine, before anything is downloaded.
+
+For llama.cpp: the repo's file list read from Hugging Face, and 64 KB of one weights file's header for its architecture. Answers the quant picked (Q4_K_M when none is named), every quant with its size and whether it fits in about three quarters of the machine's memory, the vision projector and the speculative-decoding draft the repo ships (with the `--spec-type` its name means), and the layout chosen — `alt` when the repo also carries the weights as `.gguf_file` and only that layout is one the installed llama.cpp knows. A repo whose architecture the installed llama.cpp cannot load is a 400 with `code: unsupported_arch`. Nothing is saved; a start pulls the same recipe.
+
+### Example
+
+```php
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+
+// Configure API key authorization: tokenHeader
+$config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setApiKey('X-ChatPanel-Token', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// $config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-ChatPanel-Token', 'Bearer');
+
+// Configure Bearer authorization: gatewayToken
+$config = ChatPanelSdk\Configuration::getDefaultConfiguration()->setAccessToken('YOUR_ACCESS_TOKEN');
+
+
+$apiInstance = new ChatPanelSdk\Api\RuntimeApi(
+    // If you want use custom http client, pass your client which implements `GuzzleHttp\ClientInterface`.
+    // This is optional, `GuzzleHttp\Client` will be used as default.
+    new GuzzleHttp\Client(),
+    $config
+);
+$model = 'model_example'; // string | A Hugging Face owner/name, or owner/name:QUANT.
+$service = 'llama'; // string
+
+try {
+    $result = $apiInstance->runtimeRecipe($model, $service);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling RuntimeApi->runtimeRecipe: ', $e->getMessage(), PHP_EOL;
+}
+```
+
+### Parameters
+
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **model** | **string**| A Hugging Face owner/name, or owner/name:QUANT. | |
+| **service** | **string**|  | [optional] [default to &#39;llama&#39;] |
+
+### Return type
+
+[**\ChatPanelSdk\Model\RuntimeRecipe**](../Model/RuntimeRecipe.md)
+
+### Authorization
+
+[tokenHeader](../../README.md#tokenHeader), [gatewayToken](../../README.md#gatewayToken)
 
 ### HTTP request headers
 

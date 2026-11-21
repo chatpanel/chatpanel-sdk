@@ -32,6 +32,7 @@ import net.chatpanel.sdk.models.RuntimeActionResult
 import net.chatpanel.sdk.models.RuntimeDocument
 import net.chatpanel.sdk.models.RuntimeEngineRequest
 import net.chatpanel.sdk.models.RuntimePlan
+import net.chatpanel.sdk.models.RuntimeRecipe
 import net.chatpanel.sdk.models.RuntimeServiceRequest
 
 class RuntimeApiTest : ShouldSpec() {
@@ -56,6 +57,15 @@ class RuntimeApiTest : ShouldSpec() {
             //val ctx : kotlin.Int = 56 // kotlin.Int | The context in tokens; the service's own window when absent.
             //val needMb : kotlin.Int = 56 // kotlin.Int | The model's peak memory while serving, for a model the catalogue does not list.
             //val result : RuntimePlan = apiInstance.runtimePlan(service, model, ctx, needMb)
+            //result shouldBe ("TODO")
+        }
+
+        // to test runtimeRecipe
+        should("test runtimeRecipe") {
+            // uncomment below to test runtimeRecipe
+            //val model : kotlin.String = model_example // kotlin.String | A Hugging Face owner/name, or owner/name:QUANT.
+            //val service : kotlin.String = service_example // kotlin.String | 
+            //val result : RuntimeRecipe = apiInstance.runtimeRecipe(model, service)
             //result shouldBe ("TODO")
         }
 

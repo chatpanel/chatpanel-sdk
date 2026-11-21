@@ -24,7 +24,7 @@ info:
   license:
     name: Apache-2.0
   title: ChatPanel Gateway API
-  version: 0.46.0
+  version: 0.47.0
 servers:
 - description: The local gateway. Loopback only.
   url: http://127.0.0.1:4320
@@ -2081,6 +2081,63 @@ paths:
       - runtime
       x-chatpanel-auth: open
       x-chatpanel-since: 0.19.0
+      x-accepts:
+      - application/json
+  /v1/runtime/recipe:
+    get:
+      description: |
+        For llama.cpp: the repo's file list read from Hugging Face, and 64 KB of one weights
+        file's header for its architecture. Answers the quant picked (Q4_K_M when none is named),
+        every quant with its size and whether it fits in about three quarters of the machine's
+        memory, the vision projector and the speculative-decoding draft the repo ships (with the
+        `--spec-type` its name means), and the layout chosen — `alt` when the repo also carries
+        the weights as `.gguf_file` and only that layout is one the installed llama.cpp knows. A
+        repo whose architecture the installed llama.cpp cannot load is a 400 with
+        `code: unsupported_arch`. Nothing is saved; a start pulls the same recipe.
+      operationId: runtime.recipe
+      parameters:
+      - explode: true
+        in: query
+        name: service
+        required: false
+        schema:
+          default: llama
+          maxLength: 32
+          type: string
+        style: form
+      - description: "A Hugging Face owner/name, or owner/name:QUANT."
+        explode: true
+        in: query
+        name: model
+        required: true
+        schema:
+          maxLength: 256
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeRecipe"
+          description: The recipe.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeActionResult"
+          description: "Not llama.cpp, not a Hugging Face id, no such quant, or an\
+            \ architecture the installed llama.cpp cannot load (`code: unsupported_arch`)."
+        "403":
+          description: Neither the extension's origin nor the gateway token.
+      security:
+      - gatewayToken: []
+      - tokenHeader: []
+      summary: "What a GGUF repo runs as on this machine, before anything is downloaded."
+      tags:
+      - runtime
+      x-chatpanel-auth: token
+      x-chatpanel-since: 0.122.0
       x-accepts:
       - application/json
   /v1/runtime/plan:
@@ -5737,20 +5794,20 @@ components:
           ok: true
           service: service
           model: model
-          needMB: 0
-          weightsMB: 6
-          kvMB: 1
-          context: 5
+          needMB: 2
+          weightsMB: 7
+          kvMB: 9
+          context: 3
           contextCounted: true
           source: heatwatch
           fits: true
           live:
             fits: true
-            needMB: 5
-            availableMB: 2
+            needMB: 2
+            availableMB: 4
             shortfallMB: 7
             fitsGPULimit: true
-            gpuWiredLimitMB: 9
+            gpuWiredLimitMB: 1
             close:
             - close
             - close
@@ -5791,6 +5848,76 @@ components:
           $ref: "#/components/schemas/RuntimePlan"
       required:
       - ok
+    RuntimeRecipe:
+      example:
+        ok: true
+        model: model
+        quant: quant
+        arch: arch
+        layout: main
+        main: main
+        size: 0
+        fits: true
+        ramGB: 6.027456183070403
+        quants:
+        - quant: quant
+          size: 1
+          fits: true
+        - quant: quant
+          size: 1
+          fits: true
+        projector:
+          path: path
+          size: 5
+        draft:
+          path: path
+          size: 5
+          spec: spec
+      properties:
+        ok:
+          type: boolean
+        model:
+          description: owner/name:QUANT — what to pass as the service's model.
+          type: string
+        quant:
+          type: string
+        arch:
+          description: The weights' general.architecture; null when the header could
+            not be read.
+          nullable: true
+          type: string
+        layout:
+          enum:
+          - main
+          - alt
+          type: string
+        main:
+          description: The weights file in the repo (the first shard of a split model).
+          type: string
+        size:
+          description: Bytes of the weights for this quant.
+          type: integer
+        fits:
+          description: Weights + projector + draft against about three quarters of
+            the memory; null when the memory is unknown.
+          nullable: true
+          type: boolean
+        ramGB:
+          type: number
+        quants:
+          items:
+            $ref: "#/components/schemas/RuntimeRecipe_quants_inner"
+          type: array
+          default: null
+        projector:
+          $ref: "#/components/schemas/RuntimeRecipe_projector"
+        draft:
+          $ref: "#/components/schemas/RuntimeRecipe_draft"
+      required:
+      - model
+      - ok
+      - quant
+      - quants
     RuntimePlan:
       description: "Whether a local model fits in memory (gateway 0.74+) — `GET /v1/runtime/plan`,\
         \ and on a start the live-memory check refused."
@@ -5798,20 +5925,20 @@ components:
         ok: true
         service: service
         model: model
-        needMB: 0
-        weightsMB: 6
-        kvMB: 1
-        context: 5
+        needMB: 2
+        weightsMB: 7
+        kvMB: 9
+        context: 3
         contextCounted: true
         source: heatwatch
         fits: true
         live:
           fits: true
-          needMB: 5
-          availableMB: 2
+          needMB: 2
+          availableMB: 4
           shortfallMB: 7
           fitsGPULimit: true
-          gpuWiredLimitMB: 9
+          gpuWiredLimitMB: 1
           close:
           - close
           - close
@@ -12180,15 +12307,61 @@ components:
           type: boolean
         version:
           type: string
+    RuntimeRecipe_quants_inner:
+      example:
+        quant: quant
+        size: 1
+        fits: true
+      properties:
+        quant:
+          type: string
+        size:
+          type: integer
+        fits:
+          nullable: true
+          type: boolean
+      required:
+      - quant
+      - size
+    RuntimeRecipe_projector:
+      example:
+        path: path
+        size: 5
+      nullable: true
+      properties:
+        path:
+          type: string
+        size:
+          type: integer
+      required:
+      - path
+    RuntimeRecipe_draft:
+      example:
+        path: path
+        size: 5
+        spec: spec
+      nullable: true
+      properties:
+        path:
+          type: string
+        size:
+          type: integer
+        spec:
+          description: "llama-server --spec-type: draft-dspark, draft-mtp, draft-eagle3,\
+            \ draft-dflash or draft-simple."
+          type: string
+      required:
+      - path
+      - spec
     RuntimePlan_live:
       description: Heatwatch's answer; null without it.
       example:
         fits: true
-        needMB: 5
-        availableMB: 2
+        needMB: 2
+        availableMB: 4
         shortfallMB: 7
         fitsGPULimit: true
-        gpuWiredLimitMB: 9
+        gpuWiredLimitMB: 1
         close:
         - close
         - close

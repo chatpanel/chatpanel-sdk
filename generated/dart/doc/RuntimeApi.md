@@ -11,6 +11,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**runtimeEngine**](RuntimeApi.md#runtimeengine) | **POST** /v1/runtime/engines/{name} | Start the container engine (Podman — creates and starts its machine where one is needed).
 [**runtimePlan**](RuntimeApi.md#runtimeplan) | **GET** /v1/runtime/plan | Will this local model run now? Weights + the KV cache for the context + 10% headroom, against what is free.
+[**runtimeRecipe**](RuntimeApi.md#runtimerecipe) | **GET** /v1/runtime/recipe | What a GGUF repo runs as on this machine, before anything is downloaded.
 [**runtimeService**](RuntimeApi.md#runtimeservice) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it.
 [**runtimeStatus**](RuntimeApi.md#runtimestatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
 
@@ -105,6 +106,55 @@ Name | Type | Description  | Notes
 ### Authorization
 
 [gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **runtimeRecipe**
+> RuntimeRecipe runtimeRecipe(model, service)
+
+What a GGUF repo runs as on this machine, before anything is downloaded.
+
+For llama.cpp: the repo's file list read from Hugging Face, and 64 KB of one weights file's header for its architecture. Answers the quant picked (Q4_K_M when none is named), every quant with its size and whether it fits in about three quarters of the machine's memory, the vision projector and the speculative-decoding draft the repo ships (with the `--spec-type` its name means), and the layout chosen — `alt` when the repo also carries the weights as `.gguf_file` and only that layout is one the installed llama.cpp knows. A repo whose architecture the installed llama.cpp cannot load is a 400 with `code: unsupported_arch`. Nothing is saved; a start pulls the same recipe. 
+
+### Example
+```dart
+import 'package:chatpanel/api.dart';
+// TODO Configure API key authorization: tokenHeader
+//defaultApiClient.getAuthentication<ApiKeyAuth>('tokenHeader').apiKey = 'YOUR_API_KEY';
+// uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//defaultApiClient.getAuthentication<ApiKeyAuth>('tokenHeader').apiKeyPrefix = 'Bearer';
+
+final api = Chatpanel().getRuntimeApi();
+final String model = model_example; // String | A Hugging Face owner/name, or owner/name:QUANT.
+final String service = service_example; // String | 
+
+try {
+    final response = api.runtimeRecipe(model, service);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling RuntimeApi->runtimeRecipe: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **model** | **String**| A Hugging Face owner/name, or owner/name:QUANT. | 
+ **service** | **String**|  | [optional] [default to 'llama']
+
+### Return type
+
+[**RuntimeRecipe**](RuntimeRecipe.md)
+
+### Authorization
+
+[tokenHeader](../README.md#tokenHeader), [gatewayToken](../README.md#gatewayToken)
 
 ### HTTP request headers
 
