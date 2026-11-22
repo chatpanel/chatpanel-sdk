@@ -46,6 +46,7 @@ const NOT_IN_SDK = {
   '/v1/history/ingest-backup': 'admin: re-ingest the encrypted archives',
   '/v1/memory/clear': 'destructive — wipes every memory',
   '/v1/files/write': 'writes the person\'s disk — the panel\'s write_file behind its approval card; an embedding app is never handed that (gateway 0.104.0)',
+  '/v1/files/fs': 'reads the person\'s disk — the panel\'s `files` over a path the person typed in the chat; an embedding app is never handed that (gateway 0.139.0)',
   '/v1/files/exists': 'the same card\'s Create / Replace — the panel only (gateway 0.104.0)',
   '/v1/import/apple-notes': 'reads the person\'s whole Apple Notes library on the Automation grant they gave ChatPanel — the extension\'s Import from Apple Notes, the panel only, like /v1/files (gateway 0.119.0)',
   '/v1/observability': 'the MCP process reports here; admin-gated',
