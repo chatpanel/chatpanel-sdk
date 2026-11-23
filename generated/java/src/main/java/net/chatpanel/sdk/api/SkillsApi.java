@@ -19,6 +19,7 @@ import net.chatpanel.sdk.Configuration;
 import net.chatpanel.sdk.Pair;
 
 import net.chatpanel.sdk.model.ErrorResponse;
+import net.chatpanel.sdk.model.SkillsFile200Response;
 import net.chatpanel.sdk.model.SkillsGet200Response;
 import net.chatpanel.sdk.model.SkillsList200Response;
 import net.chatpanel.sdk.model.SkillsQuarantined200Response;
@@ -169,6 +170,152 @@ public class SkillsApi {
       file.deleteOnExit(); // best effort cleanup
     }
     return file;
+  }
+
+  /**
+   * One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+   * 
+   * @param skillId One path segment; slashes and &#x60;..&#x60; are refused. (required)
+   * @param path A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package. (required)
+   * @param workdir  (optional)
+   * @return SkillsFile200Response
+   * @throws ApiException if fails to make API call
+   */
+  public SkillsFile200Response skillsFile(@jakarta.annotation.Nonnull String skillId, @jakarta.annotation.Nonnull String path, @jakarta.annotation.Nullable String workdir) throws ApiException {
+    return skillsFile(skillId, path, workdir, null);
+  }
+
+  /**
+   * One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+   * 
+   * @param skillId One path segment; slashes and &#x60;..&#x60; are refused. (required)
+   * @param path A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package. (required)
+   * @param workdir  (optional)
+   * @param headers Optional headers to include in the request
+   * @return SkillsFile200Response
+   * @throws ApiException if fails to make API call
+   */
+  public SkillsFile200Response skillsFile(@jakarta.annotation.Nonnull String skillId, @jakarta.annotation.Nonnull String path, @jakarta.annotation.Nullable String workdir, Map<String, String> headers) throws ApiException {
+    ApiResponse<SkillsFile200Response> localVarResponse = skillsFileWithHttpInfo(skillId, path, workdir, headers);
+    return localVarResponse.getData();
+  }
+
+  /**
+   * One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+   * 
+   * @param skillId One path segment; slashes and &#x60;..&#x60; are refused. (required)
+   * @param path A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package. (required)
+   * @param workdir  (optional)
+   * @return ApiResponse&lt;SkillsFile200Response&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<SkillsFile200Response> skillsFileWithHttpInfo(@jakarta.annotation.Nonnull String skillId, @jakarta.annotation.Nonnull String path, @jakarta.annotation.Nullable String workdir) throws ApiException {
+    return skillsFileWithHttpInfo(skillId, path, workdir, null);
+  }
+
+  /**
+   * One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+   * 
+   * @param skillId One path segment; slashes and &#x60;..&#x60; are refused. (required)
+   * @param path A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package. (required)
+   * @param workdir  (optional)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;SkillsFile200Response&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<SkillsFile200Response> skillsFileWithHttpInfo(@jakarta.annotation.Nonnull String skillId, @jakarta.annotation.Nonnull String path, @jakarta.annotation.Nullable String workdir, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = skillsFileRequestBuilder(skillId, path, workdir, headers);
+    try {
+      HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
+          localVarRequestBuilder.build(),
+          HttpResponse.BodyHandlers.ofInputStream());
+      if (memberVarResponseInterceptor != null) {
+        memberVarResponseInterceptor.accept(localVarResponse);
+      }
+      InputStream localVarResponseBody = null;
+      try {
+        if (localVarResponse.statusCode()/ 100 != 2) {
+          throw getApiException("skillsFile", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
+          return new ApiResponse<SkillsFile200Response>(
+              localVarResponse.statusCode(),
+              localVarResponse.headers().map(),
+              null
+          );
+        }
+
+        
+        
+        String responseBody = new String(localVarResponseBody.readAllBytes());
+        SkillsFile200Response responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<SkillsFile200Response>() {});
+        
+
+        return new ApiResponse<SkillsFile200Response>(
+            localVarResponse.statusCode(),
+            localVarResponse.headers().map(),
+            responseValue
+        );
+      } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
+      }
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(e);
+    }
+  }
+
+  private HttpRequest.Builder skillsFileRequestBuilder(@jakarta.annotation.Nonnull String skillId, @jakarta.annotation.Nonnull String path, @jakarta.annotation.Nullable String workdir, Map<String, String> headers) throws ApiException {
+    // verify the required parameter 'skillId' is set
+    if (skillId == null) {
+      throw new ApiException(400, "Missing the required parameter 'skillId' when calling skillsFile");
+    }
+    // verify the required parameter 'path' is set
+    if (path == null) {
+      throw new ApiException(400, "Missing the required parameter 'path' when calling skillsFile");
+    }
+
+    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+    String localVarPath = "/skills/{skillId}/file/{path}"
+        .replace("{skillId}", ApiClient.urlEncode(skillId.toString()))
+        .replace("{path}", ApiClient.urlEncode(path.toString()));
+
+    List<Pair> localVarQueryParams = new ArrayList<>();
+    StringJoiner localVarQueryStringJoiner = new StringJoiner("&");
+    String localVarQueryParameterBaseName;
+    localVarQueryParameterBaseName = "workdir";
+    localVarQueryParams.addAll(ApiClient.parameterToPairs("workdir", workdir));
+
+    if (!localVarQueryParams.isEmpty() || localVarQueryStringJoiner.length() != 0) {
+      StringJoiner queryJoiner = new StringJoiner("&");
+      localVarQueryParams.forEach(p -> queryJoiner.add(p.getName() + '=' + p.getValue()));
+      if (localVarQueryStringJoiner.length() != 0) {
+        queryJoiner.add(localVarQueryStringJoiner.toString());
+      }
+      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath + '?' + queryJoiner.toString()));
+    } else {
+      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+    }
+
+    localVarRequestBuilder.header("Accept", "application/json");
+
+    localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+    if (memberVarReadTimeout != null) {
+      localVarRequestBuilder.timeout(memberVarReadTimeout);
+    }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
+    if (memberVarInterceptor != null) {
+      memberVarInterceptor.accept(localVarRequestBuilder);
+    }
+    return localVarRequestBuilder;
   }
 
   /**

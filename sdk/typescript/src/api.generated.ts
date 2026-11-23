@@ -119,6 +119,7 @@ export const OPERATIONS = {
   "agents.exportDef": { id: "agents.exportDef", method: "POST", path: "/agent-defs/export", auth: "token", since: "0.48.0", stream: null, pathParams: [], queryParams: [] },
   "skills.list": { id: "skills.list", method: "GET", path: "/skills", auth: "open", since: "0.6.64", stream: null, pathParams: [], queryParams: ["workdir"] },
   "skills.get": { id: "skills.get", method: "GET", path: "/skills/{skillId}", auth: "open", since: "0.6.67", stream: null, pathParams: ["skillId"], queryParams: ["workdir"] },
+  "skills.file": { id: "skills.file", method: "GET", path: "/skills/{skillId}/file/{path}", auth: "open", since: "0.11.4", stream: null, pathParams: ["skillId","path"], queryParams: ["workdir"] },
   "fusions.list": { id: "fusions.list", method: "GET", path: "/v1/fusions", auth: "open", since: "0.33.0", stream: null, pathParams: [], queryParams: [] },
   "browser.status": { id: "browser.status", method: "GET", path: "/v1/browser", auth: "token", since: "0.59.0", stream: null, pathParams: [], queryParams: [] },
   "browser.call": { id: "browser.call", method: "POST", path: "/v1/browser/call", auth: "token", since: "0.59.0", stream: null, pathParams: [], queryParams: [] },
@@ -898,6 +899,14 @@ export class SkillsApi {
     skill: T.Skill | null;
   }> {
     return this.rt.request(OPERATIONS["skills.get"], { path: { skillId }, query: query, headers: opts?.headers, body: undefined, opts });
+  }
+  /** One reference file a packaged skill ships — what a model opens when the skill's prompt points at it. — Gateway 0.11.4+. */
+  file(skillId: string, path: string, query?: { workdir?: string }, opts?: RequestOptions): Promise<{
+    ok: boolean;
+    path?: string;
+    text: string;
+  }> {
+    return this.rt.request(OPERATIONS["skills.file"], { path: { skillId, path }, query: query, headers: opts?.headers, body: undefined, opts });
   }
 }
 

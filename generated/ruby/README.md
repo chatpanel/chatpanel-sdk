@@ -221,6 +221,7 @@ Class | Method | HTTP request | Description
 *ChatPanel::RuntimeApi* | [**runtime_recipe**](docs/RuntimeApi.md#runtime_recipe) | **GET** /v1/runtime/recipe | What a GGUF repo runs as on this machine, before anything is downloaded.
 *ChatPanel::RuntimeApi* | [**runtime_service**](docs/RuntimeApi.md#runtime_service) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container's model — each runs loopback-only and the gateway points at it.
 *ChatPanel::RuntimeApi* | [**runtime_status**](docs/RuntimeApi.md#runtime_status) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
+*ChatPanel::SkillsApi* | [**skills_file**](docs/SkillsApi.md#skills_file) | **GET** /skills/{skillId}/file/{path} | One reference file a packaged skill ships — what a model opens when the skill's prompt points at it.
 *ChatPanel::SkillsApi* | [**skills_get**](docs/SkillsApi.md#skills_get) | **GET** /skills/{skillId} | One skill, with its prompt.
 *ChatPanel::SkillsApi* | [**skills_list**](docs/SkillsApi.md#skills_list) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
 *ChatPanel::SkillsApi* | [**skills_quarantined**](docs/SkillsApi.md#skills_quarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed.
@@ -482,6 +483,7 @@ Class | Method | HTTP request | Description
  - [ChatPanel::SearchTrailAsk](docs/SearchTrailAsk.md)
  - [ChatPanel::SearchTrailResting](docs/SearchTrailResting.md)
  - [ChatPanel::Skill](docs/Skill.md)
+ - [ChatPanel::SkillsFile200Response](docs/SkillsFile200Response.md)
  - [ChatPanel::SkillsGet200Response](docs/SkillsGet200Response.md)
  - [ChatPanel::SkillsList200Response](docs/SkillsList200Response.md)
  - [ChatPanel::SkillsQuarantined200Response](docs/SkillsQuarantined200Response.md)

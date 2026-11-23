@@ -23,6 +23,20 @@ import (
 type SkillsAPI interface {
 
 	/*
+	SkillsFile One reference file a packaged skill ships — what a model opens when the skill's prompt points at it.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param skillId One path segment; slashes and `..` are refused.
+	@param path A file inside the skill's package, relative to it (`SKILL.md`, `reference/forms.md`). Its own slashes stay; each segment is URL-encoded. `..` is refused, and the bridge refuses anything outside the package.
+	@return ApiSkillsFileRequest
+	*/
+	SkillsFile(ctx context.Context, skillId string, path string) ApiSkillsFileRequest
+
+	// SkillsFileExecute executes the request
+	//  @return SkillsFile200Response
+	SkillsFileExecute(r ApiSkillsFileRequest) (*SkillsFile200Response, *http.Response, error)
+
+	/*
 	SkillsGet One skill, with its prompt.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -64,6 +78,158 @@ type SkillsAPI interface {
 
 // SkillsAPIService SkillsAPI service
 type SkillsAPIService service
+
+type ApiSkillsFileRequest struct {
+	ctx context.Context
+	ApiService SkillsAPI
+	skillId string
+	path string
+	workdir *string
+}
+
+func (r ApiSkillsFileRequest) Workdir(workdir string) ApiSkillsFileRequest {
+	r.workdir = &workdir
+	return r
+}
+
+func (r ApiSkillsFileRequest) Execute() (*SkillsFile200Response, *http.Response, error) {
+	return r.ApiService.SkillsFileExecute(r)
+}
+
+/*
+SkillsFile One reference file a packaged skill ships — what a model opens when the skill's prompt points at it.
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param skillId One path segment; slashes and `..` are refused.
+ @param path A file inside the skill's package, relative to it (`SKILL.md`, `reference/forms.md`). Its own slashes stay; each segment is URL-encoded. `..` is refused, and the bridge refuses anything outside the package.
+ @return ApiSkillsFileRequest
+*/
+func (a *SkillsAPIService) SkillsFile(ctx context.Context, skillId string, path string) ApiSkillsFileRequest {
+	return ApiSkillsFileRequest{
+		ApiService: a,
+		ctx: ctx,
+		skillId: skillId,
+		path: path,
+	}
+}
+
+// Execute executes the request
+//  @return SkillsFile200Response
+func (a *SkillsAPIService) SkillsFileExecute(r ApiSkillsFileRequest) (*SkillsFile200Response, *http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *SkillsFile200Response
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "SkillsAPIService.SkillsFile")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/skills/{skillId}/file/{path}"
+	localVarPath = strings.Replace(localVarPath, "{"+"skillId"+"}", url.PathEscape(parameterValueToString(r.skillId, "skillId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"path"+"}", url.PathEscape(parameterValueToString(r.path, "path")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if strlen(r.skillId) > 200 {
+		return localVarReturnValue, nil, reportError("skillId must have less than 200 elements")
+	}
+	if strlen(r.path) > 1024 {
+		return localVarReturnValue, nil, reportError("path must have less than 1024 elements")
+	}
+
+	if r.workdir != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "workdir", r.workdir, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v ErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 502 {
+			var v ErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
 
 type ApiSkillsGetRequest struct {
 	ctx context.Context

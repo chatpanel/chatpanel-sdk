@@ -74,6 +74,9 @@ class SkillsApi
 
     /** @var string[] $contentTypes **/
     public const contentTypes = [
+        'skillsFile' => [
+            'application/json',
+        ],
         'skillsGet' => [
             'application/json',
         ],
@@ -129,6 +132,368 @@ class SkillsApi
     public function getConfig()
     {
         return $this->config;
+    }
+
+    /**
+     * Operation skillsFile
+     *
+     * One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+     *
+     * @param  string $skill_id One path segment; slashes and &#x60;..&#x60; are refused. (required)
+     * @param  string $path A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package. (required)
+     * @param  string|null $workdir workdir (optional)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['skillsFile'] to see the possible values for this operation
+     *
+     * @throws \ChatPanelSdk\ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws \InvalidArgumentException
+     * @return \ChatPanelSdk\Model\SkillsFile200Response|\ChatPanelSdk\Model\ErrorResponse|\ChatPanelSdk\Model\ErrorResponse|\ChatPanelSdk\Model\ErrorResponse
+     */
+    public function skillsFile($skill_id, $path, $workdir = null, string $contentType = self::contentTypes['skillsFile'][0])
+    {
+        list($response) = $this->skillsFileWithHttpInfo($skill_id, $path, $workdir, $contentType);
+        return $response;
+    }
+
+    /**
+     * Operation skillsFileWithHttpInfo
+     *
+     * One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+     *
+     * @param  string $skill_id One path segment; slashes and &#x60;..&#x60; are refused. (required)
+     * @param  string $path A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package. (required)
+     * @param  string|null $workdir (optional)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['skillsFile'] to see the possible values for this operation
+     *
+     * @throws \ChatPanelSdk\ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws \InvalidArgumentException
+     * @return array of \ChatPanelSdk\Model\SkillsFile200Response|\ChatPanelSdk\Model\ErrorResponse|\ChatPanelSdk\Model\ErrorResponse|\ChatPanelSdk\Model\ErrorResponse, HTTP status code, HTTP response headers (array of strings)
+     */
+    public function skillsFileWithHttpInfo($skill_id, $path, $workdir = null, string $contentType = self::contentTypes['skillsFile'][0])
+    {
+        $request = $this->skillsFileRequest($skill_id, $path, $workdir, $contentType);
+
+        try {
+            $options = $this->createHttpClientOption();
+            try {
+                $response = $this->client->send($request, $options);
+            } catch (RequestException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    $e->getResponse() ? $e->getResponse()->getHeaders() : null,
+                    $e->getResponse() ? (string) $e->getResponse()->getBody() : null
+                );
+            } catch (ConnectException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    null,
+                    null
+                );
+            }
+
+            $statusCode = $response->getStatusCode();
+
+
+            switch($statusCode) {
+                case 200:
+                    return $this->handleResponseWithDataType(
+                        '\ChatPanelSdk\Model\SkillsFile200Response',
+                        $request,
+                        $response,
+                    );
+                case 400:
+                    return $this->handleResponseWithDataType(
+                        '\ChatPanelSdk\Model\ErrorResponse',
+                        $request,
+                        $response,
+                    );
+                case 404:
+                    return $this->handleResponseWithDataType(
+                        '\ChatPanelSdk\Model\ErrorResponse',
+                        $request,
+                        $response,
+                    );
+                case 502:
+                    return $this->handleResponseWithDataType(
+                        '\ChatPanelSdk\Model\ErrorResponse',
+                        $request,
+                        $response,
+                    );
+            }
+
+            
+
+            if ($statusCode < 200 || $statusCode > 299) {
+                throw new ApiException(
+                    sprintf(
+                        '[%d] Error connecting to the API (%s)',
+                        $statusCode,
+                        (string) $request->getUri()
+                    ),
+                    $statusCode,
+                    $response->getHeaders(),
+                    (string) $response->getBody()
+                );
+            }
+
+            return $this->handleResponseWithDataType(
+                '\ChatPanelSdk\Model\SkillsFile200Response',
+                $request,
+                $response,
+            );
+        } catch (ApiException $e) {
+            switch ($e->getCode()) {
+                case 200:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\ChatPanelSdk\Model\SkillsFile200Response',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 400:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\ChatPanelSdk\Model\ErrorResponse',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 404:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\ChatPanelSdk\Model\ErrorResponse',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 502:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\ChatPanelSdk\Model\ErrorResponse',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+            }
+        
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Operation skillsFileAsync
+     *
+     * One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+     *
+     * @param  string $skill_id One path segment; slashes and &#x60;..&#x60; are refused. (required)
+     * @param  string $path A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package. (required)
+     * @param  string|null $workdir (optional)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['skillsFile'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     */
+    public function skillsFileAsync($skill_id, $path, $workdir = null, string $contentType = self::contentTypes['skillsFile'][0])
+    {
+        return $this->skillsFileAsyncWithHttpInfo($skill_id, $path, $workdir, $contentType)
+            ->then(
+                function ($response) {
+                    return $response[0];
+                }
+            );
+    }
+
+    /**
+     * Operation skillsFileAsyncWithHttpInfo
+     *
+     * One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+     *
+     * @param  string $skill_id One path segment; slashes and &#x60;..&#x60; are refused. (required)
+     * @param  string $path A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package. (required)
+     * @param  string|null $workdir (optional)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['skillsFile'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     */
+    public function skillsFileAsyncWithHttpInfo($skill_id, $path, $workdir = null, string $contentType = self::contentTypes['skillsFile'][0])
+    {
+        $returnType = '\ChatPanelSdk\Model\SkillsFile200Response';
+        $request = $this->skillsFileRequest($skill_id, $path, $workdir, $contentType);
+
+        return $this->client
+            ->sendAsync($request, $this->createHttpClientOption())
+            ->then(
+                function ($response) use ($returnType) {
+                    if ($returnType === '\SplFileObject') {
+                        $content = $response->getBody(); //stream goes to serializer
+                    } else {
+                        $content = (string) $response->getBody();
+                        if ($returnType !== 'string') {
+                            $content = json_decode($content);
+                        }
+                    }
+
+                    return [
+                        ObjectSerializer::deserialize($content, $returnType, []),
+                        $response->getStatusCode(),
+                        $response->getHeaders()
+                    ];
+                },
+                function ($exception) {
+                    $response = $exception->getResponse();
+                    $statusCode = $response->getStatusCode();
+                    throw new ApiException(
+                        sprintf(
+                            '[%d] Error connecting to the API (%s)',
+                            $statusCode,
+                            $exception->getRequest()->getUri()
+                        ),
+                        $statusCode,
+                        $response->getHeaders(),
+                        (string) $response->getBody()
+                    );
+                }
+            );
+    }
+
+    /**
+     * Create request for operation 'skillsFile'
+     *
+     * @param  string $skill_id One path segment; slashes and &#x60;..&#x60; are refused. (required)
+     * @param  string $path A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package. (required)
+     * @param  string|null $workdir (optional)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['skillsFile'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Psr7\Request
+     */
+    public function skillsFileRequest($skill_id, $path, $workdir = null, string $contentType = self::contentTypes['skillsFile'][0])
+    {
+
+        // verify the required parameter 'skill_id' is set
+        if ($skill_id === null || (is_array($skill_id) && count($skill_id) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $skill_id when calling skillsFile'
+            );
+        }
+        if (strlen($skill_id) > 200) {
+            throw new \InvalidArgumentException('invalid length for "$skill_id" when calling SkillsApi.skillsFile, must be smaller than or equal to 200.');
+        }
+        if (!preg_match("/^[^\/\\\\]+$/", $skill_id)) {
+            throw new \InvalidArgumentException("invalid value for \"skill_id\" when calling SkillsApi.skillsFile, must conform to the pattern /^[^\/\\\\]+$/.");
+        }
+        
+        // verify the required parameter 'path' is set
+        if ($path === null || (is_array($path) && count($path) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $path when calling skillsFile'
+            );
+        }
+        if (strlen($path) > 1024) {
+            throw new \InvalidArgumentException('invalid length for "$path" when calling SkillsApi.skillsFile, must be smaller than or equal to 1024.');
+        }
+        
+
+
+        $resourcePath = '/skills/{skillId}/file/{path}';
+        $formParams = [];
+        $queryParams = [];
+        $headerParams = [];
+        $httpBody = '';
+        $multipart = false;
+
+        // query params
+        $queryParams = array_merge($queryParams, ObjectSerializer::toQueryValue(
+            $workdir,
+            'workdir', // param base name
+            'string', // openApiType
+            'form', // style
+            true, // explode
+            false // required
+        ) ?? []);
+
+
+        // path params
+        if ($skill_id !== null) {
+            $resourcePath = str_replace(
+                '{skillId}',
+                ObjectSerializer::toPathValue($skill_id),
+                $resourcePath
+            );
+        }
+        // path params
+        if ($path !== null) {
+            $resourcePath = str_replace(
+                '{path}',
+                ObjectSerializer::toPathValue($path),
+                $resourcePath
+            );
+        }
+
+
+        $headers = $this->headerSelector->selectHeaders(
+            ['application/json', ],
+            $contentType,
+            $multipart
+        );
+
+        // for model (json/xml)
+        if (count($formParams) > 0) {
+            if ($multipart) {
+                $multipartContents = [];
+                foreach ($formParams as $formParamName => $formParamValue) {
+                    $formParamValueItems = is_array($formParamValue) ? $formParamValue : [$formParamValue];
+                    foreach ($formParamValueItems as $formParamValueItem) {
+                        $multipartContents[] = [
+                            'name' => $formParamName,
+                            'contents' => $formParamValueItem
+                        ];
+                    }
+                }
+                // for HTTP post (form)
+                $httpBody = new MultipartStream($multipartContents);
+
+            } elseif (stripos($headers['Content-Type'], 'application/json') !== false) {
+                # if Content-Type contains "application/json", json_encode the form parameters
+                try {
+                    $httpBody = json_encode($formParams, JSON_THROW_ON_ERROR);
+                } catch (\JsonException $e) {
+                    throw new \InvalidArgumentException('json_encode error: ' . $e->getMessage(), 0, $e);
+                }
+            } else {
+                // for HTTP post (form)
+                $httpBody = ObjectSerializer::buildQuery($formParams);
+            }
+        }
+
+        // this endpoint requires Bearer authentication (access token)
+        if (!empty($this->config->getAccessToken())) {
+            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
+        }
+
+        $defaultHeaders = [];
+        if ($this->config->getUserAgent()) {
+            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
+        }
+
+        $headers = array_merge(
+            $defaultHeaders,
+            $headerParams,
+            $headers
+        );
+
+        $operationHost = $this->config->getHost();
+        $query = ObjectSerializer::buildQuery($queryParams);
+        return new Request(
+            'GET',
+            $operationHost . $resourcePath . ($query ? "?{$query}" : ''),
+            $headers,
+            $httpBody
+        );
     }
 
     /**

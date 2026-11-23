@@ -272,6 +272,7 @@ export 'package:chatpanel/src/model/search_trail.dart';
 export 'package:chatpanel/src/model/search_trail_ask.dart';
 export 'package:chatpanel/src/model/search_trail_resting.dart';
 export 'package:chatpanel/src/model/skill.dart';
+export 'package:chatpanel/src/model/skills_file200_response.dart';
 export 'package:chatpanel/src/model/skills_get200_response.dart';
 export 'package:chatpanel/src/model/skills_list200_response.dart';
 export 'package:chatpanel/src/model/skills_quarantined200_response.dart';

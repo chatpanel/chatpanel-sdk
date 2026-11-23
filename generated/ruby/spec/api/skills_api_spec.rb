@@ -32,6 +32,19 @@ describe 'SkillsApi' do
     end
   end
 
+  # unit tests for skills_file
+  # One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+  # @param skill_id One path segment; slashes and &#x60;..&#x60; are refused.
+  # @param path A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package.
+  # @param [Hash] opts the optional parameters
+  # @option opts [String] :workdir 
+  # @return [SkillsFile200Response]
+  describe 'skills_file test' do
+    it 'should work' do
+      # assertion here. ref: https://rspec.info/features/3-12/rspec-expectations/built-in-matchers/
+    end
+  end
+
   # unit tests for skills_get
   # One skill, with its prompt.
   # @param skill_id One path segment; slashes and &#x60;..&#x60; are refused.

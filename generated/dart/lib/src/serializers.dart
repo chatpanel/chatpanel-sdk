@@ -252,6 +252,7 @@ import 'package:chatpanel/src/model/search_trail.dart';
 import 'package:chatpanel/src/model/search_trail_ask.dart';
 import 'package:chatpanel/src/model/search_trail_resting.dart';
 import 'package:chatpanel/src/model/skill.dart';
+import 'package:chatpanel/src/model/skills_file200_response.dart';
 import 'package:chatpanel/src/model/skills_get200_response.dart';
 import 'package:chatpanel/src/model/skills_list200_response.dart';
 import 'package:chatpanel/src/model/skills_quarantined200_response.dart';
@@ -519,6 +520,7 @@ part 'serializers.g.dart';
   SearchTrailAsk,
   SearchTrailResting,
   Skill,
+  SkillsFile200Response,
   SkillsGet200Response,
   SkillsList200Response,
   SkillsQuarantined200Response,

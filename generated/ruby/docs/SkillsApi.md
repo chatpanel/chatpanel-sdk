@@ -4,9 +4,83 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 | Method | HTTP request | Description |
 | ------ | ------------ | ----------- |
+| [**skills_file**](SkillsApi.md#skills_file) | **GET** /skills/{skillId}/file/{path} | One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it. |
 | [**skills_get**](SkillsApi.md#skills_get) | **GET** /skills/{skillId} | One skill, with its prompt. |
 | [**skills_list**](SkillsApi.md#skills_list) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt. |
 | [**skills_quarantined**](SkillsApi.md#skills_quarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed. |
+
+
+## skills_file
+
+> <SkillsFile200Response> skills_file(skill_id, path, opts)
+
+One reference file a packaged skill ships — what a model opens when the skill's prompt points at it.
+
+### Examples
+
+```ruby
+require 'time'
+require 'chatpanel'
+# setup authorization
+ChatPanel.configure do |config|
+  # Configure Bearer authorization: gatewayToken
+  config.access_token = 'YOUR_BEARER_TOKEN'
+end
+
+api_instance = ChatPanel::SkillsApi.new
+skill_id = 'skill_id_example' # String | One path segment; slashes and `..` are refused.
+path = 'path_example' # String | A file inside the skill's package, relative to it (`SKILL.md`, `reference/forms.md`). Its own slashes stay; each segment is URL-encoded. `..` is refused, and the bridge refuses anything outside the package.
+opts = {
+  workdir: 'workdir_example' # String | 
+}
+
+begin
+  # One reference file a packaged skill ships — what a model opens when the skill's prompt points at it.
+  result = api_instance.skills_file(skill_id, path, opts)
+  p result
+rescue ChatPanel::ApiError => e
+  puts "Error when calling SkillsApi->skills_file: #{e}"
+end
+```
+
+#### Using the skills_file_with_http_info variant
+
+This returns an Array which contains the response data, status code and headers.
+
+> <Array(<SkillsFile200Response>, Integer, Hash)> skills_file_with_http_info(skill_id, path, opts)
+
+```ruby
+begin
+  # One reference file a packaged skill ships — what a model opens when the skill's prompt points at it.
+  data, status_code, headers = api_instance.skills_file_with_http_info(skill_id, path, opts)
+  p status_code # => 2xx
+  p headers # => { ... }
+  p data # => <SkillsFile200Response>
+rescue ChatPanel::ApiError => e
+  puts "Error when calling SkillsApi->skills_file_with_http_info: #{e}"
+end
+```
+
+### Parameters
+
+| Name | Type | Description | Notes |
+| ---- | ---- | ----------- | ----- |
+| **skill_id** | **String** | One path segment; slashes and &#x60;..&#x60; are refused. |  |
+| **path** | **String** | A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package. |  |
+| **workdir** | **String** |  | [optional] |
+
+### Return type
+
+[**SkillsFile200Response**](SkillsFile200Response.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
 
 ## skills_get

@@ -72,6 +72,18 @@ class SkillsApiTest extends TestCase
     }
 
     /**
+     * Test case for skillsFile
+     *
+     * One reference file a packaged skill ships — what a model opens when the skill's prompt points at it..
+     *
+     */
+    public function testSkillsFile()
+    {
+        // TODO: implement
+        self::markTestIncomplete('Not implemented');
+    }
+
+    /**
      * Test case for skillsGet
      *
      * One skill, with its prompt..

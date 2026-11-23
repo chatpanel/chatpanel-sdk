@@ -474,6 +474,8 @@ pub mod search_trail_resting;
 pub use self::search_trail_resting::SearchTrailResting;
 pub mod skill;
 pub use self::skill::Skill;
+pub mod skills_file_200_response;
+pub use self::skills_file_200_response::SkillsFile200Response;
 pub mod skills_get_200_response;
 pub use self::skills_get_200_response::SkillsGet200Response;
 pub mod skills_list_200_response;

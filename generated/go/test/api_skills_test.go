@@ -22,6 +22,21 @@ func Test_chatpanel_SkillsAPIService(t *testing.T) {
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
 
+	t.Run("Test SkillsAPIService SkillsFile", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		var skillId string
+		var path string
+
+		resp, httpRes, err := apiClient.SkillsAPI.SkillsFile(context.Background(), skillId, path).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
 	t.Run("Test SkillsAPIService SkillsGet", func(t *testing.T) {
 
 		t.Skip("skip test")  // remove to run test

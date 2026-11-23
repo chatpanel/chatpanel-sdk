@@ -7,6 +7,13 @@ void main() {
   final instance = Chatpanel().getSkillsApi();
 
   group(SkillsApi, () {
+    // One reference file a packaged skill ships — what a model opens when the skill's prompt points at it.
+    //
+    //Future<SkillsFile200Response> skillsFile(String skillId, String path, { String workdir }) async
+    test('test skillsFile', () async {
+      // TODO
+    });
+
     // One skill, with its prompt.
     //
     //Future<SkillsGet200Response> skillsGet(String skillId, { String workdir }) async

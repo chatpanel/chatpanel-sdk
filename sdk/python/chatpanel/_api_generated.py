@@ -119,6 +119,7 @@ OPERATIONS: Dict[str, Operation] = {
     "agents.exportDef": Operation(id="agents.exportDef", method="POST", path="/agent-defs/export", auth="token", since="0.48.0", stream=None, path_params=(), query_params=()),
     "skills.list": Operation(id="skills.list", method="GET", path="/skills", auth="open", since="0.6.64", stream=None, path_params=(), query_params=("workdir",)),
     "skills.get": Operation(id="skills.get", method="GET", path="/skills/{skillId}", auth="open", since="0.6.67", stream=None, path_params=("skillId",), query_params=("workdir",)),
+    "skills.file": Operation(id="skills.file", method="GET", path="/skills/{skillId}/file/{path}", auth="open", since="0.11.4", stream=None, path_params=("skillId", "path",), query_params=("workdir",)),
     "fusions.list": Operation(id="fusions.list", method="GET", path="/v1/fusions", auth="open", since="0.33.0", stream=None, path_params=(), query_params=()),
     "browser.status": Operation(id="browser.status", method="GET", path="/v1/browser", auth="token", since="0.59.0", stream=None, path_params=(), query_params=()),
     "browser.call": Operation(id="browser.call", method="POST", path="/v1/browser/call", auth="token", since="0.59.0", stream=None, path_params=(), query_params=()),
@@ -700,6 +701,10 @@ class SkillsApi:
     def get(self, skill_id: str, query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
         """One skill, with its prompt. — Gateway 0.6.67+."""
         return self._rt.request(OPERATIONS["skills.get"], path={"skillId": skill_id}, query=query, headers=headers, body=None, timeout=timeout)
+
+    def file(self, skill_id: str, path: str, query: Optional[Dict[str, Any]] = None, *, headers: Optional[Dict[str, str]] = None, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """One reference file a packaged skill ships — what a model opens when the skill's prompt points at it. — Gateway 0.11.4+."""
+        return self._rt.request(OPERATIONS["skills.file"], path={"skillId": skill_id, "path": path}, query=query, headers=headers, body=None, timeout=timeout)
 
 
 class A2aApi:

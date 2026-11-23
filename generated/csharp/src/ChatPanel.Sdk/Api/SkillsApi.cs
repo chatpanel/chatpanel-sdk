@@ -39,6 +39,33 @@ namespace ChatPanel.Sdk.Api
         SkillsApiEvents Events { get; }
 
         /// <summary>
+        /// One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+        /// </summary>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        /// <exception cref="ApiException">Thrown when fails to make API call</exception>
+        /// <param name="skillId">One path segment; slashes and &#x60;..&#x60; are refused.</param>
+        /// <param name="path">A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package.</param>
+        /// <param name="workdir"> (optional)</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="ISkillsFileApiResponse"/>&gt;</returns>
+        Task<ISkillsFileApiResponse> SkillsFileAsync(string skillId, string path, Option<string> workdir = default, System.Threading.CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+        /// </summary>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        /// <param name="skillId">One path segment; slashes and &#x60;..&#x60; are refused.</param>
+        /// <param name="path">A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package.</param>
+        /// <param name="workdir"> (optional)</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="ISkillsFileApiResponse"/>?&gt;</returns>
+        Task<ISkillsFileApiResponse?> SkillsFileOrDefaultAsync(string skillId, string path, Option<string> workdir = default, System.Threading.CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// One skill, with its prompt.
         /// </summary>
         /// <remarks>
@@ -108,6 +135,36 @@ namespace ChatPanel.Sdk.Api
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns><see cref="Task"/>&lt;<see cref="ISkillsQuarantinedApiResponse"/>?&gt;</returns>
         Task<ISkillsQuarantinedApiResponse?> SkillsQuarantinedOrDefaultAsync(Option<string> workdir = default, System.Threading.CancellationToken cancellationToken = default);
+    }
+
+    /// <summary>
+    /// The <see cref="ISkillsFileApiResponse"/>
+    /// </summary>
+    public interface ISkillsFileApiResponse : ChatPanel.Sdk.Client.IApiResponse, IOk<ChatPanel.Sdk.Model.SkillsFile200Response?>, IBadRequest<ChatPanel.Sdk.Model.ErrorResponse?>, INotFound<ChatPanel.Sdk.Model.ErrorResponse?>, IBadGateway<ChatPanel.Sdk.Model.ErrorResponse?>
+    {
+        /// <summary>
+        /// Returns true if the response is 200 Ok
+        /// </summary>
+        /// <returns></returns>
+        bool IsOk { get; }
+
+        /// <summary>
+        /// Returns true if the response is 400 BadRequest
+        /// </summary>
+        /// <returns></returns>
+        bool IsBadRequest { get; }
+
+        /// <summary>
+        /// Returns true if the response is 404 NotFound
+        /// </summary>
+        /// <returns></returns>
+        bool IsNotFound { get; }
+
+        /// <summary>
+        /// Returns true if the response is 502 BadGateway
+        /// </summary>
+        /// <returns></returns>
+        bool IsBadGateway { get; }
     }
 
     /// <summary>
@@ -187,6 +244,26 @@ namespace ChatPanel.Sdk.Api
     /// </summary>
     public class SkillsApiEvents
     {
+        /// <summary>
+        /// The event raised after the server response
+        /// </summary>
+        public event EventHandler<ApiResponseEventArgs>? OnSkillsFile;
+
+        /// <summary>
+        /// The event raised after an error querying the server
+        /// </summary>
+        public event EventHandler<ExceptionEventArgs>? OnErrorSkillsFile;
+
+        internal void ExecuteOnSkillsFile(SkillsApi.SkillsFileApiResponse apiResponse)
+        {
+            OnSkillsFile?.Invoke(this, new ApiResponseEventArgs(apiResponse));
+        }
+
+        internal void ExecuteOnErrorSkillsFile(Exception exception)
+        {
+            OnErrorSkillsFile?.Invoke(this, new ExceptionEventArgs(exception));
+        }
+
         /// <summary>
         /// The event raised after the server response
         /// </summary>
@@ -294,6 +371,448 @@ namespace ChatPanel.Sdk.Api
             Events = skillsApiEvents;
             ApiKeyProvider = apiKeyProvider;
             BearerTokenProvider = bearerTokenProvider;
+        }
+
+        partial void FormatSkillsFile(ref string skillId, ref string path, ref Option<string> workdir);
+
+        /// <summary>
+        /// Validates the request parameters
+        /// </summary>
+        /// <param name="skillId"></param>
+        /// <param name="path"></param>
+        /// <param name="workdir"></param>
+        /// <returns></returns>
+        private void ValidateSkillsFile(string skillId, string path, Option<string> workdir)
+        {
+            if (skillId == null)
+                throw new ArgumentNullException(nameof(skillId));
+
+            if (path == null)
+                throw new ArgumentNullException(nameof(path));
+
+            if (workdir.IsSet && workdir.Value == null)
+                throw new ArgumentNullException(nameof(workdir));
+        }
+
+        /// <summary>
+        /// Processes the server response
+        /// </summary>
+        /// <param name="apiResponseLocalVar"></param>
+        /// <param name="skillId"></param>
+        /// <param name="path"></param>
+        /// <param name="workdir"></param>
+        private void AfterSkillsFileDefaultImplementation(ISkillsFileApiResponse apiResponseLocalVar, string skillId, string path, Option<string> workdir)
+        {
+            bool suppressDefaultLog = false;
+            AfterSkillsFile(ref suppressDefaultLog, apiResponseLocalVar, skillId, path, workdir);
+            if (!suppressDefaultLog)
+                Logger.LogInformation(RestLogEvents.ApiRequestCompleted, "{0,-9} | {1} | {2}", (apiResponseLocalVar.DownloadedAt - apiResponseLocalVar.RequestedAt).TotalSeconds, apiResponseLocalVar.StatusCode, apiResponseLocalVar.Path);
+        }
+
+        /// <summary>
+        /// Processes the server response
+        /// </summary>
+        /// <param name="suppressDefaultLog"></param>
+        /// <param name="apiResponseLocalVar"></param>
+        /// <param name="skillId"></param>
+        /// <param name="path"></param>
+        /// <param name="workdir"></param>
+        partial void AfterSkillsFile(ref bool suppressDefaultLog, ISkillsFileApiResponse apiResponseLocalVar, string skillId, string path, Option<string> workdir);
+
+        /// <summary>
+        /// Logs exceptions that occur while retrieving the server response
+        /// </summary>
+        /// <param name="exceptionLocalVar"></param>
+        /// <param name="pathFormatLocalVar"></param>
+        /// <param name="pathLocalVar"></param>
+        /// <param name="skillId"></param>
+        /// <param name="path"></param>
+        /// <param name="workdir"></param>
+        private void OnErrorSkillsFileDefaultImplementation(Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, string skillId, string path, Option<string> workdir)
+        {
+            bool suppressDefaultLogLocalVar = false;
+            OnErrorSkillsFile(ref suppressDefaultLogLocalVar, exceptionLocalVar, pathFormatLocalVar, pathLocalVar, skillId, path, workdir);
+            if (!suppressDefaultLogLocalVar)
+                Logger.LogError(RestLogEvents.ApiRequestFailed, exceptionLocalVar, "An error occurred while sending the request to the server.");
+        }
+
+        /// <summary>
+        /// A partial method that gives developers a way to provide customized exception handling
+        /// </summary>
+        /// <param name="suppressDefaultLogLocalVar"></param>
+        /// <param name="exceptionLocalVar"></param>
+        /// <param name="pathFormatLocalVar"></param>
+        /// <param name="pathLocalVar"></param>
+        /// <param name="skillId"></param>
+        /// <param name="path"></param>
+        /// <param name="workdir"></param>
+        partial void OnErrorSkillsFile(ref bool suppressDefaultLogLocalVar, Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, string skillId, string path, Option<string> workdir);
+
+        /// <summary>
+        /// One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it. 
+        /// </summary>
+        /// <param name="skillId">One path segment; slashes and &#x60;..&#x60; are refused.</param>
+        /// <param name="path">A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package.</param>
+        /// <param name="workdir"> (optional)</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="ISkillsFileApiResponse"/>&gt;</returns>
+        public async Task<ISkillsFileApiResponse?> SkillsFileOrDefaultAsync(string skillId, string path, Option<string> workdir = default, System.Threading.CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                return await SkillsFileAsync(skillId, path, workdir, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it. 
+        /// </summary>
+        /// <exception cref="ApiException">Thrown when fails to make API call</exception>
+        /// <param name="skillId">One path segment; slashes and &#x60;..&#x60; are refused.</param>
+        /// <param name="path">A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package.</param>
+        /// <param name="workdir"> (optional)</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="ISkillsFileApiResponse"/>&gt;</returns>
+        public async Task<ISkillsFileApiResponse> SkillsFileAsync(string skillId, string path, Option<string> workdir = default, System.Threading.CancellationToken cancellationToken = default)
+        {
+            UriBuilder uriBuilderLocalVar = new UriBuilder();
+
+            try
+            {
+                ValidateSkillsFile(skillId, path, workdir);
+
+                FormatSkillsFile(ref skillId, ref path, ref workdir);
+
+                using (HttpRequestMessage httpRequestMessageLocalVar = new HttpRequestMessage())
+                {
+                    uriBuilderLocalVar.Host = HttpClient.BaseAddress!.Host;
+                    uriBuilderLocalVar.Port = HttpClient.BaseAddress.Port;
+                    uriBuilderLocalVar.Scheme = HttpClient.BaseAddress.Scheme;
+                    uriBuilderLocalVar.Path = HttpClient.BaseAddress.AbsolutePath == "/"
+                        ? "/skills/{skillId}/file/{path}"
+                        : string.Concat(HttpClient.BaseAddress.AbsolutePath.TrimEnd('/'), "/skills/{skillId}/file/{path}");
+                    uriBuilderLocalVar.Path = uriBuilderLocalVar.Path.Replace("%7BskillId%7D", Uri.EscapeDataString(skillId.ToString()));
+                    uriBuilderLocalVar.Path = uriBuilderLocalVar.Path.Replace("%7Bpath%7D", Uri.EscapeDataString(path.ToString()));
+
+                    System.Collections.Specialized.NameValueCollection parseQueryStringLocalVar = System.Web.HttpUtility.ParseQueryString(string.Empty);
+
+                    if (workdir.IsSet)
+                        parseQueryStringLocalVar["workdir"] = ClientUtils.ParameterToString(workdir.Value);
+
+                    uriBuilderLocalVar.Query = parseQueryStringLocalVar.ToString();
+
+                    List<TokenBase> tokenBaseLocalVars = new List<TokenBase>();
+                    httpRequestMessageLocalVar.RequestUri = uriBuilderLocalVar.Uri;
+
+                    BearerToken bearerTokenLocalVar1 = (BearerToken) await BearerTokenProvider.GetAsync(cancellation: cancellationToken).ConfigureAwait(false);
+
+                    tokenBaseLocalVars.Add(bearerTokenLocalVar1);
+
+                    bearerTokenLocalVar1.UseInHeader(httpRequestMessageLocalVar, "");
+
+                    string[] acceptLocalVars = new string[] {
+                        "application/json"
+                    };
+
+                    IEnumerable<MediaTypeWithQualityHeaderValue> acceptHeaderValuesLocalVar = ClientUtils.SelectHeaderAcceptArray(acceptLocalVars);
+
+                    foreach (var acceptLocalVar in acceptHeaderValuesLocalVar)
+                        httpRequestMessageLocalVar.Headers.Accept.Add(acceptLocalVar);
+
+                    httpRequestMessageLocalVar.Method = HttpMethod.Get;
+
+                    DateTime requestedAtLocalVar = DateTime.UtcNow;
+
+                    using (HttpResponseMessage httpResponseMessageLocalVar = await HttpClient.SendAsync(httpRequestMessageLocalVar, cancellationToken).ConfigureAwait(false))
+                    {
+                        SkillsFileApiResponse apiResponseLocalVar;
+
+                        switch ((int)httpResponseMessageLocalVar.StatusCode) {
+                            default: {
+                                string responseContentLocalVar = await httpResponseMessageLocalVar.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                                apiResponseLocalVar = new(Logger, httpRequestMessageLocalVar, httpResponseMessageLocalVar, responseContentLocalVar, "/skills/{skillId}/file/{path}", requestedAtLocalVar, _jsonSerializerOptions);
+
+                                break;
+                            }
+                        }
+
+                        AfterSkillsFileDefaultImplementation(apiResponseLocalVar, skillId, path, workdir);
+
+                        Events.ExecuteOnSkillsFile(apiResponseLocalVar);
+
+                        if (apiResponseLocalVar.StatusCode == (HttpStatusCode) 429)
+                            foreach(TokenBase tokenBaseLocalVar in tokenBaseLocalVars)
+                                tokenBaseLocalVar.BeginRateLimit();
+
+                        return apiResponseLocalVar;
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                OnErrorSkillsFileDefaultImplementation(e, "/skills/{skillId}/file/{path}", uriBuilderLocalVar.Path, skillId, path, workdir);
+                Events.ExecuteOnErrorSkillsFile(e);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="SkillsFileApiResponse"/>
+        /// </summary>
+        public partial class SkillsFileApiResponse : ChatPanel.Sdk.Client.ApiResponse, ISkillsFileApiResponse
+        {
+            /// <summary>
+            /// The logger
+            /// </summary>
+            public ILogger<SkillsApi> Logger { get; }
+
+            /// <summary>
+            /// The <see cref="SkillsFileApiResponse"/>
+            /// </summary>
+            /// <param name="logger"></param>
+            /// <param name="httpRequestMessage"></param>
+            /// <param name="httpResponseMessage"></param>
+            /// <param name="rawContent"></param>
+            /// <param name="path"></param>
+            /// <param name="requestedAt"></param>
+            /// <param name="jsonSerializerOptions"></param>
+            public SkillsFileApiResponse(ILogger<SkillsApi> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, string rawContent, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, rawContent, path, requestedAt, jsonSerializerOptions)
+            {
+                Logger = logger;
+                OnCreated(httpRequestMessage, httpResponseMessage);
+            }
+
+            /// <summary>
+            /// The <see cref="SkillsFileApiResponse"/>
+            /// </summary>
+            /// <param name="logger"></param>
+            /// <param name="httpRequestMessage"></param>
+            /// <param name="httpResponseMessage"></param>
+            /// <param name="contentStream"></param>
+            /// <param name="path"></param>
+            /// <param name="requestedAt"></param>
+            /// <param name="jsonSerializerOptions"></param>
+            public SkillsFileApiResponse(ILogger<SkillsApi> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, System.IO.Stream contentStream, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, contentStream, path, requestedAt, jsonSerializerOptions)
+            {
+                Logger = logger;
+                OnCreated(httpRequestMessage, httpResponseMessage);
+            }
+
+            partial void OnCreated(global::System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage);
+
+            /// <summary>
+            /// Returns true if the response is 200 Ok
+            /// </summary>
+            /// <returns></returns>
+            public bool IsOk => 200 == (int)StatusCode;
+
+            /// <summary>
+            /// Deserializes the response if the response is 200 Ok
+            /// </summary>
+            /// <returns></returns>
+            public ChatPanel.Sdk.Model.SkillsFile200Response? Ok()
+            {
+                bool suppressDefault = false;
+                ChatPanel.Sdk.Model.SkillsFile200Response? result = null;
+                OnOk(ref suppressDefault, ref result);
+                if (!suppressDefault)
+                    result = DefaultOk();
+                return result;
+            }
+
+            private ChatPanel.Sdk.Model.SkillsFile200Response? DefaultOk()
+            {
+                // NOTICE: Consider this AsModel template deprecated. Implement the appropriate partial method instead
+                return IsOk
+                    ? System.Text.Json.JsonSerializer.Deserialize<ChatPanel.Sdk.Model.SkillsFile200Response>(RawContent, _jsonSerializerOptions)
+                    : null;
+            }
+
+            partial void OnOk(ref bool suppressDefault, ref ChatPanel.Sdk.Model.SkillsFile200Response? result);
+
+            /// <summary>
+            /// Returns true if the response is 200 Ok and the deserialized response is not null
+            /// </summary>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public bool TryOk([NotNullWhen(true)]out ChatPanel.Sdk.Model.SkillsFile200Response? result)
+            {
+                result = null;
+
+                try
+                {
+                    result = Ok();
+                } catch (Exception e)
+                {
+                    OnDeserializationErrorDefaultImplementation(e, (HttpStatusCode)200);
+                }
+
+                return result != null;
+            }
+
+            /// <summary>
+            /// Returns true if the response is 400 BadRequest
+            /// </summary>
+            /// <returns></returns>
+            public bool IsBadRequest => 400 == (int)StatusCode;
+
+            /// <summary>
+            /// Deserializes the response if the response is 400 BadRequest
+            /// </summary>
+            /// <returns></returns>
+            public ChatPanel.Sdk.Model.ErrorResponse? BadRequest()
+            {
+                bool suppressDefault = false;
+                ChatPanel.Sdk.Model.ErrorResponse? result = null;
+                OnBadRequest(ref suppressDefault, ref result);
+                if (!suppressDefault)
+                    result = DefaultBadRequest();
+                return result;
+            }
+
+            private ChatPanel.Sdk.Model.ErrorResponse? DefaultBadRequest()
+            {
+                // NOTICE: Consider this AsModel template deprecated. Implement the appropriate partial method instead
+                return IsBadRequest
+                    ? System.Text.Json.JsonSerializer.Deserialize<ChatPanel.Sdk.Model.ErrorResponse>(RawContent, _jsonSerializerOptions)
+                    : null;
+            }
+
+            partial void OnBadRequest(ref bool suppressDefault, ref ChatPanel.Sdk.Model.ErrorResponse? result);
+
+            /// <summary>
+            /// Returns true if the response is 400 BadRequest and the deserialized response is not null
+            /// </summary>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public bool TryBadRequest([NotNullWhen(true)]out ChatPanel.Sdk.Model.ErrorResponse? result)
+            {
+                result = null;
+
+                try
+                {
+                    result = BadRequest();
+                } catch (Exception e)
+                {
+                    OnDeserializationErrorDefaultImplementation(e, (HttpStatusCode)400);
+                }
+
+                return result != null;
+            }
+
+            /// <summary>
+            /// Returns true if the response is 404 NotFound
+            /// </summary>
+            /// <returns></returns>
+            public bool IsNotFound => 404 == (int)StatusCode;
+
+            /// <summary>
+            /// Deserializes the response if the response is 404 NotFound
+            /// </summary>
+            /// <returns></returns>
+            public ChatPanel.Sdk.Model.ErrorResponse? NotFound()
+            {
+                bool suppressDefault = false;
+                ChatPanel.Sdk.Model.ErrorResponse? result = null;
+                OnNotFound(ref suppressDefault, ref result);
+                if (!suppressDefault)
+                    result = DefaultNotFound();
+                return result;
+            }
+
+            private ChatPanel.Sdk.Model.ErrorResponse? DefaultNotFound()
+            {
+                // NOTICE: Consider this AsModel template deprecated. Implement the appropriate partial method instead
+                return IsNotFound
+                    ? System.Text.Json.JsonSerializer.Deserialize<ChatPanel.Sdk.Model.ErrorResponse>(RawContent, _jsonSerializerOptions)
+                    : null;
+            }
+
+            partial void OnNotFound(ref bool suppressDefault, ref ChatPanel.Sdk.Model.ErrorResponse? result);
+
+            /// <summary>
+            /// Returns true if the response is 404 NotFound and the deserialized response is not null
+            /// </summary>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public bool TryNotFound([NotNullWhen(true)]out ChatPanel.Sdk.Model.ErrorResponse? result)
+            {
+                result = null;
+
+                try
+                {
+                    result = NotFound();
+                } catch (Exception e)
+                {
+                    OnDeserializationErrorDefaultImplementation(e, (HttpStatusCode)404);
+                }
+
+                return result != null;
+            }
+
+            /// <summary>
+            /// Returns true if the response is 502 BadGateway
+            /// </summary>
+            /// <returns></returns>
+            public bool IsBadGateway => 502 == (int)StatusCode;
+
+            /// <summary>
+            /// Deserializes the response if the response is 502 BadGateway
+            /// </summary>
+            /// <returns></returns>
+            public ChatPanel.Sdk.Model.ErrorResponse? BadGateway()
+            {
+                bool suppressDefault = false;
+                ChatPanel.Sdk.Model.ErrorResponse? result = null;
+                OnBadGateway(ref suppressDefault, ref result);
+                if (!suppressDefault)
+                    result = DefaultBadGateway();
+                return result;
+            }
+
+            private ChatPanel.Sdk.Model.ErrorResponse? DefaultBadGateway()
+            {
+                // NOTICE: Consider this AsModel template deprecated. Implement the appropriate partial method instead
+                return IsBadGateway
+                    ? System.Text.Json.JsonSerializer.Deserialize<ChatPanel.Sdk.Model.ErrorResponse>(RawContent, _jsonSerializerOptions)
+                    : null;
+            }
+
+            partial void OnBadGateway(ref bool suppressDefault, ref ChatPanel.Sdk.Model.ErrorResponse? result);
+
+            /// <summary>
+            /// Returns true if the response is 502 BadGateway and the deserialized response is not null
+            /// </summary>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public bool TryBadGateway([NotNullWhen(true)]out ChatPanel.Sdk.Model.ErrorResponse? result)
+            {
+                result = null;
+
+                try
+                {
+                    result = BadGateway();
+                } catch (Exception e)
+                {
+                    OnDeserializationErrorDefaultImplementation(e, (HttpStatusCode)502);
+                }
+
+                return result != null;
+            }
+
+            private void OnDeserializationErrorDefaultImplementation(Exception exception, HttpStatusCode httpStatusCode)
+            {
+                bool suppressDefaultLog = false;
+                OnDeserializationError(ref suppressDefaultLog, exception, httpStatusCode);
+                if (!suppressDefaultLog)
+                    Logger.LogError(RestLogEvents.ApiDeserializationFailed, exception, "An error occurred while deserializing the {code} response.", httpStatusCode);
+            }
+
+            partial void OnDeserializationError(ref bool suppressDefaultLog, Exception exception, HttpStatusCode httpStatusCode);
         }
 
         partial void FormatSkillsGet(ref string skillId, ref Option<string> workdir);

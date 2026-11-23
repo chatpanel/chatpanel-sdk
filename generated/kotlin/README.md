@@ -178,6 +178,7 @@ All URIs are relative to *http://127.0.0.1:4320*
 | *RuntimeApi* | [**runtimeRecipe**](docs/RuntimeApi.md#runtimerecipe) | **GET** /v1/runtime/recipe | What a GGUF repo runs as on this machine, before anything is downloaded. |
 | *RuntimeApi* | [**runtimeService**](docs/RuntimeApi.md#runtimeservice) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container's model — each runs loopback-only and the gateway points at it. |
 | *RuntimeApi* | [**runtimeStatus**](docs/RuntimeApi.md#runtimestatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services. |
+| *SkillsApi* | [**skillsFile**](docs/SkillsApi.md#skillsfile) | **GET** /skills/{skillId}/file/{path} | One reference file a packaged skill ships — what a model opens when the skill's prompt points at it. |
 | *SkillsApi* | [**skillsGet**](docs/SkillsApi.md#skillsget) | **GET** /skills/{skillId} | One skill, with its prompt. |
 | *SkillsApi* | [**skillsList**](docs/SkillsApi.md#skillslist) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt. |
 | *SkillsApi* | [**skillsQuarantined**](docs/SkillsApi.md#skillsquarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed. |
@@ -440,6 +441,7 @@ All URIs are relative to *http://127.0.0.1:4320*
  - [net.chatpanel.sdk.models.SearchTrailAsk](docs/SearchTrailAsk.md)
  - [net.chatpanel.sdk.models.SearchTrailResting](docs/SearchTrailResting.md)
  - [net.chatpanel.sdk.models.Skill](docs/Skill.md)
+ - [net.chatpanel.sdk.models.SkillsFile200Response](docs/SkillsFile200Response.md)
  - [net.chatpanel.sdk.models.SkillsGet200Response](docs/SkillsGet200Response.md)
  - [net.chatpanel.sdk.models.SkillsList200Response](docs/SkillsList200Response.md)
  - [net.chatpanel.sdk.models.SkillsQuarantined200Response](docs/SkillsQuarantined200Response.md)

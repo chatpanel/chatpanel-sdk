@@ -28,6 +28,7 @@ import io.kotlintest.specs.ShouldSpec
 
 import net.chatpanel.sdk.apis.SkillsApi
 import net.chatpanel.sdk.models.ErrorResponse
+import net.chatpanel.sdk.models.SkillsFile200Response
 import net.chatpanel.sdk.models.SkillsGet200Response
 import net.chatpanel.sdk.models.SkillsList200Response
 import net.chatpanel.sdk.models.SkillsQuarantined200Response
@@ -36,6 +37,16 @@ class SkillsApiTest : ShouldSpec() {
     init {
         // uncomment below to create an instance of SkillsApi
         //val apiInstance = SkillsApi()
+
+        // to test skillsFile
+        should("test skillsFile") {
+            // uncomment below to test skillsFile
+            //val skillId : kotlin.String = skillId_example // kotlin.String | One path segment; slashes and `..` are refused.
+            //val path : kotlin.String = path_example // kotlin.String | A file inside the skill's package, relative to it (`SKILL.md`, `reference/forms.md`). Its own slashes stay; each segment is URL-encoded. `..` is refused, and the bridge refuses anything outside the package.
+            //val workdir : kotlin.String = workdir_example // kotlin.String | 
+            //val result : SkillsFile200Response = apiInstance.skillsFile(skillId, path, workdir)
+            //result shouldBe ("TODO")
+        }
 
         // to test skillsGet
         should("test skillsGet") {

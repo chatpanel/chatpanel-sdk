@@ -51,6 +51,20 @@ namespace ChatPanel.Sdk.Test.Api
         }
 
         /// <summary>
+        /// Test SkillsFile
+        /// </summary>
+        [Fact (Skip = "not implemented")]
+        public async Task SkillsFileAsyncTest()
+        {
+            string skillId = default!;
+            string path = default!;
+            Client.Option<string> workdir = default!;
+            var response = await _instance.SkillsFileAsync(skillId, path, workdir);
+            var model = response.Ok();
+            Assert.IsType<ChatPanel.Sdk.Model.SkillsFile200Response>(model);
+        }
+
+        /// <summary>
         /// Test SkillsGet
         /// </summary>
         [Fact (Skip = "not implemented")]

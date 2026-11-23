@@ -204,6 +204,7 @@ Class | Method | HTTP request | Description
 *RuntimeAPI* | [**RuntimeRecipe**](docs/RuntimeAPI.md#runtimerecipe) | **Get** /v1/runtime/recipe | What a GGUF repo runs as on this machine, before anything is downloaded.
 *RuntimeAPI* | [**RuntimeService**](docs/RuntimeAPI.md#runtimeservice) | **Post** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it.
 *RuntimeAPI* | [**RuntimeStatus**](docs/RuntimeAPI.md#runtimestatus) | **Get** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
+*SkillsAPI* | [**SkillsFile**](docs/SkillsAPI.md#skillsfile) | **Get** /skills/{skillId}/file/{path} | One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
 *SkillsAPI* | [**SkillsGet**](docs/SkillsAPI.md#skillsget) | **Get** /skills/{skillId} | One skill, with its prompt.
 *SkillsAPI* | [**SkillsList**](docs/SkillsAPI.md#skillslist) | **Get** /skills | The skills on this machine — with a prompt character count, not the prompt.
 *SkillsAPI* | [**SkillsQuarantined**](docs/SkillsAPI.md#skillsquarantined) | **Get** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed.
@@ -465,6 +466,7 @@ Class | Method | HTTP request | Description
  - [SearchTrailAsk](docs/SearchTrailAsk.md)
  - [SearchTrailResting](docs/SearchTrailResting.md)
  - [Skill](docs/Skill.md)
+ - [SkillsFile200Response](docs/SkillsFile200Response.md)
  - [SkillsGet200Response](docs/SkillsGet200Response.md)
  - [SkillsList200Response](docs/SkillsList200Response.md)
  - [SkillsQuarantined200Response](docs/SkillsQuarantined200Response.md)

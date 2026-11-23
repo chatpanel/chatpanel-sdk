@@ -4,6 +4,8 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 | Method | HTTP request | Description |
 |------------- | ------------- | -------------|
+| [**skillsFile**](SkillsApi.md#skillsFile) | **GET** /skills/{skillId}/file/{path} | One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it. |
+| [**skillsFileWithHttpInfo**](SkillsApi.md#skillsFileWithHttpInfo) | **GET** /skills/{skillId}/file/{path} | One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it. |
 | [**skillsGet**](SkillsApi.md#skillsGet) | **GET** /skills/{skillId} | One skill, with its prompt. |
 | [**skillsGetWithHttpInfo**](SkillsApi.md#skillsGetWithHttpInfo) | **GET** /skills/{skillId} | One skill, with its prompt. |
 | [**skillsList**](SkillsApi.md#skillsList) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt. |
@@ -11,6 +13,160 @@ All URIs are relative to *http://127.0.0.1:4320*
 | [**skillsQuarantined**](SkillsApi.md#skillsQuarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed. |
 | [**skillsQuarantinedWithHttpInfo**](SkillsApi.md#skillsQuarantinedWithHttpInfo) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed. |
 
+
+
+## skillsFile
+
+> SkillsFile200Response skillsFile(skillId, path, workdir)
+
+One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.SkillsApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        SkillsApi apiInstance = new SkillsApi(defaultClient);
+        String skillId = "skillId_example"; // String | One path segment; slashes and `..` are refused.
+        String path = "path_example"; // String | A file inside the skill's package, relative to it (`SKILL.md`, `reference/forms.md`). Its own slashes stay; each segment is URL-encoded. `..` is refused, and the bridge refuses anything outside the package.
+        String workdir = "workdir_example"; // String | 
+        try {
+            SkillsFile200Response result = apiInstance.skillsFile(skillId, path, workdir);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling SkillsApi#skillsFile");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **skillId** | **String**| One path segment; slashes and &#x60;..&#x60; are refused. | |
+| **path** | **String**| A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package. | |
+| **workdir** | **String**|  | [optional] |
+
+### Return type
+
+[**SkillsFile200Response**](SkillsFile200Response.md)
+
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | The file&#39;s text. |  -  |
+| **400** | An error, in the gateway&#39;s words. |  -  |
+| **404** | An error, in the gateway&#39;s words. |  -  |
+| **502** | An error, in the gateway&#39;s words. |  -  |
+
+## skillsFileWithHttpInfo
+
+> ApiResponse<SkillsFile200Response> skillsFileWithHttpInfo(skillId, path, workdir)
+
+One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+
+### Example
+
+```java
+// Import classes:
+import net.chatpanel.sdk.ApiClient;
+import net.chatpanel.sdk.ApiException;
+import net.chatpanel.sdk.ApiResponse;
+import net.chatpanel.sdk.Configuration;
+import net.chatpanel.sdk.auth.*;
+import net.chatpanel.sdk.models.*;
+import net.chatpanel.sdk.api.SkillsApi;
+
+public class Example {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:4320");
+        
+        // Configure HTTP bearer authorization: gatewayToken
+        HttpBearerAuth gatewayToken = (HttpBearerAuth) defaultClient.getAuthentication("gatewayToken");
+        gatewayToken.setBearerToken("BEARER TOKEN");
+
+        SkillsApi apiInstance = new SkillsApi(defaultClient);
+        String skillId = "skillId_example"; // String | One path segment; slashes and `..` are refused.
+        String path = "path_example"; // String | A file inside the skill's package, relative to it (`SKILL.md`, `reference/forms.md`). Its own slashes stay; each segment is URL-encoded. `..` is refused, and the bridge refuses anything outside the package.
+        String workdir = "workdir_example"; // String | 
+        try {
+            ApiResponse<SkillsFile200Response> response = apiInstance.skillsFileWithHttpInfo(skillId, path, workdir);
+            System.out.println("Status code: " + response.getStatusCode());
+            System.out.println("Response headers: " + response.getHeaders());
+            System.out.println("Response body: " + response.getData());
+        } catch (ApiException e) {
+            System.err.println("Exception when calling SkillsApi#skillsFile");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            System.err.println("Reason: " + e.getResponseBody());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **skillId** | **String**| One path segment; slashes and &#x60;..&#x60; are refused. | |
+| **path** | **String**| A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package. | |
+| **workdir** | **String**|  | [optional] |
+
+### Return type
+
+ApiResponse<[**SkillsFile200Response**](SkillsFile200Response.md)>
+
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | The file&#39;s text. |  -  |
+| **400** | An error, in the gateway&#39;s words. |  -  |
+| **404** | An error, in the gateway&#39;s words. |  -  |
+| **502** | An error, in the gateway&#39;s words. |  -  |
 
 
 ## skillsGet

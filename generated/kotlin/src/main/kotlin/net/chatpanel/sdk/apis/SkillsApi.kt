@@ -28,6 +28,7 @@ import okhttp3.Call
 import okhttp3.HttpUrl
 
 import net.chatpanel.sdk.models.ErrorResponse
+import net.chatpanel.sdk.models.SkillsFile200Response
 import net.chatpanel.sdk.models.SkillsGet200Response
 import net.chatpanel.sdk.models.SkillsList200Response
 import net.chatpanel.sdk.models.SkillsQuarantined200Response
@@ -54,6 +55,90 @@ open class SkillsApi(basePath: kotlin.String = defaultBasePath, client: Call.Fac
         val defaultBasePath: String by lazy {
             System.getProperties().getProperty(ApiClient.BASE_URL_KEY, "http://127.0.0.1:4320")
         }
+    }
+
+    /**
+     * GET /skills/{skillId}/file/{path}
+     * One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+     * 
+     * @param skillId One path segment; slashes and &#x60;..&#x60; are refused.
+     * @param path A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package.
+     * @param workdir  (optional)
+     * @return SkillsFile200Response
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun skillsFile(skillId: kotlin.String, path: kotlin.String, workdir: kotlin.String? = null) : SkillsFile200Response {
+        val localVarResponse = skillsFileWithHttpInfo(skillId = skillId, path = path, workdir = workdir)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as SkillsFile200Response
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * GET /skills/{skillId}/file/{path}
+     * One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+     * 
+     * @param skillId One path segment; slashes and &#x60;..&#x60; are refused.
+     * @param path A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package.
+     * @param workdir  (optional)
+     * @return ApiResponse<SkillsFile200Response?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun skillsFileWithHttpInfo(skillId: kotlin.String, path: kotlin.String, workdir: kotlin.String?) : ApiResponse<SkillsFile200Response?> {
+        val localVariableConfig = skillsFileRequestConfig(skillId = skillId, path = path, workdir = workdir)
+
+        return request<Unit, SkillsFile200Response>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation skillsFile
+     *
+     * @param skillId One path segment; slashes and &#x60;..&#x60; are refused.
+     * @param path A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package.
+     * @param workdir  (optional)
+     * @return RequestConfig
+     */
+    fun skillsFileRequestConfig(skillId: kotlin.String, path: kotlin.String, workdir: kotlin.String?) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf<kotlin.String, kotlin.collections.List<kotlin.String>>()
+            .apply {
+                if (workdir != null) {
+                    put("workdir", listOf(workdir.toString()))
+                }
+            }
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.GET,
+            path = "/skills/{skillId}/file/{path}".replace("{"+"skillId"+"}", encodeURIComponent(skillId.toString())).replace("{"+"path"+"}", encodeURIComponent(path.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
     }
 
     /**

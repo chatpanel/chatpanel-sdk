@@ -4,10 +4,63 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**skillsFile**](SkillsAPI.md#skillsfile) | **GET** /skills/{skillId}/file/{path} | One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
 [**skillsGet**](SkillsAPI.md#skillsget) | **GET** /skills/{skillId} | One skill, with its prompt.
 [**skillsList**](SkillsAPI.md#skillslist) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
 [**skillsQuarantined**](SkillsAPI.md#skillsquarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed.
 
+
+# **skillsFile**
+```swift
+    open class func skillsFile(skillId: String, path: String, workdir: String? = nil, completion: @escaping (_ data: SkillsFile200Response?, _ error: Error?) -> Void)
+```
+
+One reference file a packaged skill ships — what a model opens when the skill's prompt points at it.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import ChatPanel
+
+let skillId = "skillId_example" // String | One path segment; slashes and `..` are refused.
+let path = "path_example" // String | A file inside the skill's package, relative to it (`SKILL.md`, `reference/forms.md`). Its own slashes stay; each segment is URL-encoded. `..` is refused, and the bridge refuses anything outside the package.
+let workdir = "workdir_example" // String |  (optional)
+
+// One reference file a packaged skill ships — what a model opens when the skill's prompt points at it.
+SkillsAPI.skillsFile(skillId: skillId, path: path, workdir: workdir) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **skillId** | **String** | One path segment; slashes and &#x60;..&#x60; are refused. | 
+ **path** | **String** | A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package. | 
+ **workdir** | **String** |  | [optional] 
+
+### Return type
+
+[**SkillsFile200Response**](SkillsFile200Response.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **skillsGet**
 ```swift

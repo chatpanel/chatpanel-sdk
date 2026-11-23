@@ -9,10 +9,56 @@ All URIs are relative to *http://127.0.0.1:4320*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**skillsFile**](SkillsApi.md#skillsfile) | **GET** /skills/{skillId}/file/{path} | One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
 [**skillsGet**](SkillsApi.md#skillsget) | **GET** /skills/{skillId} | One skill, with its prompt.
 [**skillsList**](SkillsApi.md#skillslist) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
 [**skillsQuarantined**](SkillsApi.md#skillsquarantined) | **GET** /skills-quarantined | Packages the admission scanner refused — what is on disk and deliberately not listed.
 
+
+# **skillsFile**
+> SkillsFile200Response skillsFile(skillId, path, workdir)
+
+One reference file a packaged skill ships — what a model opens when the skill's prompt points at it.
+
+### Example
+```dart
+import 'package:chatpanel/api.dart';
+
+final api = Chatpanel().getSkillsApi();
+final String skillId = skillId_example; // String | One path segment; slashes and `..` are refused.
+final String path = path_example; // String | A file inside the skill's package, relative to it (`SKILL.md`, `reference/forms.md`). Its own slashes stay; each segment is URL-encoded. `..` is refused, and the bridge refuses anything outside the package.
+final String workdir = workdir_example; // String | 
+
+try {
+    final response = api.skillsFile(skillId, path, workdir);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling SkillsApi->skillsFile: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **skillId** | **String**| One path segment; slashes and `..` are refused. | 
+ **path** | **String**| A file inside the skill's package, relative to it (`SKILL.md`, `reference/forms.md`). Its own slashes stay; each segment is URL-encoded. `..` is refused, and the bridge refuses anything outside the package. | 
+ **workdir** | **String**|  | [optional] 
+
+### Return type
+
+[**SkillsFile200Response**](SkillsFile200Response.md)
+
+### Authorization
+
+[gatewayToken](../README.md#gatewayToken)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **skillsGet**
 > SkillsGet200Response skillsGet(skillId, workdir)

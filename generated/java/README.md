@@ -354,6 +354,8 @@ Class | Method | HTTP request | Description
 *RuntimeApi* | [**runtimeServiceWithHttpInfo**](docs/RuntimeApi.md#runtimeServiceWithHttpInfo) | **POST** /v1/runtime/services/{id} | Start or stop a catalogue service, or pick a capability container&#39;s model — each runs loopback-only and the gateway points at it.
 *RuntimeApi* | [**runtimeStatus**](docs/RuntimeApi.md#runtimeStatus) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
 *RuntimeApi* | [**runtimeStatusWithHttpInfo**](docs/RuntimeApi.md#runtimeStatusWithHttpInfo) | **GET** /v1/runtime | The runtime — the process sandbox, what is running now, the container engine, the services.
+*SkillsApi* | [**skillsFile**](docs/SkillsApi.md#skillsFile) | **GET** /skills/{skillId}/file/{path} | One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+*SkillsApi* | [**skillsFileWithHttpInfo**](docs/SkillsApi.md#skillsFileWithHttpInfo) | **GET** /skills/{skillId}/file/{path} | One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
 *SkillsApi* | [**skillsGet**](docs/SkillsApi.md#skillsGet) | **GET** /skills/{skillId} | One skill, with its prompt.
 *SkillsApi* | [**skillsGetWithHttpInfo**](docs/SkillsApi.md#skillsGetWithHttpInfo) | **GET** /skills/{skillId} | One skill, with its prompt.
 *SkillsApi* | [**skillsList**](docs/SkillsApi.md#skillsList) | **GET** /skills | The skills on this machine — with a prompt character count, not the prompt.
@@ -634,6 +636,7 @@ Class | Method | HTTP request | Description
  - [SearchTrailAsk](docs/SearchTrailAsk.md)
  - [SearchTrailResting](docs/SearchTrailResting.md)
  - [Skill](docs/Skill.md)
+ - [SkillsFile200Response](docs/SkillsFile200Response.md)
  - [SkillsGet200Response](docs/SkillsGet200Response.md)
  - [SkillsList200Response](docs/SkillsList200Response.md)
  - [SkillsQuarantined200Response](docs/SkillsQuarantined200Response.md)

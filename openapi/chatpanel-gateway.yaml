@@ -2880,6 +2880,34 @@ paths:
         '400': { $ref: '#/components/responses/Error' }
         '502': { $ref: '#/components/responses/Error' }
 
+  /skills/{skillId}/file/{path}:
+    parameters:
+      - { name: skillId, in: path, required: true, schema: { type: string, maxLength: 200, pattern: '^[^/\\]+$' }, description: "One path segment; slashes and `..` are refused." }
+      - { name: path, in: path, required: true, schema: { type: string, maxLength: 1024 }, description: "A file inside the skill's package, relative to it (`SKILL.md`, `reference/forms.md`). Its own slashes stay; each segment is URL-encoded. `..` is refused, and the bridge refuses anything outside the package." }
+    get:
+      operationId: skills.file
+      tags: [skills]
+      summary: One reference file a packaged skill ships — what a model opens when the skill's prompt points at it.
+      x-chatpanel-auth: open
+      x-chatpanel-since: '0.11.4'
+      parameters:
+        - { name: workdir, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: The file's text.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, text]
+                properties:
+                  ok: { type: boolean }
+                  path: { type: string }
+                  text: { type: string }
+        '400': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '502': { $ref: '#/components/responses/Error' }
+
   # ── audio ──────────────────────────────────────────────────────────────────────────────
   /v1/audio/transcriptions:
     post:

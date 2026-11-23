@@ -19,6 +19,89 @@ module ChatPanel
     def initialize(api_client = ApiClient.default)
       @api_client = api_client
     end
+    # One reference file a packaged skill ships — what a model opens when the skill's prompt points at it.
+    # @param skill_id [String] One path segment; slashes and &#x60;..&#x60; are refused.
+    # @param path [String] A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package.
+    # @param [Hash] opts the optional parameters
+    # @option opts [String] :workdir 
+    # @return [SkillsFile200Response]
+    def skills_file(skill_id, path, opts = {})
+      data, _status_code, _headers = skills_file_with_http_info(skill_id, path, opts)
+      data
+    end
+
+    # One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+    # @param skill_id [String] One path segment; slashes and &#x60;..&#x60; are refused.
+    # @param path [String] A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package.
+    # @param [Hash] opts the optional parameters
+    # @option opts [String] :workdir 
+    # @return [Array<(SkillsFile200Response, Integer, Hash)>] SkillsFile200Response data, response status code and response headers
+    def skills_file_with_http_info(skill_id, path, opts = {})
+      if @api_client.config.debugging
+        @api_client.config.logger.debug 'Calling API: SkillsApi.skills_file ...'
+      end
+      # verify the required parameter 'skill_id' is set
+      if @api_client.config.client_side_validation && skill_id.nil?
+        fail ArgumentError, "Missing the required parameter 'skill_id' when calling SkillsApi.skills_file"
+      end
+      if @api_client.config.client_side_validation && skill_id.to_s.length > 200
+        fail ArgumentError, 'invalid value for "skill_id" when calling SkillsApi.skills_file, the character length must be smaller than or equal to 200.'
+      end
+
+      pattern = Regexp.new(/^[^\/\\]+$/)
+      if @api_client.config.client_side_validation && skill_id !~ pattern
+        fail ArgumentError, "invalid value for 'skill_id' when calling SkillsApi.skills_file, must conform to the pattern #{pattern}."
+      end
+
+      # verify the required parameter 'path' is set
+      if @api_client.config.client_side_validation && path.nil?
+        fail ArgumentError, "Missing the required parameter 'path' when calling SkillsApi.skills_file"
+      end
+      if @api_client.config.client_side_validation && path.to_s.length > 1024
+        fail ArgumentError, 'invalid value for "path" when calling SkillsApi.skills_file, the character length must be smaller than or equal to 1024.'
+      end
+
+      # resource path
+      local_var_path = '/skills/{skillId}/file/{path}'.sub('{skillId}', CGI.escape(skill_id.to_s)).sub('{path}', CGI.escape(path.to_s))
+
+      # query parameters
+      query_params = opts[:query_params] || {}
+      query_params[:'workdir'] = opts[:'workdir'] if !opts[:'workdir'].nil?
+
+      # header parameters
+      header_params = opts[:header_params] || {}
+      # HTTP header 'Accept' (if needed)
+      header_params['Accept'] = @api_client.select_header_accept(['application/json']) unless header_params['Accept']
+
+      # form parameters
+      form_params = opts[:form_params] || {}
+
+      # http body (model)
+      post_body = opts[:debug_body]
+
+      # return_type
+      return_type = opts[:debug_return_type] || 'SkillsFile200Response'
+
+      # auth_names
+      auth_names = opts[:debug_auth_names] || ['gatewayToken']
+
+      new_options = opts.merge(
+        :operation => :"SkillsApi.skills_file",
+        :header_params => header_params,
+        :query_params => query_params,
+        :form_params => form_params,
+        :body => post_body,
+        :auth_names => auth_names,
+        :return_type => return_type
+      )
+
+      data, status_code, headers = @api_client.call_api(:GET, local_var_path, new_options)
+      if @api_client.config.debugging
+        @api_client.config.logger.debug "API called: SkillsApi#skills_file\nData: #{data.inspect}\nStatus code: #{status_code}\nHeaders: #{headers}"
+      end
+      return data, status_code, headers
+    end
+
     # One skill, with its prompt.
     # @param skill_id [String] One path segment; slashes and &#x60;..&#x60; are refused.
     # @param [Hash] opts the optional parameters

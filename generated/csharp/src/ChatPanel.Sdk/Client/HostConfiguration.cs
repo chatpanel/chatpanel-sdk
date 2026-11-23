@@ -282,6 +282,7 @@ namespace ChatPanel.Sdk.Client
             _jsonOptions.Converters.Add(new SearchTrailAskJsonConverter());
             _jsonOptions.Converters.Add(new SearchTrailRestingJsonConverter());
             _jsonOptions.Converters.Add(new SkillJsonConverter());
+            _jsonOptions.Converters.Add(new SkillsFile200ResponseJsonConverter());
             _jsonOptions.Converters.Add(new SkillsGet200ResponseJsonConverter());
             _jsonOptions.Converters.Add(new SkillsList200ResponseJsonConverter());
             _jsonOptions.Converters.Add(new SkillsQuarantined200ResponseJsonConverter());

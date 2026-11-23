@@ -10,6 +10,58 @@ import Foundation
 open class SkillsAPI {
 
     /**
+     One reference file a packaged skill ships — what a model opens when the skill's prompt points at it.
+     
+     - parameter skillId: (path) One path segment; slashes and &#x60;..&#x60; are refused. 
+     - parameter path: (path) A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package. 
+     - parameter workdir: (query)  (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: SkillsFile200Response
+     */
+    open class func skillsFile(skillId: String, path: String, workdir: String? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) async throws(ErrorResponse) -> SkillsFile200Response {
+        return try await skillsFileWithRequestBuilder(skillId: skillId, path: path, workdir: workdir, apiConfiguration: apiConfiguration).execute().body
+    }
+
+    /**
+     One reference file a packaged skill ships — what a model opens when the skill's prompt points at it.
+     - GET /skills/{skillId}/file/{path}
+     - Bearer Token:
+       - type: http
+       - name: gatewayToken
+     - parameter skillId: (path) One path segment; slashes and &#x60;..&#x60; are refused. 
+     - parameter path: (path) A file inside the skill&#39;s package, relative to it (&#x60;SKILL.md&#x60;, &#x60;reference/forms.md&#x60;). Its own slashes stay; each segment is URL-encoded. &#x60;..&#x60; is refused, and the bridge refuses anything outside the package. 
+     - parameter workdir: (query)  (optional)
+     - parameter apiConfiguration: The configuration for the http request.
+     - returns: RequestBuilder<SkillsFile200Response> 
+     */
+    open class func skillsFileWithRequestBuilder(skillId: String, path: String, workdir: String? = nil, apiConfiguration: ChatPanelAPIConfiguration = ChatPanelAPIConfiguration.shared) -> RequestBuilder<SkillsFile200Response> {
+        var localVariablePath = "/skills/{skillId}/file/{path}"
+        let skillIdPreEscape = "\(APIHelper.mapValueToPathItem(skillId))"
+        let skillIdPostEscape = skillIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{skillId}", with: skillIdPostEscape, options: .literal, range: nil)
+        let pathPreEscape = "\(APIHelper.mapValueToPathItem(path))"
+        let pathPostEscape = pathPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{path}", with: pathPostEscape, options: .literal, range: nil)
+        let localVariableURLString = apiConfiguration.basePath + localVariablePath
+        let localVariableParameters: [String: any Sendable]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "workdir": (wrappedValue: workdir?.asParameter(codableHelper: apiConfiguration.codableHelper), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: (any Sendable)?] = [
+            :
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<SkillsFile200Response>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+    }
+
+    /**
      One skill, with its prompt.
      
      - parameter skillId: (path) One path segment; slashes and &#x60;..&#x60; are refused. 

@@ -15,6 +15,7 @@ package net.chatpanel.sdk.api;
 
 import net.chatpanel.sdk.ApiException;
 import net.chatpanel.sdk.model.ErrorResponse;
+import net.chatpanel.sdk.model.SkillsFile200Response;
 import net.chatpanel.sdk.model.SkillsGet200Response;
 import net.chatpanel.sdk.model.SkillsList200Response;
 import net.chatpanel.sdk.model.SkillsQuarantined200Response;
@@ -36,6 +37,25 @@ public class SkillsApiTest {
 
     private final SkillsApi api = new SkillsApi();
 
+    
+    /**
+     * One reference file a packaged skill ships — what a model opens when the skill&#39;s prompt points at it.
+     *
+     * 
+     *
+     * @throws ApiException
+     *          if the Api call fails
+     */
+    @Test
+    public void skillsFileTest() throws ApiException {
+        String skillId = null;
+        String path = null;
+        String workdir = null;
+        SkillsFile200Response response = 
+        api.skillsFile(skillId, path, workdir);
+        
+        // TODO: test validations
+    }
     
     /**
      * One skill, with its prompt.
